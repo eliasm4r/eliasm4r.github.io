@@ -765,7 +765,7 @@ header .navbar ul li a:hover {
 
 /* Style des légendes sous les images */
 .skills .container .caption {
-    font-size: 18px; /* Augmenter la taille du texte */
+    font-size: 40px; /* Augmenter la taille du texte */
     margin-top: 10px; /* Augmenter l'espace entre l'image et le texte */
     font-weight: bold;
     text-align: center;
