@@ -752,6 +752,7 @@ header .navbar ul li a:hover {
     padding: 15px; /* Inner spacing */
     vertical-align: middle; /* Center content vertically */
     width: 25%; /* Equal column sizes */
+    text-align: center;
 }
 
 .skills .container img {
@@ -761,6 +762,16 @@ header .navbar ul li a:hover {
     display: block; /* Ensure centering with margin auto */
     margin: 0 auto;
 }
+
+/* Style des légendes sous les images */
+.skills .container .caption {
+    font-size: 18px; /* Augmenter la taille du texte */
+    margin-top: 10px; /* Augmenter l'espace entre l'image et le texte */
+    font-weight: bold;
+    text-align: center;
+    color: var(--color-white);
+}
+
 
 /* Remove minimum height */
 .skills {
@@ -775,7 +786,7 @@ header .navbar ul li a:hover {
     }
 
     .skills .container td {
-        width: 50%; /* Two columns on smaller screens */
+        width: 500%; /* Two columns on smaller screens */
         padding: 10px; /* Reduced padding */
     }
 
