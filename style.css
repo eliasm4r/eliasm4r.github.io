@@ -255,6 +255,10 @@ section {
     text-align: center;
 }
 
+.heading i {
+    margin-right: 0.8rem;
+}
+
 .heading span {
     color: var(--color-light-pink);
 }
@@ -751,25 +755,51 @@ header .navbar ul li a:hover {
 .skills .container td {
     padding: 15px; /* Inner spacing */
     vertical-align: middle; /* Center content vertically */
-    width: 25%; /* Equal column sizes */
+    width: 20%; /* Equal column sizes (5 columns) */
     text-align: center;
 }
 
-.skills .container img {
-    width: 150px; /* Maximum image size */
-    height: auto; /* Maintain aspect ratio */
-    max-height: 150px;
-    display: block; /* Ensure centering with margin auto */
+.skill-td {
+    cursor: pointer !important;
+    transition: transform 0.25s ease, filter 0.25s ease;
+    border-radius: 12px;
+    padding: 15px !important;
+    width: 20% !important;
+    min-width: 140px;
+    height: 180px;
+    vertical-align: middle !important;
+}
+
+.skill-td-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 130px;
+    height: 150px;
     margin: 0 auto;
+}
+
+.skills .container img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+    flex-shrink: 0;
 }
 
 /* Style des légendes sous les images */
 .skills .container .caption {
-    font-size: 40px; /* Augmenter la taille du texte */
-    margin-top: 10px; /* Augmenter l'espace entre l'image et le texte */
+    font-size: 1.4rem;
+    margin-top: 8px;
     font-weight: bold;
     text-align: center;
     color: var(--color-white);
+    line-height: 1.2;
+    word-break: break-word;
+    hyphens: auto;
+    max-width: 120px;
 }
 
 
@@ -1097,7 +1127,7 @@ background: var(--color-grey);
     bottom: 0;
     left: 50%;
     margin-left: -3px;
-    z-index: 1; /* Changez -2 à 1 */
+    z-index: -1;
 }
 
 .experience .container {
@@ -1111,19 +1141,25 @@ background: var(--color-grey);
 .experience .container::after {
     content: "\f0b1";
     position: absolute;
-    width: 25px;
-    height: 25px;
-    right: -17px;
-    background-color: rgb(255, 255, 255);
-    border: 4px solid var(--color-light-pink);
     top: 15px;
+    left: 100%;
+    transform: translate(-50%, 0);
+
+    width: 40px;
+    height: 40px;
+    background-color: #fff;
+    border: 4px solid var(--color-light-pink);
     border-radius: 50%;
     z-index: 100;
-    font-size: 1.89rem;
-    text-align: center;
-    font-weight: 600;
-    color: #000;
-    font-family: "Font Awesome\ 5 Free";
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 2rem;
+    color: var(--color-light-pink);
 }
 
 .experience .left {
@@ -1163,7 +1199,8 @@ background: var(--color-grey);
 }
 
 .experience .right::after {
-    left: -16px;
+    left: 0;
+    transform: translate(-50%, 0);
 }
 
 .experience .content {
@@ -1738,3 +1775,331 @@ background: var(--color-grey);
 p{
     text-transform: none;
 }
+/* ===================================================
+   CUSTOM CURSOR
+   =================================================== */
+*, *:hover, *:focus, a, a:hover, button, button:hover,
+input, select, textarea, label,
+.skill-td, .skill-td:hover,
+.experience-stage, .experience-stage:hover,
+[onclick], [onclick]:hover { cursor: none !important; }
+
+.cursor-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--color-light-pink);
+    border-radius: 50%;
+    position: fixed;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 99999;
+    transform: translate(-50%, -50%);
+    transition: width 0.2s, height 0.2s, background 0.2s;
+}
+
+.cursor-outline {
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--color-light-pink);
+    border-radius: 50%;
+    position: fixed;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 99998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.08s linear, width 0.2s, height 0.2s, opacity 0.2s;
+    opacity: 0.6;
+}
+
+body:hover .cursor-dot { opacity: 1; }
+
+/* Cursor grow on hoverable elements */
+a:hover ~ .cursor-dot,
+button:hover ~ .cursor-dot,
+.skill-td:hover ~ .cursor-dot {
+    width: 16px;
+    height: 16px;
+}
+
+/* ===================================================
+   SKILLS — Clickable icons & modal
+   =================================================== */
+.skills-subtitle {
+    font-size: 1.4rem;
+    color: rgba(255,255,255,0.65);
+    text-align: center;
+    margin-top: 0.5rem;
+    letter-spacing: 0.05rem;
+    font-style: italic;
+}
+
+.skill-td:hover {
+    transform: translateY(-8px) scale(1.08);
+    filter: drop-shadow(0 6px 18px rgba(221, 104, 159, 0.55));
+}
+
+.skill-td img {
+    transition: transform 0.3s ease;
+}
+
+.skill-td:hover img {
+    transform: rotate(-4deg) scale(1.07);
+}
+
+/* Skill modal overlay */
+.skill-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 5000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    animation: fadeInOverlay 0.25s ease;
+}
+
+.skill-modal.open {
+    display: flex;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.skill-modal-inner {
+    background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+    border: 1px solid var(--color-light-pink);
+    border-radius: 18px;
+    padding: 3.5rem;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(221, 104, 159, 0.25);
+    animation: slideUpModal 0.3s ease;
+    text-align: center;
+}
+
+@keyframes slideUpModal {
+    from { transform: translateY(40px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+
+.skill-modal-inner .skill-modal-icon img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 1.5rem;
+}
+
+.skill-modal-inner h3 {
+    font-size: 2.2rem;
+    color: var(--color-light-pink);
+    margin-bottom: 1.2rem;
+}
+
+.skill-modal-inner p {
+    font-size: 1.5rem;
+    line-height: 1.75;
+    color: rgba(255,255,255,0.85);
+    text-align: left;
+}
+
+.skill-modal-close {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.4rem;
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer !important;
+    transition: color 0.2s;
+}
+
+.skill-modal-close:hover { color: var(--color-light-pink); }
+
+/* ===================================================
+   EXPERIENCE — Stage cards (rose + cliquable)
+   =================================================== */
+.experience-stage {
+    cursor: pointer !important;
+}
+
+.experience-stage .stage-content {
+    background: linear-gradient(135deg, #fff0f5 0%, #ffe4ef 100%) !important;
+    border: 1.5px solid rgba(221, 104, 159, 0.45);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.experience-stage:hover .stage-content {
+    transform: scale(1.02);
+    box-shadow: 0 8px 28px rgba(221, 104, 159, 0.35);
+}
+
+.experience-stage .stage-content .tag h2,
+.experience-stage .stage-content .desc h3,
+.experience-stage .stage-content .desc p {
+    color: #3a1020 !important;
+}
+
+.click-hint {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+    color: var(--color-light-pink);
+    font-style: italic;
+    font-weight: 600;
+}
+
+.click-hint i {
+    margin-right: 0.3rem;
+    color: var(--color-light-pink) !important;
+}
+
+/* Stage detail modals */
+.stage-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 6000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+    padding: 2rem;
+}
+
+.stage-modal-overlay.active {
+    display: flex;
+    animation: fadeInOverlay 0.25s ease;
+}
+
+.stage-modal-box {
+    background: linear-gradient(145deg, #1c0a14 0%, #2e1020 100%);
+    border: 1.5px solid var(--color-light-pink);
+    border-radius: 18px;
+    padding: 3rem 3.5rem;
+    max-width: 680px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 24px 70px rgba(221, 104, 159, 0.3);
+    animation: slideUpModal 0.3s ease;
+    color: #fff;
+}
+
+.stage-modal-box h2 {
+    font-size: 2rem;
+    color: var(--color-light-pink);
+    margin-bottom: 1.2rem;
+    line-height: 1.3;
+}
+
+.stage-modal-box h4 {
+    font-size: 1.5rem;
+    color: var(--color-light-pink);
+    margin: 1.8rem 0 0.7rem 0;
+    border-bottom: 1px solid rgba(221,104,159,0.3);
+    padding-bottom: 0.4rem;
+}
+
+.stage-modal-box p {
+    font-size: 1.45rem;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.85);
+}
+
+.stage-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.stage-meta span {
+    font-size: 1.3rem;
+    color: rgba(255,255,255,0.65);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stage-meta span i {
+    color: var(--color-light-pink) !important;
+    font-size: 1.3rem;
+}
+
+.stage-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.stage-tags span {
+    background: rgba(221, 104, 159, 0.15);
+    border: 1px solid rgba(221, 104, 159, 0.4);
+    color: #f0a0c5;
+    padding: 0.4rem 1.2rem;
+    border-radius: 20px;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.stage-modal-close {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer !important;
+    transition: color 0.2s;
+}
+
+.stage-modal-close:hover { color: var(--color-light-pink); }
+
+/* Scrollbar for modal */
+.stage-modal-box::-webkit-scrollbar { width: 5px; }
+.stage-modal-box::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+.stage-modal-box::-webkit-scrollbar-thumb { background: var(--color-light-pink); border-radius: 10px; }
+
+/* ===================================================
+   DARKER GREYS (légèrement assombris)
+   =================================================== */
+:root {
+    --color-dark-grey: #141414;
+    --color-grey: #252525;
+}
+
+/* ===================================================
+   SCROLLBAR (thème)
+   =================================================== */
+html::-webkit-scrollbar-track { background: #1e1e1e; }
+html::-webkit-scrollbar-thumb { background: var(--color-light-pink); border-radius: 10px; }
+
+/* ===================================================
+   ANIMATION: heading underline glow
+   =================================================== */
+.heading span {
+    position: relative;
+    display: inline-block;
+}
+.heading span::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--color-light-pink);
+    border-radius: 2px;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s ease;
+}
+.heading:hover span::after { transform: scaleX(1); }
