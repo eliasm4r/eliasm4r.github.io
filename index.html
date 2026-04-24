@@ -21,6 +21,17 @@
 
 <body oncontextmenu="return false">
 
+    <div class="page-loader" id="pageLoader" aria-hidden="true">
+        <div class="loader-core">
+            <div class="loader-rings">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <p class="loader-text">Chargement du portfolio...</p>
+        </div>
+    </div>
+
     <!-- Custom Cursor -->
     <div class="cursor-dot"></div>
     <div class="cursor-outline"></div>
@@ -84,15 +95,25 @@
                 <h3>Je m'appelle Elias Maruca</h3>
                 <span class="tag">Étudiant en 3ème année de BUT Informatique</span>
                 <p>
-                    Étudiant en troisième année de BUT Informatique à l'Université de Lille, je poursuis ma formation en développant mes compétences dans des domaines variés : développement web, bases de données avancées, qualité logicielle et modélisation. Passionné d'informatique depuis l'enfance — une passion née en jouant aux jeux vidéo sur l'ordinateur de mon père —, j'ai rapidement eu envie de comprendre comment ces univers numériques étaient construits.
+                    Étudiant en troisième année de BUT Informatique à l'Université de Lille, je poursuis ma formation en
+                    développant mes compétences dans des domaines variés : développement web, bases de données avancées,
+                    qualité logicielle et modélisation. Passionné d'informatique depuis l'enfance — une passion née en
+                    jouant aux jeux vidéo sur l'ordinateur de mon père —, j'ai rapidement eu envie de comprendre comment
+                    ces univers numériques étaient construits.
                 </p>
                 <br />
                 <p>
-                    Cette troisième année marque une étape importante dans mon parcours : je consolide mes acquis techniques tout en découvrant de nouvelles technologies comme Spring Boot, React ou NoSQL. Mon objectif à court terme est d'obtenir mon BUT avec mention, puis d'intégrer une école d'ingénieurs ou un master spécialisé en développement logiciel ou cybersécurité.
+                    Cette troisième année marque une étape importante dans mon parcours : je consolide mes acquis
+                    techniques tout en découvrant de nouvelles technologies comme Spring Boot, React ou NoSQL. Mon
+                    objectif à court terme est d'obtenir mon BUT avec mention, puis d'intégrer une école d'ingénieurs ou
+                    un master spécialisé en développement logiciel ou cybersécurité.
                 </p>
                 <br />
                 <p>
-                    Curieux, rigoureux et impliqué, je m'épanouis aussi bien dans le travail individuel qu'en équipe. Mes expériences en stage et en projets collectifs m'ont appris à analyser les besoins, à communiquer efficacement et à livrer des solutions de qualité dans les délais impartis. Ces savoir-être — autonomie, esprit d'équipe et adaptabilité — sont au cœur de ma façon de travailler.
+                    Curieux, rigoureux et impliqué, je m'épanouis aussi bien dans le travail individuel qu'en équipe.
+                    Mes expériences en stage et en projets collectifs m'ont appris à analyser les besoins, à communiquer
+                    efficacement et à livrer des solutions de qualité dans les délais impartis. Ces savoir-être —
+                    autonomie, esprit d'équipe et adaptabilité — sont au cœur de ma façon de travailler.
                 </p>
                 <br />
                 <div class="box-container">
@@ -102,8 +123,7 @@
                 </div>
 
                 <div class="resumebtn">
-                    <a href="https://nextcloud.univ-lille.fr/index.php/s/HxgBHz7CzytasSe" target="_blank"
-                        class="btn resume-btn">
+                    <a href="#" id="openCvModal" class="btn resume-btn no-scroll">
                         <span>MON CV</span>
                         <i class="fas fa-chevron-right"></i>
                     </a>
@@ -114,8 +134,7 @@
     <!-- about section ends -->
 
     <!-- skills section starts -->
-    <section class="skills" id="skills"
-        style="background-image: url('./assets/fond.jpg'); background-size: cover; background-attachment: fixed;">
+    <section class="skills" id="skills" style="background-image: url('./assets/fond.jpg'); background-size: cover;">
         <h2 class="heading">
             <i class="fas fa-laptop-code"></i><span> Compétences</span>
         </h2>
@@ -127,108 +146,106 @@
                 <button class="skill-modal-close" id="skillModalClose"><i class="fas fa-times"></i></button>
                 <div class="skill-modal-icon"><img id="skillModalImg" src="" alt="" /></div>
                 <h3 id="skillModalTitle"></h3>
+                <div class="skill-level-wrap">
+                    <div class="skill-level-meta">
+                        <span>Niveau</span>
+                        <span id="skillModalLevelLabel"></span>
+                    </div>
+                    <div class="skill-level-track">
+                        <div class="skill-level-fill" id="skillModalLevelBar"></div>
+                    </div>
+                </div>
                 <p id="skillModalDesc"></p>
             </div>
         </div>
 
-        <table class="container">
-            <tr>
-                <td class="skill-td" data-skill="html">
-                    <div class="skill-td-inner">
-                        <img src="./assets/html.png" alt="Logo HTML">
-                        <div class="caption">HTML / CSS</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="javascript">
-                    <div class="skill-td-inner">
-                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="Logo JavaScript">
-                        <div class="caption">JavaScript</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="typescript">
-                    <div class="skill-td-inner">
-                        <img src="./assets/ts.png" alt="Logo TypeScript">
-                        <div class="caption">TypeScript</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="vuejs">
-                    <div class="skill-td-inner">
-                        <img src="./assets/vuejs.png" alt="Logo VueJs">
-                        <div class="caption">VueJs</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="react">
-                    <div class="skill-td-inner">
-                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" alt="Logo React">
-                        <div class="caption">React</div>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td class="skill-td" data-skill="java">
-                    <div class="skill-td-inner">
-                        <img src="./assets/java.svg" alt="Logo JAVA">
-                        <div class="caption">Java</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="springboot">
-                    <div class="skill-td-inner">
-                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg" alt="Logo Spring Boot">
-                        <div class="caption">Spring Boot</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="python">
-                    <div class="skill-td-inner">
-                        <img src="./assets/python.png" alt="Logo PYTHON">
-                        <div class="caption">Python</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="c">
-                    <div class="skill-td-inner">
-                        <img src="./assets/C_Logo.png" alt="Logo C">
-                        <div class="caption">C</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="bash">
-                    <div class="skill-td-inner">
-                        <img src="./assets/bash.png" alt="Logo BASH">
-                        <div class="caption">Bash</div>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td class="skill-td" data-skill="psql">
-                    <div class="skill-td-inner">
-                        <img src="./assets/PSQL.png" alt="Logo PSQL">
-                        <div class="caption">PostgreSQL</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="nosql">
-                    <div class="skill-td-inner">
-                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg" alt="Logo NoSQL">
-                        <div class="caption">NoSQL</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="github">
-                    <div class="skill-td-inner">
-                        <img src="./assets/github.png" alt="Logo GitHub">
-                        <div class="caption">GitHub</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="gitlab">
-                    <div class="skill-td-inner">
-                        <img src="./assets/gitlab.png" alt="Logo GitLab">
-                        <div class="caption">GitLab</div>
-                    </div>
-                </td>
-                <td class="skill-td" data-skill="maths">
-                    <div class="skill-td-inner">
-                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/matlab/matlab-original.svg" alt="Logo Modélisation Math">
-                        <div class="caption">Modélisation Math.</div>
-                    </div>
-                </td>
-            </tr>
-        </table>
+        <div class="skills-grid">
+            <div class="skill-td" data-skill="html">
+                <div class="skill-td-inner"><img src="./assets/html.png" alt="Logo HTML">
+                    <div class="caption">HTML / CSS</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="javascript">
+                <div class="skill-td-inner"><img
+                        src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
+                        alt="Logo JavaScript">
+                    <div class="caption">JavaScript</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="typescript">
+                <div class="skill-td-inner"><img src="./assets/ts.png" alt="Logo TypeScript">
+                    <div class="caption">TypeScript</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="vuejs">
+                <div class="skill-td-inner"><img src="./assets/vuejs.png" alt="Logo VueJs">
+                    <div class="caption">VueJs</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="react">
+                <div class="skill-td-inner"><img
+                        src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg"
+                        alt="Logo React">
+                    <div class="caption">React</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="java">
+                <div class="skill-td-inner"><img src="./assets/java.svg" alt="Logo JAVA">
+                    <div class="caption">Java</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="springboot">
+                <div class="skill-td-inner"><img
+                        src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg"
+                        alt="Logo Spring Boot">
+                    <div class="caption">Spring Boot</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="python">
+                <div class="skill-td-inner"><img src="./assets/python.png" alt="Logo PYTHON">
+                    <div class="caption">Python</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="c">
+                <div class="skill-td-inner"><img src="./assets/C_Logo.png" alt="Logo C">
+                    <div class="caption">C</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="bash">
+                <div class="skill-td-inner"><img src="./assets/bash.png" alt="Logo BASH">
+                    <div class="caption">Bash</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="psql">
+                <div class="skill-td-inner"><img src="./assets/PSQL.png" alt="Logo PSQL">
+                    <div class="caption">PostgreSQL</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="nosql">
+                <div class="skill-td-inner"><img
+                        src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg"
+                        alt="Logo NoSQL">
+                    <div class="caption">NoSQL</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="github">
+                <div class="skill-td-inner"><img src="./assets/github.png" alt="Logo GitHub">
+                    <div class="caption">GitHub</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="gitlab">
+                <div class="skill-td-inner"><img src="./assets/gitlab.png" alt="Logo GitLab">
+                    <div class="caption">GitLab</div>
+                </div>
+            </div>
+            <div class="skill-td" data-skill="maths">
+                <div class="skill-td-inner"><img
+                        src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/matlab/matlab-original.svg"
+                        alt="Logo Modélisation Math">
+                    <div class="caption">Modélisation Math.</div>
+                </div>
+            </div>
+        </div>
     </section>
     <!-- skills section ends -->
 
@@ -240,7 +257,8 @@
         <div class="box-container">
             <div class="box">
                 <div class="image">
-                    <img draggable="false" src="./assets/iuta.jpg" alt="IUT de Lille" style="width: 550px; height: 250px" />
+                    <img draggable="false" src="./assets/iuta.jpg" alt="IUT de Lille"
+                        style="width: 550px; height: 250px" />
                 </div>
                 <div class="content">
                     <h3>3ème année de BUT Informatique</h3>
@@ -250,7 +268,8 @@
             </div>
             <div class="box">
                 <div class="image">
-                    <img draggable="false" src="./assets/stremi.jpeg" alt="Lycée Saint Rémi" style="width: 550px; height: 250px" />
+                    <img draggable="false" src="./assets/stremi.jpeg" alt="Lycée Saint Rémi"
+                        style="width: 550px; height: 250px" />
                 </div>
                 <div class="content">
                     <h3>Bac Général — Spécialités Mathématiques et Numérique & Sciences Informatiques</h3>
@@ -447,7 +466,9 @@
     <!-- Stage Modals -->
     <div class="stage-modal-overlay" id="stage-geonative" onclick="closeStageModal(event, 'stage-geonative')">
         <div class="stage-modal-box">
-            <button class="stage-modal-close" onclick="document.getElementById('stage-geonative').classList.remove('active')"><i class="fas fa-times"></i></button>
+            <button class="stage-modal-close"
+                onclick="document.getElementById('stage-geonative').classList.remove('active')"><i
+                    class="fas fa-times"></i></button>
             <h2>Stage pratique — Développeur informatique</h2>
             <div class="stage-meta">
                 <span><i class="fas fa-building"></i> GEONATIVE, Lille</span>
@@ -455,7 +476,9 @@
             </div>
             <h4>Résumé des missions</h4>
             <p>
-                Développement de composants frontend réutilisables en Vue.js, intégrés au site internet de l'entreprise à l'aide du framework de composants shadcn. Les composants réalisés ont été pensés pour être maintenables et cohérents avec le design existant.
+                Développement de composants frontend réutilisables en Vue.js, intégrés au site internet de l'entreprise
+                à l'aide du framework de composants shadcn. Les composants réalisés ont été pensés pour être
+                maintenables et cohérents avec le design existant.
             </p>
             <h4>Compétences techniques acquises</h4>
             <div class="stage-tags">
@@ -477,7 +500,9 @@
 
     <div class="stage-modal-overlay" id="stage-esystems" onclick="closeStageModal(event, 'stage-esystems')">
         <div class="stage-modal-box">
-            <button class="stage-modal-close" onclick="document.getElementById('stage-esystems').classList.remove('active')"><i class="fas fa-times"></i></button>
+            <button class="stage-modal-close"
+                onclick="document.getElementById('stage-esystems').classList.remove('active')"><i
+                    class="fas fa-times"></i></button>
             <h2>Stage d'observation — Web Master</h2>
             <div class="stage-meta">
                 <span><i class="fas fa-building"></i> E-SYSTEMS, Lille</span>
@@ -485,7 +510,9 @@
             </div>
             <h4>Résumé des missions</h4>
             <p>
-                Observer le fonctionnement d'une entreprise de développement numérique et réaliser en autonomie un site internet de mon choix. Cette immersion a constitué ma première expérience concrète du monde professionnel en informatique.
+                Observer le fonctionnement d'une entreprise de développement numérique et réaliser en autonomie un site
+                internet de mon choix. Cette immersion a constitué ma première expérience concrète du monde
+                professionnel en informatique.
             </p>
             <h4>Compétences développées</h4>
             <div class="stage-tags">
@@ -502,7 +529,9 @@
 
     <div class="stage-modal-overlay" id="stage-adeo" onclick="closeStageModal(event, 'stage-adeo')">
         <div class="stage-modal-box">
-            <button class="stage-modal-close" onclick="document.getElementById('stage-adeo').classList.remove('active')"><i class="fas fa-times"></i></button>
+            <button class="stage-modal-close"
+                onclick="document.getElementById('stage-adeo').classList.remove('active')"><i
+                    class="fas fa-times"></i></button>
             <h2>Stage pratique — Développeur</h2>
             <div class="stage-meta">
                 <span><i class="fas fa-building"></i> ADEO, Lille</span>
@@ -510,8 +539,25 @@
             </div>
             <h4>Résumé des missions</h4>
             <p>
-                Ce stage est actuellement en cours d'effectuation. Le contenu détaillé des missions, des compétences acquises et des outils utilisés sera mis à jour à l'issue du stage.
+                Ce stage est actuellement en cours d'effectuation. Le contenu détaillé des missions, des compétences
+                acquises et des outils utilisés sera mis à jour à l'issue du stage.
             </p>
+        </div>
+    </div>
+
+    <div class="stage-modal-overlay cv-modal-overlay" id="cvModal" aria-hidden="true">
+        <div class="stage-modal-box cv-modal-box">
+            <button class="stage-modal-close" id="cvModalClose"><i class="fas fa-times"></i></button>
+            <h2>Curriculum Vitae</h2>
+            <div class="cv-modal-actions">
+                <a class="btn resume-btn" href="./assets/CV/MARUCA%20ELIAS%20CV.pdf" download>
+                    <span>Télécharger le CV</span>
+                    <i class="fas fa-download"></i>
+                </a>
+            </div>
+            <div class="cv-viewer-wrap">
+                <iframe src="./assets/CV/MARUCA%20ELIAS%20CV.pdf" title="CV Elias Maruca" loading="lazy"></iframe>
+            </div>
         </div>
     </div>
 
