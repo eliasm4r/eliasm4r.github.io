@@ -1246,7 +1246,7 @@ header .navbar ul li a:hover {
     content: " ";
     height: 0;
     position: absolute;
-    top: 22px;
+    top: 29px;
     width: 0;
     z-index: 1;
     right: 30px;
@@ -1259,7 +1259,7 @@ header .navbar ul li a:hover {
     content: " ";
     height: 0;
     position: absolute;
-    top: 22px;
+    top: 29px;
     width: 0;
     z-index: 1;
     left: 30px;
