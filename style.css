@@ -2448,6 +2448,14 @@ body.is-loaded {
     transform: translateX(-7px);
 }
 
+@media screen and (max-width: 620px) {
+
+    .experience-stage.left:hover::before,
+    .experience-stage.right:hover::before {
+        transform: translateX(-7px) !important;
+    }
+}
+
 /* Improve responsive behavior for education images that currently use inline sizes */
 .education .box-container .box .image img {
     width: 100% !important;
@@ -2829,14 +2837,6 @@ body.is-loaded {
 
     .cv-viewer-wrap iframe {
         height: 60vh;
-    }
-
-    /* Keep global breakpoint transition, but disable it for Experience only */
-    .experience,
-    .experience *,
-    .experience *::before,
-    .experience *::after {
-        animation: none !important;
     }
 }
 
