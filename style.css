@@ -522,7 +522,7 @@ header .navbar ul li a:hover {
     }
 }
 
-@media (max-width: 450px) {
+@media (max-width: 0px) {
     header {
         padding: 1.7rem 2rem;
     }
@@ -893,7 +893,7 @@ header .navbar ul li a:hover {
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
     .skills .container td {
         width: 100%;
         /* Stack columns on very small screens */
@@ -1521,7 +1521,7 @@ header .navbar ul li a:hover {
     color: var(--color-light-pink);
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 0px) {
     header {
         padding: 1.7rem 2.5rem !important;
     }
@@ -1832,7 +1832,7 @@ header .navbar ul li a:hover {
     }
 }
 
-@media (max-width: 450px) {
+@media (max-width: 0px) {
     .footer .box-container .box {
         margin: 1.5rem;
     }
@@ -1849,7 +1849,7 @@ header .navbar ul li a:hover {
 /* footer section ends */
 
 /* common media queries starts*/
-@media (max-width: 450px) {
+@media (max-width: 0px) {
     html {
         font-size: 55%;
     }
@@ -2448,14 +2448,6 @@ body.is-loaded {
     transform: translateX(-7px);
 }
 
-@media screen and (max-width: 620px) {
-
-    .experience-stage.left:hover::before,
-    .experience-stage.right:hover::before {
-        transform: translateX(-7px);
-    }
-}
-
 /* Improve responsive behavior for education images that currently use inline sizes */
 .education .box-container .box .image img {
     width: 100% !important;
@@ -2574,7 +2566,7 @@ body.is-loaded {
     }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 0px) {
     .skills .container {
         grid-template-columns: 1fr;
     }
@@ -2838,9 +2830,17 @@ body.is-loaded {
     .cv-viewer-wrap iframe {
         height: 60vh;
     }
+
+    /* Keep global breakpoint transition, but disable it for Experience only */
+    .experience,
+    .experience *,
+    .experience *::before,
+    .experience *::after {
+        animation: none !important;
+    }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 0px) {
     .skills-grid {
         grid-template-columns: 1fr;
     }
