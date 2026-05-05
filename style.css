@@ -278,6 +278,67 @@ header .logo:hover {
     color: var(--color-light-pink);
 }
 
+.logo-wrap {
+    display: flex;
+    align-items: flex-start;
+}
+
+.neko-toggle {
+    position: fixed;
+    left: var(--neko-toggle-left, 18rem);
+    top: var(--neko-toggle-top, 3rem);
+    width: 3.2rem;
+    height: 1.7rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: hidden;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.neko-toggle-head {
+    position: absolute;
+    left: 0;
+    top: 0.25rem;
+    width: 3.2rem;
+    height: 3.2rem;
+    background-image: url("./assets/cat%20cursor/oneko.gif");
+    background-repeat: no-repeat;
+    background-size: auto;
+    background-position: -96px -96px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35));
+    transition: transform 0.2s ease;
+}
+
+.neko-toggle:hover .neko-toggle-head {
+    transform: translateY(-2px);
+}
+
+.neko-toggle.active .neko-toggle-head {
+    transform: translateY(-3px);
+}
+
+#oneko {
+    display: none;
+    z-index: 1002;
+    pointer-events: none;
+    transition: none !important;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 header .navbar ul {
     list-style: none;
     display: flex;
@@ -318,6 +379,20 @@ header .navbar ul li a:hover {
 @media (max-width: 768px) {
     header {
         padding: 1.7rem 2.5rem;
+    }
+
+    .logo-wrap {
+        margin-top: 0.1rem;
+    }
+
+    .neko-toggle {
+        width: 2.8rem;
+        height: 1.7rem;
+    }
+
+    .neko-toggle-head {
+        top: 0.15rem;
+        left: -0.2rem;
     }
 
     #menu {

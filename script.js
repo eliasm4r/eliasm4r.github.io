@@ -11,6 +11,51 @@ if (isTouchDevice) {
     if (cursorOutline) cursorOutline.style.display = 'none';
 }
 
+/* ===================================================
+   NEKO MODE (official oneko.js)
+   =================================================== */
+const nekoToggle = document.getElementById('nekoToggle');
+const logoWrap = document.querySelector('.logo-wrap');
+
+function positionNekoToggle() {
+    if (!nekoToggle || !logoWrap || isTouchDevice) return;
+
+    const rect = logoWrap.getBoundingClientRect();
+    const isCompact = window.innerWidth <= 768;
+    const left = rect.right + (isCompact ? 6 : 10);
+    const top = rect.top + (isCompact ? -8 : 30);
+
+    document.documentElement.style.setProperty('--neko-toggle-left', `${left}px`);
+    document.documentElement.style.setProperty('--neko-toggle-top', `${top}px`);
+}
+
+function revealOnekoAtToggle() {
+    const oneko = document.getElementById('oneko');
+    if (!oneko || !nekoToggle) return;
+
+    const rect = nekoToggle.getBoundingClientRect();
+    oneko.style.left = `${rect.left}px`;
+    oneko.style.top = `${rect.top}px`;
+    oneko.style.display = 'block';
+}
+
+if (nekoToggle && isTouchDevice) {
+    nekoToggle.style.display = 'none';
+}
+
+if (nekoToggle && !isTouchDevice) {
+    positionNekoToggle();
+    const oneko = document.getElementById('oneko');
+    if (oneko) oneko.style.display = 'none';
+
+    nekoToggle.addEventListener('click', () => {
+        revealOnekoAtToggle();
+        nekoToggle.style.display = 'none';
+    });
+
+    window.addEventListener('resize', positionNekoToggle);
+}
+
 window.addEventListener('mousemove', (e) => {
     if (isTouchDevice || !cursorDot || !cursorOutline) return;
     cursorDot.style.left = e.clientX + 'px';
