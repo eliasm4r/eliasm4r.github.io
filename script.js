@@ -282,13 +282,22 @@ $(document).ready(function () {
         });
     });
 
-    // smooth scrolling
-    $('a[href*="#"]:not(.no-scroll)').on("click", function (e) {
+    // Smooth scrolling with stable easing + precise navbar offset
+    $('a[href^="#"]:not(.no-scroll)').on("click", function (e) {
+        const hash = this.getAttribute("href");
+        const $target = $(hash);
+        if (!$target.length) return;
+
         e.preventDefault();
-        $("html, body").animate(
-            { scrollTop: $($(this).attr("href")).offset().top },
-            500, "linear"
-        );
+
+        const headerHeight = $("header").outerHeight() || 0;
+        // Positive breathing space so section titles never appear too high under the fixed header.
+        const targetTop = Math.max(0, $target.offset().top - headerHeight + 8);
+
+        window.scrollTo({
+            top: targetTop,
+            behavior: "smooth",
+        });
     });
 });
 
