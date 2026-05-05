@@ -388,7 +388,7 @@ const srtop = ScrollReveal({
 if (window.matchMedia('(max-width: 768px)').matches) {
     ScrollReveal().destroy();
     document.querySelectorAll(
-        '.home .content, .home .image, .about .row, .skills .skills-grid, .education .box, .portfolio-item, .experience .timeline .container'
+        '.home .content, .home .image, .about .row, .skills .skills-grid, .softskills .softskill-bloc, .softskills .softskill-reflexive, .education .box, .portfolio-item, .experience .timeline .container'
     ).forEach((el) => {
         el.style.opacity = '1';
         el.style.visibility = 'visible';
@@ -418,6 +418,12 @@ srtop.reveal(".about .content .resumebtn", { delay: 200 });
 /* SCROLL SKILLS */
 srtop.reveal(".skills .skills-grid", { interval: 200 });
 srtop.reveal(".skills .skills-grid .skill-td", { interval: 100 });
+
+/* SCROLL SOFT SKILLS */
+srtop.reveal(".softskills .skills-subtitle", { delay: 120 });
+srtop.reveal(".softskills .softskill-bloc", { interval: 140 });
+srtop.reveal(".softskills .softskill-card", { interval: 90 });
+srtop.reveal(".softskills .softskill-reflexive", { delay: 180 });
 
 /* SCROLL EDUCATION */
 srtop.reveal(".education .box", { interval: 200 });
