@@ -307,8 +307,7 @@ $(document).ready(function () {
 var typed = new Typed(".typing-text", {
     strings: [
         "Développeur Full-Stack",
-        "En recherche d'alternance / premier poste",
-        "Futur ingénieur logiciel",
+        "Futur ingénieur en informatique",
         "Challenger sur League of Legends (faux..)"
     ],
     loop: true,
