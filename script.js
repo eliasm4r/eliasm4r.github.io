@@ -4,11 +4,21 @@
 const cursorDot = document.querySelector('.cursor-dot');
 const cursorOutline = document.querySelector('.cursor-outline');
 
-const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+const touchQuery = window.matchMedia('(hover: none), (pointer: coarse)');
+let isTouchDevice = touchQuery.matches;
 
-if (isTouchDevice) {
-    if (cursorDot) cursorDot.style.display = 'none';
-    if (cursorOutline) cursorOutline.style.display = 'none';
+function applyTouchModeUI() {
+    isTouchDevice = touchQuery.matches;
+    if (cursorDot) cursorDot.style.display = isTouchDevice ? 'none' : '';
+    if (cursorOutline) cursorOutline.style.display = isTouchDevice ? 'none' : '';
+}
+
+applyTouchModeUI();
+
+if (typeof touchQuery.addEventListener === 'function') {
+    touchQuery.addEventListener('change', applyTouchModeUI);
+} else if (typeof touchQuery.addListener === 'function') {
+    touchQuery.addListener(applyTouchModeUI);
 }
 
 /* ===================================================
@@ -23,10 +33,8 @@ function positionNekoToggle() {
     const rect = logoWrap.getBoundingClientRect();
     const isCompact = window.innerWidth <= 768;
     const left = rect.right + (isCompact ? 6 : 10);
-    const top = rect.top + (isCompact ? -8 : 30);
 
     document.documentElement.style.setProperty('--neko-toggle-left', `${left}px`);
-    document.documentElement.style.setProperty('--neko-toggle-top', `${top}px`);
 }
 
 function revealOnekoAtToggle() {
@@ -43,8 +51,18 @@ if (nekoToggle && isTouchDevice) {
     nekoToggle.style.display = 'none';
 }
 
-if (nekoToggle && !isTouchDevice) {
-    positionNekoToggle();
+if (nekoToggle) {
+    const updateNekoToggleVisibility = () => {
+        if (isTouchDevice) {
+            nekoToggle.style.display = 'none';
+        } else {
+            nekoToggle.style.display = '';
+            positionNekoToggle();
+        }
+    };
+
+    updateNekoToggleVisibility();
+
     const oneko = document.getElementById('oneko');
     if (oneko) oneko.style.display = 'none';
 
@@ -54,6 +72,12 @@ if (nekoToggle && !isTouchDevice) {
     });
 
     window.addEventListener('resize', positionNekoToggle);
+
+    if (typeof touchQuery.addEventListener === 'function') {
+        touchQuery.addEventListener('change', updateNekoToggleVisibility);
+    } else if (typeof touchQuery.addListener === 'function') {
+        touchQuery.addListener(updateNekoToggleVisibility);
+    }
 }
 
 window.addEventListener('mousemove', (e) => {

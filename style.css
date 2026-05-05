@@ -10,6 +10,7 @@
     /* Blanc */
     --color-light-pink: #dd689f;
     /* Rose léger */
+    --neko-toggle-top: 48px;
 }
 
 * {
