@@ -129,6 +129,16 @@ const skillData = {
         img: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
         desc: 'Bibliothèque JavaScript de Meta pour créer des interfaces composables. Composants fonctionnels, hooks (useState, useEffect), communication avec des API REST et principes du SPA.'
     },
+    flutter: {
+        title: 'Flutter',
+        img: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg',
+        desc: 'Framework UI de Google pour développer des applications multiplateformes. Découvert et pratiqué en contexte professionnel pour contribuer à une application mobile utilisée en production.'
+    },
+    go: {
+        title: 'Go',
+        img: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original-wordmark.svg',
+        desc: 'Langage compilé orienté performance et simplicité. Utilisé en stage pour intervenir sur des services backend, avec une attention portée à la lisibilité, à la concurrence et à la robustesse.'
+    },
     maths: {
         title: 'Modélisation Mathématique',
         img: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/matlab/matlab-original.svg',
@@ -149,7 +159,9 @@ const skillLevels = {
     springboot: 71,
     bash: 70,
     react: 69,
+    flutter: 68,
     nosql: 68,
+    go: 67,
     c: 67,
     maths: 66,
 };
@@ -285,9 +297,9 @@ $(document).ready(function () {
    =================================================== */
 var typed = new Typed(".typing-text", {
     strings: [
-        "Étudiant en 3ème année de BUT Informatique",
-        "Développeur Informatique",
-        "Futur ingénieur en informatique",
+        "Développeur Full-Stack",
+        "En recherche d'alternance / premier poste",
+        "Futur ingénieur logiciel",
         "Challenger sur League of Legends (faux..)"
     ],
     loop: true,
