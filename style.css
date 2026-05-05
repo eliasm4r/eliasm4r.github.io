@@ -2186,6 +2186,29 @@ button:hover~.cursor-dot,
     font-size: 1.3rem;
 }
 
+.stage-progress-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    margin: 1rem 0 1.2rem;
+    padding: 1rem 1.2rem;
+    border-radius: 12px;
+    background: rgba(221, 104, 159, 0.14);
+    border: 1px solid rgba(221, 104, 159, 0.45);
+}
+
+.stage-progress-banner i {
+    color: #ffc1df;
+    font-size: 1.45rem;
+    margin-top: 0.2rem;
+}
+
+.stage-progress-banner span {
+    font-size: 1.32rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.92);
+}
+
 .stage-tags {
     display: flex;
     flex-wrap: wrap;
@@ -2843,5 +2866,171 @@ body.is-loaded {
 @media (max-width: 0px) {
     .skills-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* ===================================================
+   SOFT SKILLS SECTION
+   =================================================== */
+.softskills {
+    padding: 5rem 9%;
+}
+
+.softskills-grid {
+    width: min(1120px, 92vw);
+    margin: 3rem auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+}
+
+/* Bloc (une des 3 catégories) */
+.softskill-bloc {
+    background: var(--color-grey);
+    border-radius: 1.6rem;
+    padding: 2.8rem 3rem;
+    border: 1px solid rgba(221, 104, 159, 0.18);
+    transition: box-shadow 0.3s ease;
+}
+
+.softskill-bloc:hover {
+    box-shadow: 0 8px 32px rgba(221, 104, 159, 0.15);
+}
+
+.softskill-bloc-header {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-bottom: 2.2rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid rgba(221, 104, 159, 0.25);
+}
+
+.softskill-bloc-header i {
+    font-size: 2.2rem;
+    color: var(--color-light-pink);
+}
+
+.softskill-bloc-header h3 {
+    font-size: 2rem;
+    color: var(--color-white);
+    font-weight: 700;
+}
+
+/* Grille de cards à l'intérieur de chaque bloc */
+.softskill-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.6rem;
+}
+
+/* Card individuelle */
+.softskill-card {
+    background: var(--color-dark-grey);
+    border-radius: 1.2rem;
+    padding: 2rem 1.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.softskill-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(221, 104, 159, 0.4);
+    box-shadow: 0 6px 24px rgba(221, 104, 159, 0.18);
+}
+
+.softskill-card-icon {
+    font-size: 2rem;
+    color: var(--color-light-pink);
+    line-height: 1;
+}
+
+.softskill-card-icon i {
+    font-size: 2rem;
+    color: var(--color-light-pink);
+}
+
+.softskill-card-body h4 {
+    font-size: 1.5rem;
+    color: var(--color-light-pink);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+}
+
+.softskill-card-body p {
+    font-size: 1.35rem;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.78);
+    font-family: "Nunito", sans-serif;
+}
+
+/* Analyse réflexive */
+.softskill-reflexive {
+    background: linear-gradient(135deg, #1c0a14 0%, #2a1020 100%);
+    border: 1.5px solid rgba(221, 104, 159, 0.4);
+    border-radius: 1.6rem;
+    padding: 3rem;
+}
+
+.softskill-reflexive-header {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid rgba(221, 104, 159, 0.3);
+}
+
+.softskill-reflexive-header i {
+    font-size: 2.2rem;
+    color: var(--color-light-pink);
+}
+
+.softskill-reflexive-header h3 {
+    font-size: 2rem;
+    color: var(--color-light-pink);
+    font-weight: 700;
+}
+
+.softskill-reflexive p {
+    font-size: 1.5rem;
+    line-height: 1.9;
+    color: rgba(255, 255, 255, 0.85);
+    font-family: "Nunito", sans-serif;
+    text-align: justify;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+    .softskill-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .softskills {
+        padding: 3rem 5%;
+    }
+
+    .softskill-bloc {
+        padding: 2rem 1.8rem;
+    }
+
+    .softskill-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .softskill-bloc-header h3,
+    .softskill-reflexive-header h3 {
+        font-size: 1.7rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .softskill-reflexive {
+        padding: 2rem 1.6rem;
     }
 }
