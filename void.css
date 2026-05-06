@@ -1,88 +1,23 @@
-  html,
-  body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: #000;
-  }
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #000;
+    width: 100%;
+    height: 100%;
+}
 
-  canvas {
-      display: block;
-      width: 100vw;
-      height: 100vh;
-  }
-
-  /* links styles are by maxoffsky.com */
-  .links {
-      position: absolute;
-      /* Positions the links block */
-      list-style: none;
-      /* Removes default list bullets */
-      width: 180px;
-      /* Sets the width of the links block */
-      bottom: 40px;
-      /* Positions it from the bottom */
-      right: 20px;
-      /* Positions it from the right */
-      padding: 0;
-      margin: 0;
-  }
-
-  .links li {
-      border-bottom: #222 1px solid;
-      /* Darker border for bottom */
-      border-bottom: rgba(255, 255, 255, 0.1) 1px solid;
-      /* Lighter, transparent border */
-  }
-
-  .links li a {
-      transition: opacity 0.2s ease-out;
-      /* Smooth opacity change on hover */
-      -webkit-font-smoothing: antialiased;
-      /* Font rendering optimization */
-      font-family: 'Dosis', sans-serif;
-      /* Font family */
-      text-transform: uppercase;
-      /* Uppercase text */
-      text-align: right;
-      /* Right-align text */
-      padding: 0.25em 0;
-      /* Vertical padding */
-      letter-spacing: 2px;
-      /* Letter spacing */
-      font-weight: 200;
-      /* Light font weight */
-      font-size: 12px;
-      /* Font size */
-      display: block;
-      /* Makes the entire line clickable */
-      width: 100%;
-      /* Occupies full width of <li> */
-      opacity: 0.4;
-      /* Initial opacity (semi-transparent) */
-      color: #FFF;
-      /* White text color */
-  }
-
-  .links li a:hover {
-      opacity: 0.8;
-      /* Increased opacity on hover */
-  }
-
-  .links li .who:before {
-      opacity: 0.5;
-      /* Semi-transparent prefix */
-      content: '@';
-      /* Adds "@" before "by msurguy" */
-      float: left;
-      /* Floats the prefix to the left */
-  }
-
-  .links li .blog:before {
-      opacity: 0.5;
-      /* Semi-transparent prefix */
-      content: '</>';
-      /* Adds "&" before "Blog post" */
-      float: left;
-      /* Floats the prefix to the left */
-  }
+video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+    object-position: center center;
+    background: #000;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
