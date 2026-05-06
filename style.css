@@ -1570,6 +1570,28 @@ header .navbar ul li a:hover {
     color: var(--color-light-pink);
 }
 
+.footer .box-container .box a.footer-secret-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    padding: 0.95rem 1.6rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #b92a72, #f58ec0);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.03rem;
+    box-shadow: 0 8px 20px rgba(220, 77, 148, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.footer .box-container .box a.footer-secret-btn:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(220, 77, 148, 0.45);
+    filter: saturate(1.12);
+}
+
 .footer .box-container .box .share {
     display: flex;
     flex-wrap: wrap;
@@ -2890,8 +2912,12 @@ body.is-loaded {
 
 @media (max-width: 768px) {
     .home {
-        padding-top: 7.5rem;
+        padding-top: 17.8rem;
         gap: 0;
+    }
+
+    .home .content {
+        margin-top: 0.4rem;
     }
 
     .skills {
@@ -3108,5 +3134,171 @@ body.is-loaded {
 @media (max-width: 600px) {
     .softskill-reflexive {
         padding: 2rem 1.6rem;
+    }
+}
+
+/* From Uiverse.io by andrew-demchenk0 */
+.cube-loader {
+    position: relative;
+    --cube-size: 250px;
+    --cube-half: 125px;
+    --cube-shift-x: -190px;
+    width: var(--cube-size);
+    height: var(--cube-size);
+    left: var(--cube-shift-x);
+    transform-style: preserve-3d;
+    transform: rotateX(-30deg);
+    animation: animate 4s linear infinite;
+}
+
+@keyframes animate {
+    0% {
+        transform: rotateX(-30deg) rotateY(0);
+    }
+
+    100% {
+        transform: rotateX(-30deg) rotateY(360deg);
+    }
+}
+
+.cube-loader .cube-wrapper {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    /* top: 0;
+  left: 0; */
+    transform-style: preserve-3d;
+}
+
+.cube-loader .cube-wrapper .cube-span {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    /* top: 0;
+  left: 0; */
+    transform: rotateY(calc(90deg * var(--i))) translateZ(var(--cube-half));
+    background: linear-gradient(to bottom,
+            #3b0a24 0%,
+            #65103d 16%,
+            #8a1d56 34%,
+            #b92a72 52%,
+            #dc4d94 72%,
+            #f58ec0 100%);
+}
+
+.cube-top {
+    position: absolute;
+    width: var(--cube-size);
+    height: var(--cube-size);
+    background: #4d1230;
+    transform: rotateX(90deg) translateZ(var(--cube-half));
+    transform-style: preserve-3d;
+}
+
+.cube-top::before {
+    content: '';
+    position: absolute;
+    width: var(--cube-size);
+    height: var(--cube-size);
+    background: #e754a5;
+    transform: translateZ(calc(var(--cube-size) * -1.2));
+    filter: blur(10px);
+    box-shadow: 0 0 12px rgba(80, 10, 49, 0.9),
+        0 0 26px rgba(231, 84, 165, 0.85),
+        0 0 44px rgba(231, 84, 165, 0.7),
+        0 0 66px rgba(231, 84, 165, 0.5);
+}
+
+@media (max-width: 900px) {
+    .cube-loader {
+        display: none;
+    }
+}
+
+/* From Uiverse.io by elijahgummer */
+.void-hole {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100vh;
+    z-index: 9999;
+}
+
+.void-hole i {
+    display: block;
+    position: absolute;
+    width: 300px;
+    height: 300px;
+
+    border-radius: 840px;
+    opacity: 0;
+    animation-name: void-scale;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+.void-hole i:nth-child(1) {
+    animation-delay: 0.3s;
+}
+
+.void-hole i:nth-child(2) {
+    animation-delay: 0.6s;
+}
+
+.void-hole i:nth-child(3) {
+    animation-delay: 0.9s;
+}
+
+.void-hole i:nth-child(4) {
+    animation-delay: 1.2s;
+}
+
+.void-hole i:nth-child(5) {
+    animation-delay: 1.5s;
+}
+
+.void-hole i:nth-child(6) {
+    animation-delay: 1.8s;
+}
+
+.void-hole i:nth-child(7) {
+    animation-delay: 2.1s;
+}
+
+.void-hole i:nth-child(8) {
+    animation-delay: 2.4s;
+}
+
+.void-hole i:nth-child(9) {
+    animation-delay: 2.7s;
+}
+
+.void-hole i:nth-child(10) {
+    animation-delay: 3s;
+}
+
+@keyframes void-scale {
+    0% {
+        transform: scale(2);
+        opacity: 0;
+        box-shadow: 0px 0px 50px rgba(255, 255, 255, 0.5);
+    }
+
+    50% {
+        transform: scale(1) translate(0px, -5px);
+        opacity: 1;
+        box-shadow: 0px 8px 20px rgba(255, 255, 255, 0.5);
+    }
+
+    100% {
+        transform: scale(0.1) translate(0px, 5px);
+        opacity: 0;
+        box-shadow: 0px 10px 20px rgba(255, 255, 255, 0);
     }
 }
