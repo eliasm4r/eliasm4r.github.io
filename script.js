@@ -266,11 +266,17 @@ skillModal.addEventListener('click', (e) => {
     if (e.target === skillModal) skillModal.classList.remove('open');
 });
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' || e.key.toLowerCase() === 'x') {
         skillModal.classList.remove('open');
         document.querySelectorAll('.stage-modal-overlay').forEach(m => m.classList.remove('active'));
         const cvModal = document.getElementById('cvModal');
         if (cvModal) cvModal.setAttribute('aria-hidden', 'true');
+        const fnfModal = document.getElementById('fnfModal');
+        if (fnfModal) fnfModal.setAttribute('aria-hidden', 'true');
+        const fnfModalFrame = document.getElementById('fnfModalFrame');
+        if (fnfModalFrame) fnfModalFrame.src = 'about:blank';
+        document.documentElement.classList.remove('fnf-modal-open');
+        document.body.classList.remove('fnf-modal-open');
     }
 });
 
@@ -315,6 +321,43 @@ if (cvModal) {
         if (e.target === cvModal) {
             cvModal.classList.remove('active');
             cvModal.setAttribute('aria-hidden', 'true');
+        }
+    });
+}
+
+/* ===================================================
+   FNF SECRET MODAL LOGIC
+   =================================================== */
+const openFnfModal = document.querySelector('.softskill-secret-fnf');
+const fnfModal = document.getElementById('fnfModal');
+const fnfModalFrame = document.getElementById('fnfModalFrame');
+
+function closeFnfModal() {
+    if (!fnfModal) return;
+    fnfModal.classList.remove('active');
+    fnfModal.setAttribute('aria-hidden', 'true');
+    if (fnfModalFrame) fnfModalFrame.src = 'about:blank';
+    document.documentElement.classList.remove('fnf-modal-open');
+    document.body.classList.remove('fnf-modal-open');
+}
+
+if (openFnfModal && fnfModal) {
+    openFnfModal.addEventListener('click', (e) => {
+        e.preventDefault();
+        fnfModal.classList.add('active');
+        fnfModal.setAttribute('aria-hidden', 'false');
+        document.documentElement.classList.add('fnf-modal-open');
+        document.body.classList.add('fnf-modal-open');
+        if (fnfModalFrame && fnfModalFrame.dataset.src) {
+            fnfModalFrame.src = fnfModalFrame.dataset.src;
+        }
+    });
+}
+
+if (fnfModal) {
+    fnfModal.addEventListener('click', (e) => {
+        if (e.target === fnfModal) {
+            closeFnfModal();
         }
     });
 }
