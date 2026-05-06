@@ -507,3 +507,230 @@ srtop.reveal(".experience .timeline .container", { interval: 400 });
 /* SCROLL CONTACT */
 srtop.reveal(".contact .container", { delay: 400 });
 srtop.reveal(".contact .container .form-group", { delay: 400 });
+
+const rbdButton = document.querySelector('.btn-class-name');
+
+if (rbdButton) {
+    const rbdSettings = {
+        glitchDurationMs: 1200,
+        audioLeadMs: 240,
+        flashHoldMs: 700,
+        flashFadeMs: 1600,
+        reviveDurationMs: 900,
+        audioVolume: 0.7,
+    };
+
+    rbdButton.addEventListener('click', () => {
+        if (document.getElementById('rtz-style')) return;
+
+        const style = document.createElement('style');
+        style.id = 'rtz-style';
+        style.textContent = `
+        .rtz-glitch-r,
+        .rtz-glitch-b {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            opacity: 0;
+        }
+        .rtz-glitch-r {
+            background: rgba(255, 0, 0, 0.35);
+            animation: rtz-glitch-r 0.85s steps(2) forwards;
+        }
+        .rtz-glitch-b {
+            background: rgba(0, 80, 255, 0.3);
+            animation: rtz-glitch-b 0.85s steps(2) forwards;
+        }
+        @keyframes rtz-glitch-r {
+            0%   { opacity: 0; transform: translate(0, 0); }
+            10%  { opacity: 1; transform: translate(-6px, 2px); }
+            25%  { opacity: 1; transform: translate(5px, -3px); }
+            40%  { opacity: 1; transform: translate(-8px, 0px); }
+            55%  { opacity: 1; transform: translate(4px, 4px); }
+            70%  { opacity: 0.8; transform: translate(-3px, -2px); }
+            85%  { opacity: 0; }
+            100% { opacity: 0; }
+        }
+        @keyframes rtz-glitch-b {
+            0%   { opacity: 0; transform: translate(0, 0); }
+            10%  { opacity: 1; transform: translate(6px, -2px); }
+            25%  { opacity: 1; transform: translate(-5px, 3px); }
+            40%  { opacity: 1; transform: translate(8px, 0px); }
+            55%  { opacity: 1; transform: translate(-4px, -4px); }
+            70%  { opacity: 0.8; transform: translate(3px, 2px); }
+            85%  { opacity: 0; }
+            100% { opacity: 0; }
+        }
+
+        .rtz-scanlines {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0px,
+                transparent 3px,
+                rgba(0, 0, 0, 0.4) 3px,
+                rgba(0, 0, 0, 0.4) 4px
+            );
+            opacity: 0;
+            animation: rtz-scan 1s ease-in forwards;
+        }
+        @keyframes rtz-scan {
+            0%   { opacity: 0; }
+            20%  { opacity: 1; }
+            80%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .rtz-shatter {
+            position: fixed;
+            left: 0;
+            width: 100%;
+            z-index: 100001;
+            pointer-events: none;
+            background: #000;
+            opacity: 0;
+        }
+        @keyframes rtz-shatter-anim {
+            0%   { opacity: 0; transform: translateX(0); }
+            30%  { opacity: 1; transform: translateX(var(--dx)); }
+            70%  { opacity: 1; transform: translateX(calc(var(--dx) * -0.5)); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Noir permanent — pas d'animation, on le retire manuellement */
+        .rtz-blackout {
+            position: fixed;
+            inset: 0;
+            z-index: 100002;
+            pointer-events: none;
+            background: #000;
+            opacity: 0;
+            animation: rtz-blackout-anim 1.1s ease-in forwards;
+        }
+        @keyframes rtz-blackout-anim {
+            0%   { opacity: 0; }
+            50%  { opacity: 0.2; }
+            85%  { opacity: 0.9; }
+            100% { opacity: 1; }
+        }
+
+        /* Blanc qui apparait sur le noir, AVANT le scroll */
+        .rtz-whiteflash {
+            position: fixed;
+            inset: 0;
+            z-index: 100003;
+            pointer-events: none;
+            background: #fff;
+            opacity: 1;
+        }
+        .rtz-whiteflash.fade-out {
+            animation: rtz-white-out ${rbdSettings.flashFadeMs}ms ease-out forwards;
+        }
+        @keyframes rtz-white-out {
+            0%   { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .rtz-dying {
+            animation: rtz-die 1s ease-in forwards !important;
+            transform-origin: center center;
+        }
+        @keyframes rtz-die {
+            0%   { filter: none; transform: none; }
+            15%  { filter: saturate(4) contrast(1.5); transform: skewX(-1.5deg); }
+            30%  { filter: hue-rotate(90deg) saturate(6) contrast(2); transform: skewX(2deg) scaleY(1.01); }
+            50%  { filter: hue-rotate(200deg) saturate(3) brightness(2); transform: skewX(-2.5deg) scaleX(1.01); }
+            70%  { filter: grayscale(1) brightness(4) contrast(3); transform: skewX(1deg); }
+            88%  { filter: invert(1) brightness(3); transform: scale(1.015); }
+            100% { filter: brightness(0); transform: scale(1); }
+        }
+
+        .rtz-revive {
+            animation: rtz-appear 0.7s ease-out forwards !important;
+        }
+        @keyframes rtz-appear {
+            0%   { filter: brightness(0) saturate(0); }
+            50%  { filter: brightness(0.6) saturate(0.4); }
+            100% { filter: none; }
+        }
+    `;
+        document.head.appendChild(style);
+
+        const glitchR = document.createElement('div');
+        glitchR.className = 'rtz-glitch-r';
+        document.body.appendChild(glitchR);
+
+        const glitchB = document.createElement('div');
+        glitchB.className = 'rtz-glitch-b';
+        document.body.appendChild(glitchB);
+
+        const scanlines = document.createElement('div');
+        scanlines.className = 'rtz-scanlines';
+        document.body.appendChild(scanlines);
+
+        const bandCount = 8;
+        const bands = [];
+        for (let i = 0; i < bandCount; i++) {
+            const band = document.createElement('div');
+            band.className = 'rtz-shatter';
+            const h = 100 / bandCount;
+            band.style.top = `${i * h}vh`;
+            band.style.height = `${h}vh`;
+            const dx = (Math.random() - 0.5) * 40;
+            band.style.setProperty('--dx', `${dx}px`);
+            const delay = 0.3 + i * 0.04;
+            band.style.animation = `rtz-shatter-anim 0.6s steps(2) ${delay}s forwards`;
+            document.body.appendChild(band);
+            bands.push(band);
+        }
+
+        const blackout = document.createElement('div');
+        blackout.className = 'rtz-blackout';
+        document.body.appendChild(blackout);
+
+        document.body.classList.add('rtz-dying');
+
+        const audio = new Audio('./assets/rbd/ReturnByDeath.mp3');
+        audio.volume = rbdSettings.audioVolume;
+
+        const cleanupSequence = (whiteFlash) => {
+            document.body.classList.remove('rtz-revive');
+            whiteFlash?.remove();
+            document.getElementById('rtz-style')?.remove();
+        };
+
+        // Étape 1 — noir total atteint (1200ms)
+        setTimeout(() => {
+            glitchR.remove();
+            glitchB.remove();
+            scanlines.remove();
+            bands.forEach(b => b.remove());
+            document.body.classList.remove('rtz-dying');
+            audio.play().catch(() => console.warn('Audio bloqué.'));
+
+            setTimeout(() => {
+                const whiteFlash = document.createElement('div');
+                whiteFlash.className = 'rtz-whiteflash';
+                document.body.appendChild(whiteFlash);
+
+                window.scrollTo({ top: 0, behavior: 'auto' });
+                blackout.remove();
+
+                setTimeout(() => {
+                    whiteFlash.classList.add('fade-out');
+                    document.body.classList.add('rtz-revive');
+
+                    setTimeout(() => {
+                        cleanupSequence(whiteFlash);
+                    }, Math.max(rbdSettings.flashFadeMs, rbdSettings.reviveDurationMs));
+                }, rbdSettings.flashHoldMs);
+            }, rbdSettings.audioLeadMs);
+
+        }, rbdSettings.glitchDurationMs);
+    });
+}
