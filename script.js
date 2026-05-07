@@ -271,12 +271,8 @@ document.addEventListener('keydown', (e) => {
         document.querySelectorAll('.stage-modal-overlay').forEach(m => m.classList.remove('active'));
         const cvModal = document.getElementById('cvModal');
         if (cvModal) cvModal.setAttribute('aria-hidden', 'true');
-        const fnfModal = document.getElementById('fnfModal');
-        if (fnfModal) fnfModal.setAttribute('aria-hidden', 'true');
-        const fnfModalFrame = document.getElementById('fnfModalFrame');
-        if (fnfModalFrame) fnfModalFrame.src = 'about:blank';
-        document.documentElement.classList.remove('fnf-modal-open');
-        document.body.classList.remove('fnf-modal-open');
+        const gamesModal = document.getElementById('gamesModal');
+        if (gamesModal) closeGameModal();
     }
 });
 
@@ -326,39 +322,75 @@ if (cvModal) {
 }
 
 /* ===================================================
-   FNF SECRET MODAL LOGIC
+   GAMES SECRET MODAL LOGIC — UNIVERSAL
+   Pour ajouter un jeu : créer un lien .softskill-secret-games
+   avec data-game="games/nomDuJeu.html", c'est tout.
    =================================================== */
-const openFnfModal = document.querySelector('.softskill-secret-fnf');
-const fnfModal = document.getElementById('fnfModal');
-const fnfModalFrame = document.getElementById('fnfModalFrame');
+const gamesModal = document.getElementById('gamesModal');
+const gamesModalFrame = document.getElementById('gamesModalFrame');
+const gamesModalClose = document.getElementById('gamesModalClose');
+const gamesModalFullscreen = document.getElementById('gamesModalFullscreen');
 
-function closeFnfModal() {
-    if (!fnfModal) return;
-    fnfModal.classList.remove('active');
-    fnfModal.setAttribute('aria-hidden', 'true');
-    if (fnfModalFrame) fnfModalFrame.src = 'about:blank';
-    document.documentElement.classList.remove('fnf-modal-open');
-    document.body.classList.remove('fnf-modal-open');
+function openGameModal(gameSrc) {
+    if (!gamesModal || !gamesModalFrame) return;
+    gamesModalFrame.src = gameSrc;
+    gamesModal.classList.add('active');
+    gamesModal.setAttribute('aria-hidden', 'false');
+    document.documentElement.classList.add('games-modal-open');
+    document.body.classList.add('games-modal-open');
 }
 
-if (openFnfModal && fnfModal) {
-    openFnfModal.addEventListener('click', (e) => {
+function closeGameModal() {
+    if (!gamesModal) return;
+    // Quitter le faux fullscreen si actif
+    const box = document.querySelector('.games-modal-box');
+    if (box && isFakeFullscreen) {
+        box.classList.remove('games-modal-box--fullscreen');
+        isFakeFullscreen = false;
+        if (gamesModalFullscreen) {
+            gamesModalFullscreen.querySelector('i').className = 'fas fa-expand';
+        }
+    }
+    gamesModal.classList.remove('active');
+    gamesModal.setAttribute('aria-hidden', 'true');
+    if (gamesModalFrame) gamesModalFrame.src = 'about:blank';
+    document.documentElement.classList.remove('games-modal-open');
+    document.body.classList.remove('games-modal-open');
+}
+
+let isFakeFullscreen = false;
+
+function toggleFullscreen() {
+    const box = document.querySelector('.games-modal-box');
+    if (!box || !gamesModalFullscreen) return;
+    const icon = gamesModalFullscreen.querySelector('i');
+    isFakeFullscreen = !isFakeFullscreen;
+    box.classList.toggle('games-modal-box--fullscreen', isFakeFullscreen);
+    icon.className = isFakeFullscreen ? 'fas fa-compress' : 'fas fa-expand';
+    gamesModalFullscreen.setAttribute('aria-label', isFakeFullscreen ? 'Quitter le plein écran' : 'Plein écran');
+}
+
+// Attache le listener sur tous les liens secrets (présents et futurs via delegation)
+document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('.softskill-secret-games');
+    if (trigger) {
         e.preventDefault();
-        fnfModal.classList.add('active');
-        fnfModal.setAttribute('aria-hidden', 'false');
-        document.documentElement.classList.add('fnf-modal-open');
-        document.body.classList.add('fnf-modal-open');
-        if (fnfModalFrame && fnfModalFrame.dataset.src) {
-            fnfModalFrame.src = fnfModalFrame.dataset.src;
-        }
-    });
+        const gameSrc = trigger.dataset.game;
+        if (gameSrc) openGameModal(gameSrc);
+    }
+});
+
+if (gamesModalClose) {
+    gamesModalClose.addEventListener('click', closeGameModal);
 }
 
-if (fnfModal) {
-    fnfModal.addEventListener('click', (e) => {
-        if (e.target === fnfModal) {
-            closeFnfModal();
-        }
+if (gamesModalFullscreen) {
+    gamesModalFullscreen.addEventListener('click', toggleFullscreen);
+}
+
+if (gamesModal) {
+    gamesModal.addEventListener('click', (e) => {
+        if (e.target === gamesModal) closeGameModal();
     });
 }
 
