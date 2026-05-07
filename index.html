@@ -392,7 +392,7 @@
                     </div>
 
                 </div>
-                <a class="softskill-secret-fnf" href="fnf.html" aria-label="Secret FNF">
+                <a class="softskill-secret-games" href="#" data-game="games/fnf.html" aria-label="Secret FNF">
                     <img src="./assets/fnf/bf.png" alt="" aria-hidden="true">
                 </a>
             </div>
@@ -434,7 +434,9 @@
                                 sans attendre de directives.</p>
                         </div>
                     </div>
-
+                    <a class="softskill-secret-games" href="#" data-game="games/hk.html" aria-label="Secret HK">
+                        <img src="./assets/hollow knight/knight.png" alt="" aria-hidden="true">
+                    </a>
                 </div>
             </div>
 
@@ -866,11 +868,14 @@
         </div>
     </div>
 
-    <div class="stage-modal-overlay fnf-modal-overlay" id="fnfModal" aria-hidden="true">
-        <div class="stage-modal-box fnf-modal-box">
-            <div class="fnf-viewer-wrap">
-                <iframe id="fnfModalFrame" src="about:blank" data-src="fnf.html" title="FNF Secret"
-                    loading="lazy"></iframe>
+    <div class="stage-modal-overlay games-modal-overlay" id="gamesModal" aria-hidden="true">
+        <div class="games-modal-controls">
+            <button class="games-modal-btn" id="gamesModalFullscreen" aria-label="Plein écran"><i class="fas fa-expand"></i></button>
+            <button class="games-modal-btn" id="gamesModalClose" aria-label="Fermer"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="stage-modal-box games-modal-box">
+            <div class="games-viewer-wrap">
+                <iframe id="gamesModalFrame" src="about:blank" title="Secret Game" loading="lazy"></iframe>
             </div>
         </div>
     </div>
