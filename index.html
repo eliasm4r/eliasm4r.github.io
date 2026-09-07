@@ -29,6 +29,9 @@
                 <span></span>
             </div>
             <p class="loader-text">Chargement du portfolio...</p>
+            <div class="loader-bar-track">
+                <div class="loader-bar-fill" id="loaderBarFill"></div>
+            </div>
         </div>
     </div>
 
@@ -106,11 +109,17 @@
             </div>
             <div class="content">
                 <h3>Je m'appelle Elias Maruca</h3>
-                <span class="tag">Développeur Full-Stack — En recherche d'alternance ou de premier poste</span>
+                <span class="tag">Développeur Full-Stack — En recherche d'un poste</span>
                 <p>
-                    Développeur Full-Stack passionné par la création de solutions logicielles robustes, je finalise
-                    actuellement mon BUT Informatique à l'IUT de Lille tout en effectuant un stage chez ADEO (groupe
-                    Leroy Merlin). J'y contribue au développement d'une application mobile en production —
+                    Tout a commencé devant l'ordinateur familial, à regarder mon père jouer aux jeux vidéo. Cette
+                    curiosité pour comprendre ce qui se cachait derrière l'écran ne m'a jamais quitté, et c'est elle qui
+                    m'a naturellement conduit vers le développement informatique.
+                </p>
+                <br />
+                <p>
+                    Développeur Full-Stack curieux, créatif et organisé, je suis aujourd'hui diplômé du BUT Informatique
+                    de l'IUT de Lille, à l'issue duquel j'ai effectué un stage chez ADEO (groupe Leroy Merlin). J'y ai
+                    contribué au développement d'une application mobile en production —
                     <strong>HelpBox</strong>
                     — en Flutter (front) et Go (back), connectée à ServiceNow et utilisée par des milliers d'employés à
                     travers les enseignes du groupe.
@@ -124,14 +133,25 @@
                 </p>
                 <br />
                 <p>
-                    Mon objectif : intégrer une <strong>école d'ingénieurs en alternance</strong> ou décrocher un
-                    <strong>premier poste en développement Full-Stack</strong>, dans un environnement qui me permettra
-                    de continuer à progresser sur des projets concrets à fort impact.
+                    En dehors du code, je reste passionné de jeux vidéo, et je m'intéresse particulièrement au modding
+                    d'anciennes consoles — une autre façon, plus bricolage, de comprendre comment les choses
+                    fonctionnent vraiment en profondeur.
+                </p>
+                <br />
+                <p>
+                    Mon objectif : décrocher un <strong>poste en développement Full-Stack</strong>, dans un
+                    environnement qui me permettra de continuer à progresser sur des projets concrets à fort impact.
+                    Basé à Lille et ses alentours, je suis ouvert au télétravail comme au travail en présentiel.
                 </p>
                 <br />
                 <div class="box-container">
-                    <div class="box">
-                        <p>Email : maruca.elias0702@gmail.com</p>
+                    <div class="box email-copy-box" id="emailCopyBox" role="button" tabindex="0"
+                        aria-label="Copier l'adresse email">
+                        <p><i class="fas fa-envelope"></i> maruca.elias0702@gmail.com</p>
+                        <span class="email-copy-btn">
+                            <i class="fas fa-copy"></i>
+                            <span class="email-copy-label">Copier</span>
+                        </span>
                     </div>
                 </div>
 
@@ -174,99 +194,99 @@
 
         <div class="skills-grid">
             <div class="skill-td" data-skill="html">
-                <div class="skill-td-inner"><img src="./assets/html.png" alt="Logo HTML">
+                <div class="skill-td-inner"><img loading="lazy" src="./assets/html.png" alt="Logo HTML">
                     <div class="caption">HTML / CSS</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="javascript">
-                <div class="skill-td-inner"><img
+                <div class="skill-td-inner"><img loading="lazy"
                         src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg"
                         alt="Logo JavaScript">
                     <div class="caption">JavaScript</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="typescript">
-                <div class="skill-td-inner"><img src="./assets/ts.png" alt="Logo TypeScript">
+                <div class="skill-td-inner"><img loading="lazy" src="./assets/ts.png" alt="Logo TypeScript">
                     <div class="caption">TypeScript</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="vuejs">
-                <div class="skill-td-inner"><img src="./assets/vuejs.png" alt="Logo VueJs">
+                <div class="skill-td-inner"><img loading="lazy" src="./assets/vuejs.png" alt="Logo VueJs">
                     <div class="caption">VueJs</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="react">
-                <div class="skill-td-inner"><img
+                <div class="skill-td-inner"><img loading="lazy"
                         src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg"
                         alt="Logo React">
                     <div class="caption">React</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="flutter">
-                <div class="skill-td-inner"><img
+                <div class="skill-td-inner"><img loading="lazy"
                         src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg"
                         alt="Logo Flutter">
                     <div class="caption">Flutter</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="java">
-                <div class="skill-td-inner"><img src="./assets/java.svg" alt="Logo JAVA">
+                <div class="skill-td-inner"><img loading="lazy" src="./assets/java.svg" alt="Logo JAVA">
                     <div class="caption">Java</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="go">
-                <div class="skill-td-inner"><img
+                <div class="skill-td-inner"><img loading="lazy"
                         src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original-wordmark.svg"
                         alt="Logo Go">
                     <div class="caption">Go</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="springboot">
-                <div class="skill-td-inner"><img
+                <div class="skill-td-inner"><img loading="lazy"
                         src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/spring/spring-original.svg"
                         alt="Logo Spring Boot">
                     <div class="caption">Spring Boot</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="python">
-                <div class="skill-td-inner"><img src="./assets/python.png" alt="Logo PYTHON">
+                <div class="skill-td-inner"><img loading="lazy" src="./assets/python.png" alt="Logo PYTHON">
                     <div class="caption">Python</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="c">
-                <div class="skill-td-inner"><img src="./assets/C_Logo.png" alt="Logo C">
+                <div class="skill-td-inner"><img loading="lazy" src="./assets/C_Logo.png" alt="Logo C">
                     <div class="caption">C</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="bash">
-                <div class="skill-td-inner"><img src="./assets/bash.png" alt="Logo BASH">
+                <div class="skill-td-inner"><img loading="lazy" src="./assets/bash.png" alt="Logo BASH">
                     <div class="caption">Bash</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="psql">
-                <div class="skill-td-inner"><img src="./assets/PSQL.png" alt="Logo PSQL">
+                <div class="skill-td-inner"><img loading="lazy" src="./assets/PSQL.png" alt="Logo PSQL">
                     <div class="caption">PostgreSQL</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="nosql">
-                <div class="skill-td-inner"><img
+                <div class="skill-td-inner"><img loading="lazy"
                         src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg"
                         alt="Logo NoSQL">
                     <div class="caption">NoSQL</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="github">
-                <div class="skill-td-inner"><img src="./assets/github.png" alt="Logo GitHub">
+                <div class="skill-td-inner"><img loading="lazy" src="./assets/github.png" alt="Logo GitHub">
                     <div class="caption">GitHub</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="gitlab">
-                <div class="skill-td-inner"><img src="./assets/gitlab.png" alt="Logo GitLab">
+                <div class="skill-td-inner"><img loading="lazy" src="./assets/gitlab.png" alt="Logo GitLab">
                     <div class="caption">GitLab</div>
                 </div>
             </div>
             <div class="skill-td" data-skill="maths">
-                <div class="skill-td-inner"><img
+                <div class="skill-td-inner"><img loading="lazy"
                         src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/matlab/matlab-original.svg"
                         alt="Logo Modélisation Math">
                     <div class="caption">Modélisation Math.</div>
@@ -336,7 +356,7 @@
                         </div>
                     </div>
                     <a class="softskill-secret-games" href="#" data-game="games/cuphead.html" aria-label="Secret CUPHEAD">
-                        <img src="./assets/cuphead/cuphead.png" alt="" aria-hidden="true">
+                        <img loading="lazy" src="./assets/cuphead/cuphead.png" alt="" aria-hidden="true">
                     </a>
                 </div>
             </div>
@@ -392,13 +412,13 @@
                                 rapidement.</p>
                         </div>
                         <a class="softskill-secret-games" href="#" data-game="games/mariods.html" aria-label="Secret MARIO DS">
-                            <img src="./assets/mario/mario.png" alt="" aria-hidden="true">
+                            <img loading="lazy" src="./assets/mario/mario.png" alt="" aria-hidden="true">
                         </a>
                     </div>
 
                 </div>
                 <a class="softskill-secret-games" href="#" data-game="games/fnf.html" aria-label="Secret FNF">
-                    <img src="./assets/fnf/bf.png" alt="" aria-hidden="true">
+                    <img loading="lazy" src="./assets/fnf/bf.png" alt="" aria-hidden="true">
                 </a>
             </div>
 
@@ -440,7 +460,7 @@
                         </div>
                     </div>
                     <a class="softskill-secret-games" href="#" data-game="games/hk.html" aria-label="Secret HK">
-                        <img src="./assets/hollow knight/knight.png" alt="" aria-hidden="true">
+                        <img loading="lazy" src="./assets/hollow knight/knight.png" alt="" aria-hidden="true">
                     </a>
                 </div>
             </div>
@@ -490,18 +510,18 @@
         <div class="box-container">
             <div class="box">
                 <div class="image">
-                    <img draggable="false" src="./assets/iuta.jpg" alt="IUT de Lille"
+                    <img loading="lazy" draggable="false" src="./assets/iuta.jpg" alt="IUT de Lille"
                         style="width: 550px; height: 250px" />
                 </div>
                 <div class="content">
-                    <h3>3ème année de BUT Informatique</h3>
+                    <h3>Diplôme de BUT Informatique</h3>
                     <p>IUT DE LILLE</p>
-                    <h4>Obtention du diplôme prévue en 2026</h4>
+                    <h4>Obtenu en 2026</h4>
                 </div>
             </div>
             <div class="box">
                 <div class="image">
-                    <img draggable="false" src="./assets/stremi.jpeg" alt="Lycée Saint Rémi"
+                    <img loading="lazy" draggable="false" src="./assets/stremi.jpeg" alt="Lycée Saint Rémi"
                         style="width: 550px; height: 250px" />
                 </div>
                 <div class="content">
@@ -523,7 +543,7 @@
         <div class="portfolios">
             <div class="portfolio-item">
                 <div class="image">
-                    <img draggable="false" src="assets/typefinder.png" alt="Projet Classification" />
+                    <img loading="lazy" draggable="false" src="assets/typefinder.png" alt="Projet Classification" />
                 </div>
                 <div class="blog-text">
                     <h4>Projet Classification</h4>
@@ -532,7 +552,7 @@
             </div>
             <div class="portfolio-item">
                 <div class="image">
-                    <img draggable="false" src="assets/intellib.png" alt="Intellib" />
+                    <img loading="lazy" draggable="false" src="assets/intellib.png" alt="Intellib" />
                 </div>
                 <div class="blog-text">
                     <h4>Intellib</h4>
@@ -541,7 +561,7 @@
             </div>
             <div class="portfolio-item">
                 <div class="image">
-                    <img draggable="false" src="assets/LOW.png" alt="Projet Agile" />
+                    <img loading="lazy" draggable="false" src="assets/LOW.png" alt="Projet Agile" />
                 </div>
                 <div class="hover-items">
                     <div class="icons">
@@ -557,7 +577,7 @@
             </div>
             <div class="portfolio-item">
                 <div class="image">
-                    <img draggable="false" src="assets/NMS.png" alt="Site Covoiturage" />
+                    <img loading="lazy" draggable="false" src="assets/NMS.png" alt="Site Covoiturage" />
                 </div>
                 <div class="hover-items">
                 </div>
@@ -568,7 +588,7 @@
             </div>
             <div class="portfolio-item">
                 <div class="image">
-                    <img draggable="false" src="assets/QPPL.png" alt="Question pour un p'tit loup" />
+                    <img loading="lazy" draggable="false" src="assets/QPPL.png" alt="Question pour un p'tit loup" />
                 </div>
                 <div class="hover-items">
                 </div>
@@ -579,7 +599,7 @@
             </div>
             <div class="portfolio-item">
                 <div class="image">
-                    <img draggable="false" src="assets/3arbiChat.png" alt="3arbiChat" />
+                    <img loading="lazy" draggable="false" src="assets/3arbiChat.png" alt="3arbiChat" />
                 </div>
                 <div class="hover-items">
                     <div class="icons">
@@ -603,8 +623,20 @@
 
         <div class="timeline">
 
+            <div class="container left">
+                <div class="content">
+                    <div class="tag">
+                        <h2>Obtention du diplôme — BUT Informatique</h2>
+                    </div>
+                    <div class="desc">
+                        <h3>IUT DE LILLE, Villeneuve-d'Ascq</h3>
+                        <p>2026</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Stage ADEO en cours -->
-            <div class="container left experience-stage" onclick="toggleStageModal('stage-adeo')">
+            <div class="container right experience-stage" onclick="toggleStageModal('stage-adeo')">
                 <div class="content stage-content">
                     <div class="tag">
                         <h2>Stage pratique — Développeur</h2>
@@ -613,6 +645,18 @@
                         <h3>ADEO, Lille</h3>
                         <p>Mars – Juillet 2026</p>
                         <span class="click-hint"><i class="fas fa-info-circle"></i> Cliquer pour les détails</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container left">
+                <div class="content">
+                    <div class="tag">
+                        <h2>3ème année de BUT Informatique</h2>
+                    </div>
+                    <div class="desc">
+                        <h3>IUT DE LILLE, Villeneuve-d'Ascq</h3>
+                        <p>2025-2026</p>
                     </div>
                 </div>
             </div>
@@ -861,13 +905,12 @@
             <button class="stage-modal-close" id="cvModalClose"><i class="fas fa-times"></i></button>
             <h2>Curriculum Vitae</h2>
             <div class="cv-modal-actions">
-                <a class="btn resume-btn" href="./assets/CV/MARUCA%20ELIAS%20CV.pdf" download>
+                <a class="btn resume-btn" href="./assets/CV/CV%20MARUCA%20ELIAS.pdf" download>
                     <span>Télécharger le CV</span>
-                    <i class="fas fa-download"></i>
                 </a>
             </div>
             <div class="cv-viewer-wrap">
-                <iframe src="./assets/CV/MARUCA%20ELIAS%20CV.pdf" title="CV Elias Maruca" loading="lazy"></iframe>
+                <iframe src="./assets/CV/CV%20MARUCA%20ELIAS.pdf" title="CV Elias Maruca" loading="lazy"></iframe>
             </div>
         </div>
     </div>

@@ -113,16 +113,43 @@ document.querySelectorAll('a, button, .skill-td, .experience-stage').forEach(el 
 /* ===================================================
    PAGE LOADER
    =================================================== */
-window.addEventListener('load', () => {
+(function initPageLoader() {
     const loader = document.getElementById('pageLoader');
     if (!loader) return;
 
-    document.body.classList.add('is-loaded');
-    setTimeout(() => {
-        loader.classList.add('hide');
-        setTimeout(() => loader.remove(), 700);
-    }, 1700);
-});
+    const barFill = document.getElementById('loaderBarFill');
+    const MIN_DISPLAY_MS = 600;
+    const startTime = performance.now();
+
+    // Progression simulée pendant l'attente du vrai chargement
+    let fakeProgress = 0;
+    const fakeInterval = setInterval(() => {
+        fakeProgress = Math.min(fakeProgress + Math.random() * 18, 85);
+        if (barFill) barFill.style.width = `${fakeProgress}%`;
+    }, 150);
+
+    const finishLoading = () => {
+        clearInterval(fakeInterval);
+        const elapsed = performance.now() - startTime;
+        const remaining = Math.max(MIN_DISPLAY_MS - elapsed, 0);
+
+        if (barFill) barFill.style.width = '100%';
+
+        setTimeout(() => {
+            document.body.classList.add('is-loaded');
+            setTimeout(() => {
+                loader.classList.add('hide');
+                setTimeout(() => loader.remove(), 700);
+            }, 250);
+        }, remaining);
+    };
+
+    if (document.readyState === 'complete') {
+        finishLoading();
+    } else {
+        window.addEventListener('load', finishLoading);
+    }
+})();
 
 /* ===================================================
    SKILL DATA
@@ -451,7 +478,7 @@ $(document).ready(function () {
 var typed = new Typed(".typing-text", {
     strings: [
         "Développeur Full-Stack",
-        "Futur ingénieur en informatique",
+        "Diplômé du BUT Informatique",
         "Challenger sur League of Legends (faux..)"
     ],
     loop: true,
@@ -592,7 +619,7 @@ if (rbdButton) {
         flashHoldMs: 700,
         flashFadeMs: 1600,
         reviveDurationMs: 900,
-        audioVolume: 0.7,
+        audioVolume: 0.1,
     };
 
     rbdButton.addEventListener('click', () => {
@@ -809,3 +836,127 @@ if (rbdButton) {
         }, rbdSettings.glitchDurationMs);
     });
 }
+
+/* ===================================================
+   COPIER L'EMAIL
+   =================================================== */
+const emailCopyBox = document.getElementById('emailCopyBox');
+
+if (emailCopyBox) {
+    const emailAddress = 'maruca.elias0702@gmail.com';
+    const emailLabel = emailCopyBox.querySelector('.email-copy-label');
+    const defaultLabel = emailLabel ? emailLabel.textContent : 'Copier';
+    let resetTimeout = null;
+
+    const copyEmail = () => {
+        const showCopied = () => {
+            emailCopyBox.classList.add('copied');
+            if (emailLabel) emailLabel.textContent = 'Copié !';
+            clearTimeout(resetTimeout);
+            resetTimeout = setTimeout(() => {
+                emailCopyBox.classList.remove('copied');
+                if (emailLabel) emailLabel.textContent = defaultLabel;
+            }, 2000);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(emailAddress).then(showCopied).catch(() => {
+                fallbackCopy(emailAddress);
+                showCopied();
+            });
+        } else {
+            fallbackCopy(emailAddress);
+            showCopied();
+        }
+    };
+
+    function fallbackCopy(text) {
+        const tempInput = document.createElement('textarea');
+        tempInput.value = text;
+        tempInput.style.position = 'fixed';
+        tempInput.style.opacity = '0';
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        try {
+            document.execCommand('copy');
+        } catch (err) {
+            console.warn('Copie impossible.', err);
+        }
+        document.body.removeChild(tempInput);
+    }
+
+    emailCopyBox.addEventListener('click', copyEmail);
+    emailCopyBox.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            copyEmail();
+        }
+    });
+}
+
+/* ===================================================
+   KONAMI CODE (placeholder de test)
+   =================================================== */
+const konamiSequence = [
+    'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+    'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+    'b', 'a'
+];
+let konamiProgress = 0;
+
+function triggerKonamiEffect() {
+    // Assets attendus (à fournir toi-même dans le dossier assets/ff7/, non générables ici pour raison de droits) :
+    //  - ./assets/ff7/cloud.gif    (sprite animé de Cloud)
+    //  - ./assets/ff7/victory.mp3  (jingle de victoire, ~9s)
+
+    const overlay = document.createElement('div');
+    overlay.className = 'ff7-victory-overlay';
+    overlay.innerHTML = `
+        <div class="ff7-sprites">
+            <img src="./assets/ff7/cloud.gif" alt="Cloud" class="ff7-sprite">
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const victoryAudio = new Audio('./assets/ff7/victory.mp3');
+    victoryAudio.volume = 0.1;
+    victoryAudio.play().catch(() => console.warn('Audio bloqué (interaction requise).'));
+
+    // Pluie de gil (pas besoin d'asset externe : simple pièce dorée dessinée en CSS/emoji)
+    const gilInterval = setInterval(() => spawnGil(overlay), 90);
+    setTimeout(() => clearInterval(gilInterval), 9200);
+
+    setTimeout(() => {
+        overlay.classList.add('fade-out');
+        setTimeout(() => {
+            victoryAudio.pause();
+            overlay.remove();
+        }, 800);
+    }, 10000);
+}
+
+function spawnGil(container) {
+    const gil = document.createElement('span');
+    gil.className = 'ff7-gil';
+    gil.textContent = '🪙';
+    gil.style.left = `${Math.random() * 100}%`;
+    gil.style.animationDuration = `${1.6 + Math.random() * 1.4}s`;
+    gil.style.fontSize = `${1.4 + Math.random() * 1.2}rem`;
+    container.appendChild(gil);
+    setTimeout(() => gil.remove(), 3200);
+}
+
+window.addEventListener('keydown', (event) => {
+    const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+    const expected = konamiSequence[konamiProgress];
+
+    if (key === expected) {
+        konamiProgress++;
+        if (konamiProgress === konamiSequence.length) {
+            konamiProgress = 0;
+            triggerKonamiEffect();
+        }
+    } else {
+        konamiProgress = (key === konamiSequence[0]) ? 1 : 0;
+    }
+});
