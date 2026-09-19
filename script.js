@@ -111,6 +111,40 @@ document.querySelectorAll('a, button, .skill-td, .experience-stage').forEach(el 
 });
 
 /* ===================================================
+   INTRO FLASH OVERLAY (secret trigger: double-click logo)
+   =================================================== */
+(function initIntroFlash() {
+    const flash = document.getElementById('introFlash');
+    const logoTrigger = document.querySelector('.logo');
+    if (!flash || !logoTrigger) return;
+
+    const GIF_URL = 'https://giffiles.alphacoders.com/124/12499.gif';
+    const flashAudio = new Audio('./assets/fnaf/springtrap.mp3');
+    flashAudio.volume = 0.02;
+
+    logoTrigger.addEventListener('click', () => {
+        flash.classList.remove('active');
+        // force reflow so the CSS fade animation restarts if clicked again
+        void flash.offsetWidth;
+
+        // Recharge le GIF depuis le début : sinon le navigateur le garde
+        // affiché sur sa dernière frame car l'image ne se "rejoue" pas
+        // juste en togglant display:none/block, il faut changer l'URL.
+        flash.style.backgroundImage = `url('${GIF_URL}?_=${Date.now()}')`;
+
+        flash.classList.add('active');
+
+        // Joue l'audio en même temps que le GIF apparaît
+        flashAudio.currentTime = 0;
+        flashAudio.play().catch(() => console.warn('Audio bloqué (interaction requise).'));
+    });
+
+    flash.addEventListener('animationend', () => {
+        flash.classList.remove('active');
+    });
+})();
+
+/* ===================================================
    PAGE LOADER
    =================================================== */
 (function initPageLoader() {

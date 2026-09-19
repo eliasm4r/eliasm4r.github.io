@@ -2507,6 +2507,38 @@ body.is-loaded {
     overflow: auto;
 }
 
+.intro-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 20001;
+    background-image: url('https://giffiles.alphacoders.com/124/12499.gif');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    pointer-events: none;
+    opacity: 0;
+    display: none;
+}
+
+.intro-flash.active {
+    display: block;
+    animation: introFlashAnim 2s ease 0s 1 normal forwards;
+}
+
+@keyframes introFlashAnim {
+    0% {
+        opacity: 1;
+    }
+
+    75% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
 .page-loader {
     position: fixed;
     inset: 0;
@@ -3588,4 +3620,20 @@ body.games-modal-open .cursor-outline {
     .ff7-sprites {
         gap: 2rem;
     }
+}
+/* ===================================================
+   HOME MARQUEE
+   =================================================== */
+.home-marquee {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 02;
+}
+
+.home-marquee img {
+    height: 160px;
+    display: inline-block;
+    transform: translateY(43px); /* ajuste ce chiffre pour que les pieds touchent la ligne */
 }
