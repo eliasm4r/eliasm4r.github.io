@@ -3203,6 +3203,29 @@ body.games-modal-open .cursor-outline {
     display: none !important;
 }
 
+/* Optimisations perf pendant qu'un jeu tourne dans le modal (mobile / PC faibles) */
+.games-modal-overlay {
+    /* le blur du fond est très coûteux (surtout mobile) pendant qu'un jeu tourne à côté */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(0, 0, 0, 0.92) !important;
+}
+
+body.games-modal-open .home .wrapper .inner {
+    animation-play-state: paused !important;
+}
+
+body.games-modal-open .footer .fa {
+    animation-play-state: paused !important;
+}
+
+/* Les GIFs animés et le <marquee> ne s'arrêtent pas avec animation-play-state
+   (ce ne sont pas des animations CSS) : il faut les retirer du rendu */
+body.games-modal-open .softskill-secret-games,
+body.games-modal-open marquee {
+    display: none !important;
+}
+
 @media (max-width: 1100px) {
     .skills-grid {
         grid-template-columns: repeat(4, minmax(120px, 1fr));
