@@ -50,7 +50,9 @@ function trailFrame() {
         trailCtx.lineTo(b.x, b.y);
         trailCtx.lineWidth = 0.5 + 2.8 * k;
         if (tint.rainbow) {
-            const hue = (now / 6 + i * 9) % 360;
+            const hue = tint.rainbow === 'aurora'
+                ? 140 + 90 * (1 + Math.sin(now / 260 + i * 0.35)) // aurore boréale : vert, bleu, violet, rose
+                : (now / 6 + i * 9) % 360;
             trailCtx.strokeStyle = `hsla(${hue}, 100%, 75%, ${k})`;
             trailCtx.shadowColor = `hsla(${hue}, 100%, 60%, 0.9)`;
         } else trailCtx.strokeStyle = `rgba(${tint.core}, ${k})`;
@@ -129,6 +131,17 @@ if (nekoToggle) {
         revealOnekoAtToggle();
         nekoToggle.style.display = 'none';
     });
+
+    // Sur ordinateur, le chat se cache derrière la carte joueur (sa tête dépasse en haut)
+    const nekoHome = nekoToggle.parentNode, nekoNext = nekoToggle.nextSibling;
+    const desktopMenu = window.matchMedia('(min-width: 917px)');
+    const placeNeko = () => {
+        const card = document.querySelector('.player-card');
+        if (desktopMenu.matches && card) card.appendChild(nekoToggle);
+        else if (nekoToggle.parentNode !== nekoHome) nekoHome.insertBefore(nekoToggle, nekoNext);
+    };
+    placeNeko();
+    desktopMenu.addEventListener?.('change', placeNeko);
 
     window.addEventListener('resize', positionNekoToggle);
 
@@ -408,6 +421,8 @@ function findSecret(key) {
 
 function visitZone(id) {
     if (BONUS_ZONES.includes(id)) return;
+    // le rembobinage du Return by Death fait défiler les pages : ce n'est pas une vraie visite
+    if (document.body.classList.contains('rbd-rewind')) return;
     const visited = getVisited();
     if (visited.has(id)) return;
     visited.add(id);
@@ -467,6 +482,12 @@ let replayIntro = null; // relance l'écran d'intro (après "Reset votre progres
     resize();
     window.addEventListener('resize', resize);
 
+    // Couleurs du décor : bleu cristal, ou rouge si le mode Ardyn (Konami) est actif.
+    // Lues à chaque image : si on active le mode pendant l'intro, le décor suit.
+    const BLUE = { light: '201, 220, 255', mid: '91, 140, 232', deep: '30, 58, 102', glow: '143, 184, 255', bg: ['#15223e', '#0c1120', '#0a0d14'], bar: '#c9dcff' };
+    const RED = { light: '255, 194, 204', mid: '176, 38, 72', deep: '74, 13, 30', glow: '224, 74, 95', bg: ['#2e0c17', '#16070c', '#0c0608'], bar: '#ffc2cc' };
+    const pal = () => (document.documentElement.classList.contains('theme-ardyn') ? RED : BLUE);
+
     // Éclats de cristal qui montent lentement + poussière lumineuse
     const newCrystal = (anywhere) => ({
         x: rand(0, W), y: anywhere ? rand(0, H) : H + rand(30, 140),
@@ -489,12 +510,13 @@ let replayIntro = null; // relance l'écran d'intro (après "Reset votre progres
         ctx.lineTo(-s * 0.55, 0);
         ctx.closePath();
         const g = ctx.createLinearGradient(-s, -h, s, h);
-        g.addColorStop(0, 'rgba(201, 220, 255, 0.6)');
-        g.addColorStop(0.5, 'rgba(91, 140, 232, 0.2)');
-        g.addColorStop(1, 'rgba(30, 58, 102, 0.05)');
+        const P = pal();
+        g.addColorStop(0, `rgba(${P.light}, 0.6)`);
+        g.addColorStop(0.5, `rgba(${P.mid}, 0.2)`);
+        g.addColorStop(1, `rgba(${P.deep}, 0.05)`);
         ctx.fillStyle = g;
         ctx.fill();
-        ctx.strokeStyle = 'rgba(201, 220, 255, 0.75)';
+        ctx.strokeStyle = `rgba(${P.light}, 0.75)`;
         ctx.lineWidth = 1;
         ctx.stroke();
         ctx.beginPath();
@@ -511,15 +533,16 @@ let replayIntro = null; // relance l'écran d'intro (après "Reset votre progres
         const t = now / 1000;
         last = now;
         const bg = ctx.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, Math.max(W, H) * 0.75);
-        bg.addColorStop(0, '#15223e');
-        bg.addColorStop(0.55, '#0c1120');
-        bg.addColorStop(1, '#0a0d14');
+        const P = pal();
+        bg.addColorStop(0, P.bg[0]);
+        bg.addColorStop(0.55, P.bg[1]);
+        bg.addColorStop(1, P.bg[2]);
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, W, H);
         // rayon de lumière venant d'en haut
         const beam = ctx.createLinearGradient(W / 2, 0, W / 2, H * 0.7);
-        beam.addColorStop(0, `rgba(143, 184, 255, ${0.10 + 0.03 * Math.sin(t * 1.3)})`);
-        beam.addColorStop(1, 'rgba(143, 184, 255, 0)');
+        beam.addColorStop(0, `rgba(${P.glow}, ${0.10 + 0.03 * Math.sin(t * 1.3)})`);
+        beam.addColorStop(1, `rgba(${P.glow}, 0)`);
         ctx.fillStyle = beam;
         ctx.beginPath();
         ctx.moveTo(W * 0.42, 0);
@@ -527,7 +550,7 @@ let replayIntro = null; // relance l'écran d'intro (après "Reset votre progres
         ctx.lineTo(W * 0.75, H * 0.7);
         ctx.lineTo(W * 0.25, H * 0.7);
         ctx.fill();
-        ctx.fillStyle = 'rgb(201, 220, 255)';
+        ctx.fillStyle = `rgb(${P.light})`;
         for (const d of dust) {
             d.y -= d.vy * dt;
             if (d.y < -4) { d.y = H + 4; d.x = rand(0, W); }
@@ -560,7 +583,7 @@ let replayIntro = null; // relance l'écran d'intro (après "Reset votre progres
             ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
             if ('letterSpacing' in ctx) ctx.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
             ctx.fillStyle = el.classList.contains('ch') ? '#ffffff' : cs.color;
-            ctx.shadowColor = 'rgba(143, 184, 255, 0.9)';
+            ctx.shadowColor = `rgba(${pal().glow}, 0.9)`;
             ctx.shadowBlur = el.classList.contains('ch') ? 22 : 0;
             const x = el === nameInput ? r.left + (r.width - ctx.measureText(text).width) / 2 : r.left;
             ctx.fillText(text, x, r.top + r.height / 2);
@@ -568,13 +591,13 @@ let replayIntro = null; // relance l'écran d'intro (après "Reset votre progres
         ctx.shadowBlur = 0;
         if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
         const br = loader.querySelector('.loader-bar').getBoundingClientRect();
-        ctx.fillStyle = '#c9dcff';
+        ctx.fillStyle = pal().bar;
         if (br.width) ctx.fillRect(br.left, br.top, br.width, 2);
         // le trait de lumière, pour qu'il devienne une vraie fissure
         ctx.save();
         ctx.translate(W / 2, H / 2);
         ctx.rotate((-14 * Math.PI) / 180);
-        ctx.shadowColor = '#8fb8ff';
+        ctx.shadowColor = `rgb(${pal().glow})`;
         ctx.shadowBlur = 24;
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(-W * 0.6, -1.5, W * 1.2, 3);
@@ -608,7 +631,7 @@ let replayIntro = null; // relance l'écran d'intro (après "Reset votre progres
             const snap = snapshotCanvas(canvas);
             loader.classList.add('shattering');
             document.body.classList.add('is-loaded');
-            shatterCanvas(ctx, snap, { W, H, dpr, crackMs: 160, flyMs: 1150 }, finish);
+            shatterCanvas(ctx, snap, { W, H, dpr, crackMs: 160, flyMs: 1150, edge: `rgba(${pal().light}, 0.85)` }, finish);
         }, 380);
     };
 
@@ -686,7 +709,7 @@ const skillData = {
     },
     vuejs: {
         title: tr('Vue.js'),
-        img: './assets/vuejs.png',
+        img: './assets/vuejs.webp',
         desc: tr('Framework JavaScript progressif pour créer des interfaces réactives en composants. Utilisé en stage chez GEONATIVE pour développer des composants réutilisables avec shadcn.')
     },
     html: {
@@ -701,12 +724,12 @@ const skillData = {
     },
     python: {
         title: tr('Python'),
-        img: './assets/python.png',
+        img: './assets/python.webp',
         desc: tr('Utilisé pour la modélisation mathématique et l\'automatisation. Maîtrise de NumPy pour le calcul numérique et la résolution de problèmes d\'optimisation.')
     },
     psql: {
         title: tr('PostgreSQL'),
-        img: './assets/PSQL.png',
+        img: './assets/PSQL.webp',
         desc: tr('Système de gestion de bases de données relationnelles. Conception de schémas, requêtes SQL complexes (jointures, agrégats), gestion des transactions et optimisation par index.')
     },
     typescript: {
@@ -1302,9 +1325,6 @@ const showTab = (function initTabs() {
         bar.style.width = `${(unlocked.size / skills.length) * 100}%`;
         panel.classList.toggle('is-complete', unlocked.size === skills.length);
         if (unlocked.size === skills.length) emit('sphere');
-        if (window.matchMedia('(max-width: 900px)').matches && node.classList.contains('sphere-skill')) {
-            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
     };
     nodes.forEach(n => n.addEventListener('click', () => select(n)));
 })();
@@ -1790,9 +1810,17 @@ window.addEventListener('keydown', (event) => {
 /* Menu latéral : fondu en bas quand il reste des entrées cachées (écran peu haut, page zoomée) */
 (function menuOverflowHint() {
     const header = document.querySelector('header');
+    const nav = header?.querySelector('.navbar');
     if (!header) return;
-    const check = () => header.classList.toggle('has-more', header.scrollHeight - header.clientHeight - header.scrollTop > 4);
+    // sur ordinateur c'est le menu latéral (header) qui défile, sur téléphone le menu pause (.navbar)
+    const more = (el) => el.scrollHeight - el.clientHeight - el.scrollTop > 4;
+    const check = () => {
+        header.classList.toggle('has-more', more(header));
+        nav?.classList.toggle('has-more', more(nav));
+    };
     header.addEventListener('scroll', check, { passive: true });
+    nav?.addEventListener('scroll', check, { passive: true });
+    document.getElementById('menu')?.addEventListener('click', () => setTimeout(check, 500));
     window.addEventListener('resize', check);
     if (window.ResizeObserver) new ResizeObserver(check).observe(header.querySelector('.navbar') || header);
     window.addEventListener('load', check);

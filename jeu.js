@@ -151,6 +151,7 @@ const achievements = (() => {
         { id: 'konami', icon: '🩸', name: tr('Réveil d\'Ardyn'), desc: tr('↑ ↑ ↓ ↓ ← → ← → B A'), hidden: true },
         { id: 'reset', icon: '↺', name: tr('Retour par la mort'), desc: tr('Réinitialiser sa progression.'), hidden: true },
         { id: 'chef', icon: '🍳', name: tr('Nouvelle recette !'), desc: tr('Réussir une recette avec 3 étoiles.') },
+        { id: 'ultimateChef', icon: '👑', name: tr('Chef légendaire'), desc: tr('Réussir le Banquet ultime en Cuisine.') },
         { id: 'chocobo', icon: '🏁', name: tr('Champion de course'), desc: tr('Terminer une Chocobo Race.') },
         { id: 'battle', icon: '⚔️', name: tr('Golem vaincu'), desc: tr('Gagner le combat contre le Golem de cristal.') },
         { id: 'chest', icon: '🗝️', name: tr('Fouineur'), desc: tr('Ouvrir un coffre caché.') },

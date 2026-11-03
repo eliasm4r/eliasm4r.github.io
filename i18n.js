@@ -8,6 +8,13 @@ const LANG_KEY = 'eliasPortfolio.lang';
 const LANG = (() => { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'fr'; } catch { return 'fr'; } })();
 
 const EN = {
+    "Chef légendaire": "Legendary Chef",
+    "Réussir le Banquet ultime en Cuisine.": "Clear the Ultimate Banquet in Cooking.",
+    "Banquet ultime": "Ultimate Banquet",
+    "☠ NIVEAU ULTIME ☠": "☠ ULTIMATE LEVEL ☠",
+    "Traînée aurore multicolore": "Multicolor aurora trail",
+    "Aurore légendaire": "Legendary Aurora",
+    "Succès « Chef légendaire »": "Trophy “Legendary Chef”",
     "visiter les 7 pages du menu": "visit the 7 menu pages",
     "trouver les 6 objets secrets": "find the 6 secret items",
     "débloquer les 11 sphères (Soft Skills)": "unlock the 11 spheres (Soft Skills)",
@@ -27,7 +34,7 @@ const EN = {
     "À quoi ça sert ?": "What are they for?",
     "C'est purement esthétique : l'accessoire équipé change la couleur du cristal à côté de ton pseudo et de la traînée lumineuse qui suit ta souris.": "They're purely cosmetic: the equipped accessory changes the color of the crystal next to your name and of the glowing trail that follows your mouse.",
     "Comment les obtenir ?": "How do I get them?",
-    "5 se gagnent avec des succès (mini-jeux, pêche nocturne), 3 sont dans des coffres cachés dans les pages du portfolio.": "5 are earned through trophies (mini-games, night fishing), 3 are in hidden chests across the portfolio's pages.",
+    "6 se gagnent avec des succès (mini-jeux, pêche nocturne), 3 sont dans des coffres cachés dans les pages du portfolio.": "6 are earned through trophies (mini-games, night fishing), 3 are in hidden chests across the portfolio's pages.",
     "Comment équiper ?": "How do I equip one?",
     "Clique sur un accessoire débloqué. Ton choix est sauvegardé.": "Click an unlocked accessory. Your choice is saved.",
     "EN GARDE": "GUARDING",
