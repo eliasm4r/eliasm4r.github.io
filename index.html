@@ -12,11 +12,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
         integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Thème Noctis : Cinzel (titres), Inter (texte), JetBrains Mono (labels façon menu RPG) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" />
+    <link rel="stylesheet" href="noctis.css" />
     <!-- Favicon -->
     <link id="favicon" rel="shortcut icon" href="./assets/logo-site.jpg" type="image/x-png" />
     <title>Elias Maruca Portfolio</title>
-    <!-- ScrollReveal CDN -->
-    <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
 </head>
 
 <body oncontextmenu="return false">
@@ -24,22 +28,28 @@
     <div class="intro-flash" id="introFlash" aria-hidden="true"></div>
 
     <div class="page-loader" id="pageLoader" aria-hidden="true">
+        <canvas class="loader-canvas" id="loaderCanvas"></canvas>
         <div class="loader-core">
-            <div class="loader-rings">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <p class="loader-text">Chargement du portfolio...</p>
-            <div class="loader-bar-track">
+            <p class="loader-kicker"><span data-player data-fallback="NOUVELLE PARTIE">NOUVELLE PARTIE</span> <span class="dot">·</span> CHARGEMENT</p>
+            <div class="loader-name" id="loaderName">ELIAS MARUCA</div>
+            <p class="loader-class">FULL-STACK DEVELOPER</p>
+            <div class="loader-bar">
                 <div class="loader-bar-fill" id="loaderBarFill"></div>
             </div>
+            <p class="loader-percent" id="loaderPercent">0%</p>
+            <form class="loader-gate" id="loaderGate" autocomplete="off">
+                <label for="playerName">ENTREZ VOTRE NOM, VOYAGEUR</label>
+                <input id="playerName" name="playerName" maxlength="16" placeholder="Votre pseudo" spellcheck="false"
+                    autocapitalize="characters" />
+                <button type="submit">▶ COMMENCER</button>
+            </form>
         </div>
+        <div class="loader-slash"></div>
     </div>
 
     <!-- Custom Cursor -->
+    <canvas class="cursor-trail"></canvas>
     <div class="cursor-dot"></div>
-    <div class="cursor-outline"></div>
 
     <!-- navbar starts -->
     <header>
@@ -47,16 +57,41 @@
             <a class="logo">Elias Maruca</a>
         </div>
         <div id="menu" class="fas fa-bars"></div>
-        <nav class="navbar">
+        <nav class="navbar" aria-label="Menu principal">
+            <div class="player-card" id="playerCard">
+                <span class="player-gem" aria-hidden="true"></span>
+                <p class="player-name" data-player>PLAYER 1</p>
+                <p class="player-lv">LV <b id="playerLv">1</b></p>
+                <div class="player-xp" aria-hidden="true"><span id="playerXp"></span></div>
+                <p class="player-xp-txt"><span id="playerXpTxt">1 / 7</span> ZONES EXPLORÉES</p>
+                <p class="player-secrets" title="Des objets brillants sont cachés dans les pages…">✦ OBJETS SECRETS
+                    <b><span id="secretCount">0</span> / <span id="secretTotal">6</span></b></p>
+                <div class="player-actions">
+                    <button class="player-btn" type="button" id="openTrophies">🏆 SUCCÈS <b><span id="trophyCount">0</span>/<span
+                                id="trophyTotal">12</span></b></button>
+                    <button class="player-btn player-sound" type="button" id="openEquip"
+                        aria-label="Équipement" title="Équipement">🎒</button>
+                    <button class="player-btn player-sound" type="button" id="soundToggle" aria-pressed="true"
+                        aria-label="Couper les sons du menu">♪</button>
+                </div>
+                <span class="player-toast" id="playerToast" aria-live="polite"></span>
+            </div>
+            <p class="menu-kicker">MENU</p>
+            <span class="menu-gem" aria-hidden="true"></span>
             <ul>
-                <li><a class="active" href="#home">Accueil</a></li>
-                <li><a href="#about">Présentation</a></li>
-                <li><a href="#skills">Compétences</a></li>
-                <li><a href="#softskills">Soft Skills</a></li>
-                <li><a href="#education">Parcours</a></li>
-                <li><a href="#work">Réalisations</a></li>
-                <li><a href="#experience">Expériences</a></li>
+                <li><a class="active" href="#home" data-rpg="TITRE">Accueil</a></li>
+                <li><a href="#about" data-rpg="PROFIL">Présentation</a></li>
+                <li><a href="#skills" data-rpg="STATISTIQUES">Compétences</a></li>
+                <li><a href="#softskills" data-rpg="APTITUDES">Soft Skills</a></li>
+                <li><a href="#education" data-rpg="ORIGINES">Parcours</a></li>
+                <li><a href="#work" data-rpg="QUÊTES ANNEXES">Réalisations</a></li>
+                <li><a href="#experience" data-rpg="JOURNAL">Expériences</a></li>
+                <li class="menu-bonus"><a href="#games" data-rpg="BONUS">Mini-jeux</a></li>
             </ul>
+            <div class="menu-foot">
+                <button class="menu-reset" type="button" data-reset>↺ Reset votre progression</button>
+                <button class="lang-toggle" type="button" id="langToggle" lang="en">EN</button>
+            </div>
         </nav>
     </header>
     <button id="nekoToggle" class="neko-toggle" type="button" aria-label="Activer le mode chat">
@@ -70,6 +105,7 @@
         <div id="particles-js"></div>
 
         <div class="content">
+            <p class="hero-status"><span class="status-dot"></span> EN RECHERCHE D'UN POSTE</p>
             <h2>
                 <div>Salut, moi c'est <span>Elias</span></div>
             </h2>
@@ -82,7 +118,11 @@
                 <ul class="social-icons">
                     <li>
                         <a class="linkedin" aria-label="LinkedIn" href="https://www.linkedin.com/in/elias-m-02b7a131a/"
-                            target="_blank"><i class="fab fa-linkedin"></i></a>
+                            target="_blank" rel="noopener noreferrer"><i class="fab fa-linkedin"></i></a>
+                    </li>
+                    <li>
+                        <a class="github" aria-label="GitHub" href="https://github.com/eliasm4r"
+                            target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i></a>
                     </li>
                 </ul>
             </div>
@@ -124,7 +164,7 @@
         </div>
 
         <marquee behavior="scroll" direction="right" scrollamount="15" class="home-marquee">
-            <a class="softskill-secret-games" href="#" data-game="games/sonic.html" aria-label="Secret SONIC RUSH">
+            <a class="softskill-secret-games" href="#" data-game="games/sonic.html" data-secret="sonic" aria-label="Secret SONIC RUSH">
                 <img loading="lazy" src="https://external-media.spacehey.net/media/sl6frowk81AopN5iAmoyMjgxpDDgAeHvqj7WTLsFU3zM=/https://i.ibb.co/tz78sLs/5GpK.gif" alt="" aria-hidden="true" />
             </a>
         </marquee>
@@ -133,52 +173,78 @@
 
     <!-- about section starts -->
     <section class="about" id="about">
-        <h2 class="heading">
+        <h2 class="heading" data-rpg="PROFIL DU JOUEUR">
             <i class="fas fa-user-alt"></i><span> Présentation</span>
         </h2>
-        <div class="row">
-            <div class="images">
-                <img draggable="false" class="tilt" src="./assets/code.jpg" alt="Code" />
-                <img draggable="false" class="tilt" src="./assets/réseaux.jpeg" alt="Réseaux" />
-            </div>
-            <div class="content">
-                <h3>Je m'appelle Elias Maruca</h3>
-                <span class="tag">Développeur Full-Stack — En recherche d'un poste</span>
-                <p>
-                    Tout a commencé devant l'ordinateur familial, à regarder mon père jouer aux jeux vidéo. Cette
-                    curiosité pour comprendre ce qui se cachait derrière l'écran ne m'a jamais quitté, et c'est elle qui
-                    m'a naturellement conduit vers le développement informatique.
-                </p>
-                <br />
-                <p>
-                    Développeur Full-Stack curieux, créatif et organisé, je suis aujourd'hui diplômé du BUT Informatique
-                    de l'IUT de Lille, à l'issue duquel j'ai effectué un stage chez ADEO (groupe Leroy Merlin). J'y ai
-                    contribué au développement d'une application mobile en production —
-                    <strong>HelpBox</strong>
-                    — en Flutter (front) et Go (back), connectée à ServiceNow et utilisée par des milliers d'employés à
-                    travers les enseignes du groupe.
-                </p>
-                <br />
-                <p>
-                    Je suis capable de monter rapidement en compétences sur des technologies nouvelles, de livrer des
-                    User Stories de manière autonome dans un cycle Agile, et de m'intégrer efficacement dans une équipe
-                    de développeurs expérimentés. Mon bagage couvre le web (Vue.js, React, TypeScript), le backend
-                    (Java, Spring Boot, Go), les bases de données (PostgreSQL, MongoDB) et le mobile (Flutter).
-                </p>
-                <br />
-                <p>
-                    En dehors du code, je reste passionné de jeux vidéo, et je m'intéresse particulièrement au modding
-                    d'anciennes consoles — une autre façon, plus bricolage, de comprendre comment les choses
-                    fonctionnent vraiment en profondeur.
-                </p>
-                <br />
-                <p>
-                    Mon objectif : décrocher un <strong>poste en développement Full-Stack</strong>, dans un
-                    environnement qui me permettra de continuer à progresser sur des projets concrets à fort impact.
-                    Basé à Lille et ses alentours, je suis ouvert au télétravail comme au travail en présentiel.
-                </p>
-                <br />
-                <div class="box-container">
+        <div class="bio">
+            <figure class="bio-quote">
+                <blockquote>Tout a commencé devant l'ordinateur familial, à regarder mon père jouer aux jeux vidéo.
+                </blockquote>
+                <figcaption>
+                    <strong>Elias Maruca</strong>
+                    <span class="tag">Développeur Full-Stack — En recherche d'un poste</span>
+                </figcaption>
+            </figure>
+
+            <ul class="bio-facts" aria-label="En bref">
+                <li><b>BUT</b><span>Informatique · IUT de Lille · 2026</span></li>
+                <li><b>ADEO</b><span>Stage · app mobile en production</span></li>
+                <li><b>LILLE</b><span>Présentiel ou télétravail</span></li>
+            </ul>
+
+            <ol class="bio-chapters">
+                <li class="bio-chapter">
+                    <p class="bio-n">01 <span>ORIGINE</span></p>
+                    <p>
+                        Cette curiosité pour comprendre ce qui se cachait derrière l'écran ne m'a jamais quitté, et
+                        c'est elle qui m'a naturellement conduit vers le <mark>développement informatique</mark>.
+                    </p>
+                </li>
+                <li class="bio-chapter">
+                    <p class="bio-n">02 <span>FORMATION &amp; ADEO</span></p>
+                    <p>
+                        Développeur Full-Stack curieux, créatif et organisé, je suis aujourd'hui diplômé du
+                        <mark>BUT Informatique</mark> de l'IUT de Lille, à l'issue duquel j'ai effectué un stage chez
+                        ADEO (groupe Leroy Merlin). J'y ai contribué au développement d'une application mobile en
+                        production — <strong>HelpBox</strong> — en Flutter (front) et Go (back), connectée à ServiceNow
+                        et utilisée par <mark>des milliers d'employés</mark> à travers les enseignes du groupe.
+                    </p>
+                </li>
+                <li class="bio-chapter">
+                    <p class="bio-n">03 <span>SAVOIR-FAIRE</span></p>
+                    <p>
+                        Je suis capable de monter rapidement en compétences sur des technologies nouvelles, de livrer
+                        des User Stories de manière autonome dans un cycle Agile, et de m'intégrer efficacement dans
+                        une équipe de développeurs expérimentés. Mon bagage couvre :
+                    </p>
+                    <div class="bio-stack">
+                        <div><b>WEB</b><span>Vue.js</span><span>React</span><span>TypeScript</span></div>
+                        <div><b>BACKEND</b><span>Java</span><span>Spring Boot</span><span>Go</span></div>
+                        <div><b>DONNÉES</b><span>PostgreSQL</span><span>MongoDB</span></div>
+                        <div><b>MOBILE</b><span>Flutter</span></div>
+                    </div>
+                </li>
+                <li class="bio-chapter">
+                    <p class="bio-n">04 <span>HORS DU CODE</span></p>
+                    <p>
+                        En dehors du code, je reste passionné de jeux vidéo, et je m'intéresse particulièrement au
+                        <mark>modding d'anciennes consoles</mark> — une autre façon, plus bricolage, de comprendre
+                        comment les choses fonctionnent vraiment en profondeur.
+                    </p>
+                </li>
+                <li class="bio-chapter bio-goal">
+                    <p class="bio-n">05 <span>OBJECTIF</span></p>
+                    <p>
+                        Décrocher un <strong>poste en développement Full-Stack</strong>, dans un environnement qui me
+                        permettra de continuer à progresser sur des projets concrets à fort impact. Basé à Lille et ses
+                        alentours, je suis ouvert au télétravail comme au travail en présentiel.
+                    </p>
+                </li>
+            </ol>
+
+            <div class="bio-contact">
+                <p class="bio-contact-k">ME CONTACTER</p>
+                <div class="bio-contact-row">
                     <div class="box email-copy-box" id="emailCopyBox" role="button" tabindex="0"
                         aria-label="Copier l'adresse email">
                         <p><i class="fas fa-envelope"></i> maruca.elias0702@gmail.com</p>
@@ -187,9 +253,6 @@
                             <span class="email-copy-label">Copier</span>
                         </span>
                     </div>
-                </div>
-
-                <div class="resumebtn">
                     <a href="#" id="openCvModal" class="btn resume-btn no-scroll">
                         <span>MON CV</span>
                         <i class="fas fa-chevron-right"></i>
@@ -197,12 +260,13 @@
                 </div>
             </div>
         </div>
+        <button class="chest" type="button" data-chest="prism" aria-label="Coffre caché" style="--x:96%;--y:94%"><svg class="chest-art" viewBox="0 0 40 34" aria-hidden="true"><path class="chest-lid" d="M4 15 V10 Q4 3 11 3 H29 Q36 3 36 10 V15 Z"/><path class="chest-band" d="M10 3.6 V15 M30 3.6 V15"/><rect class="chest-body" x="4" y="15" width="32" height="16" rx="1.5"/><path class="chest-band" d="M10 15 V31 M30 15 V31"/><rect class="chest-rim" x="3" y="13.6" width="34" height="3" rx="1"/><rect class="chest-lock" x="17" y="13" width="6" height="8" rx="1.2"/><circle class="chest-hole" cx="20" cy="17.6" r="1.1"/></svg></button>
     </section>
     <!-- about section ends -->
 
     <!-- skills section starts -->
     <section class="skills" id="skills" style="background-image: url('./assets/fond.jpg'); background-size: cover;">
-        <h2 class="heading">
+        <h2 class="heading" data-rpg="STATISTIQUES">
             <i class="fas fa-laptop-code"></i><span> Compétences</span>
         </h2>
         <p class="skills-subtitle">Cliquez sur une icône pour en savoir plus</p>
@@ -327,221 +391,141 @@
                 </div>
             </div>
         </div>
+        <!-- objet secret : lance un jeu -->
+        <a class="secret-item" href="#" data-game="games/cuphead.html" data-secret="cuphead"
+            aria-label="Objet secret" style="--d:1.7;--x:96%;--y:96%"><img loading="lazy" src="./assets/cuphead/cuphead.png" alt="" aria-hidden="true"></a>
     </section>
     <!-- skills section ends -->
 
     <!-- =============================================
      SOFT SKILLS SECTION — à insérer après </section> de #skills
      ============================================= -->
-    <section class="softskills" id="softskills" style="background: var(--color-dark-grey);">
-        <h2 class="heading">
+    <section class="softskills" id="softskills">
+        <h2 class="heading" data-rpg="APTITUDES">
             <i class="fas fa-brain"></i><span> Soft Skills</span>
         </h2>
-        <p class="skills-subtitle">Acquises et renforcées lors de mon stage chez ADEO</p>
+        <p class="skills-subtitle">Acquises et renforcées lors de mon stage chez ADEO · clique sur une sphère</p>
 
-        <div class="softskills-grid">
-
-            <!-- BLOC 1 : Manière d'être -->
-            <div class="softskill-bloc">
-                <div class="softskill-bloc-header">
-                    <i class="fas fa-user-circle"></i>
-                    <h3>Manière d'être</h3>
-                </div>
-                <div class="softskill-cards">
-
-                    <div class="softskill-card">
-                        <div class="softskill-card-icon"><i class="fas fa-bolt"></i></div>
-                        <div class="softskill-card-body">
-                            <h4>Adaptabilité</h4>
-                            <p>Arrivé sans aucune connaissance de Flutter ni de Go, j'ai appris ces deux technologies
-                                directement en contexte professionnel réel, sur une application en production utilisée
-                                par les employés d'un grand groupe.</p>
-                        </div>
-                    </div>
-
-                    <div class="softskill-card">
-                        <div class="softskill-card-icon"><i class="fas fa-rocket"></i></div>
-                        <div class="softskill-card-body">
-                            <h4>Engagement & sens des responsabilités</h4>
-                            <p>Je gère mes tâches en autonomie dans un cycle de sprints de 2 semaines. Je prends des
-                                initiatives sans attendre qu'on me dicte quoi faire, ce qui m'a valu d'être reconnu
-                                comme un vrai "+1" au projet par mon équipe.</p>
-                        </div>
-                    </div>
-
-                    <div class="softskill-card">
-                        <div class="softskill-card-icon"><i class="fas fa-shield-alt"></i></div>
-                        <div class="softskill-card-body">
-                            <h4>Confiance en soi & posture professionnelle</h4>
-                            <p>Intégré dans une équipe expérimentée chez ADEO (groupe Leroy Merlin), je me positionne
-                                comme un membre à part entière : je contribue, je propose, et je n'hésite pas à
-                                solliciter de l'aide au bon moment.</p>
-                        </div>
-                    </div>
-
-                    <div class="softskill-card">
-                        <div class="softskill-card-icon"><i class="fas fa-heart"></i></div>
-                        <div class="softskill-card-body">
-                            <h4>Gestion des imprévus & stabilité émotionnelle</h4>
-                            <p>Je n'ai pas rencontré de situation de stress majeur pendant le stage, mais je garde une
-                                posture calme face aux blocages techniques et je réagis vite en demandant de l'aide.
-                                En travail en duo, je communique clairement pour maintenir un rythme de travail fluide.
-                            </p>
-                        </div>
-                    </div>
-                    <a class="softskill-secret-games" href="#" data-game="games/cuphead.html" aria-label="Secret CUPHEAD">
-                        <img loading="lazy" src="./assets/cuphead/cuphead.png" alt="" aria-hidden="true">
-                    </a>
-                </div>
+        <div class="sphere">
+            <div class="sphere-board" id="sphereBoard">
+                <svg class="sphere-links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                    <line x1="50" y1="50" x2="50.0" y2="26.0" data-link="c0" />
+                    <line x1="50.0" y1="26.0" x2="35.28" y2="17.5" data-link="s0" />
+                    <line x1="50.0" y1="26.0" x2="44.19" y2="10.03" data-link="s1" />
+                    <line x1="35.28" y1="17.5" x2="44.19" y2="10.03" data-link="lat" />
+                    <line x1="50.0" y1="26.0" x2="55.81" y2="10.03" data-link="s2" />
+                    <line x1="44.19" y1="10.03" x2="55.81" y2="10.03" data-link="lat" />
+                    <line x1="50.0" y1="26.0" x2="64.72" y2="17.5" data-link="s3" />
+                    <line x1="55.81" y1="10.03" x2="64.72" y2="17.5" data-link="lat" />
+                    <line x1="50" y1="50" x2="70.78" y2="62.0" data-link="c1" />
+                    <line x1="70.78" y1="62.0" x2="85.5" y2="53.5" data-link="s4" />
+                    <line x1="70.78" y1="62.0" x2="87.52" y2="64.95" data-link="s5" />
+                    <line x1="85.5" y1="53.5" x2="87.52" y2="64.95" data-link="lat" />
+                    <line x1="70.78" y1="62.0" x2="81.71" y2="75.02" data-link="s6" />
+                    <line x1="87.52" y1="64.95" x2="81.71" y2="75.02" data-link="lat" />
+                    <line x1="70.78" y1="62.0" x2="70.78" y2="79.0" data-link="s7" />
+                    <line x1="81.71" y1="75.02" x2="70.78" y2="79.0" data-link="lat" />
+                    <line x1="50" y1="50" x2="29.22" y2="62.0" data-link="c2" />
+                    <line x1="29.22" y1="62.0" x2="24.82" y2="78.42" data-link="s8" />
+                    <line x1="29.22" y1="62.0" x2="14.5" y2="70.5" data-link="s9" />
+                    <line x1="24.82" y1="78.42" x2="14.5" y2="70.5" data-link="lat" />
+                    <line x1="29.22" y1="62.0" x2="12.8" y2="57.6" data-link="s10" />
+                    <line x1="14.5" y1="70.5" x2="12.8" y2="57.6" data-link="lat" />
+                    <line x1="64.72" y1="17.5" x2="85.5" y2="53.5" data-link="ring" />
+                    <line x1="70.78" y1="79.0" x2="24.82" y2="78.42" data-link="ring" />
+                    <line x1="12.8" y1="57.6" x2="35.28" y2="17.5" data-link="ring" />
+                </svg>
+                <button class="sphere-node sphere-core is-on" type="button" style="--x:50%;--y:50%" data-node="core">
+                    <span class="node-gem"><i class="fas fa-star"></i></span><span class="node-label">ELIAS</span>
+                </button>
+                <button class="sphere-node sphere-cat" type="button" style="--x:50.0%;--y:26.0%" data-node="c0" data-cat="Manière d&#x27;être">
+                    <span class="node-gem"><i class="fas fa-user-circle"></i></span><span class="node-label">MANIÈRE D'ÊTRE</span>
+                </button>
+                <button class="sphere-node sphere-skill " type="button" style="--x:35.28%;--y:17.5%" data-node="s0" data-parent="c0" data-cat="Manière d&#x27;être" data-title="Adaptabilité">
+                    <span class="node-gem"><i class="fas fa-bolt"></i></span><span class="node-label">Adaptabilité</span>
+                    <span class="node-text" hidden>Arrivé sans aucune connaissance de Flutter ni de Go, j'ai appris ces deux technologies directement en contexte professionnel réel, sur une application en production utilisée par les employés d'un grand groupe.</span>
+                </button>
+                <button class="sphere-node sphere-skill " type="button" style="--x:44.19%;--y:10.03%" data-node="s1" data-parent="c0" data-cat="Manière d&#x27;être" data-title="Engagement & sens des responsabilités">
+                    <span class="node-gem"><i class="fas fa-rocket"></i></span><span class="node-label">Engagement</span>
+                    <span class="node-text" hidden>Je gère mes tâches en autonomie dans un cycle de sprints de 2 semaines. Je prends des initiatives sans attendre qu'on me dicte quoi faire, ce qui m'a valu d'être reconnu comme un vrai "+1" au projet par mon équipe.</span>
+                </button>
+                <button class="sphere-node sphere-skill " type="button" style="--x:55.81%;--y:10.03%" data-node="s2" data-parent="c0" data-cat="Manière d&#x27;être" data-title="Confiance en soi & posture professionnelle">
+                    <span class="node-gem"><i class="fas fa-shield-alt"></i></span><span class="node-label">Confiance</span>
+                    <span class="node-text" hidden>Intégré dans une équipe expérimentée chez ADEO (groupe Leroy Merlin), je me positionne comme un membre à part entière : je contribue, je propose, et je n'hésite pas à solliciter de l'aide au bon moment.</span>
+                </button>
+                <button class="sphere-node sphere-skill " type="button" style="--x:64.72%;--y:17.5%" data-node="s3" data-parent="c0" data-cat="Manière d&#x27;être" data-title="Gestion des imprévus & stabilité émotionnelle">
+                    <span class="node-gem"><i class="fas fa-heart"></i></span><span class="node-label">Sang-froid</span>
+                    <span class="node-text" hidden>Je n'ai pas rencontré de situation de stress majeur pendant le stage, mais je garde une posture calme face aux blocages techniques et je réagis vite en demandant de l'aide. En travail en duo, je communique clairement pour maintenir un rythme de travail fluide.</span>
+                </button>
+                <button class="sphere-node sphere-cat" type="button" style="--x:70.78%;--y:62.0%" data-node="c1" data-cat="Manière de communiquer">
+                    <span class="node-gem"><i class="fas fa-comments"></i></span><span class="node-label">COMMUNICATION</span>
+                </button>
+                <button class="sphere-node sphere-skill lab-r" type="button" style="--x:85.5%;--y:53.5%" data-node="s4" data-parent="c1" data-cat="Manière de communiquer" data-title="Communication en contexte professionnel">
+                    <span class="node-gem"><i class="fas fa-microphone"></i></span><span class="node-label">Oral</span>
+                    <span class="node-text" hidden>Participation active aux daily stand-ups quotidiens, aux sprint reviews de fin de sprint et aux sprint plannings. Je prends la parole pour présenter mon avancement et mes éventuels blocages.</span>
+                </button>
+                <button class="sphere-node sphere-skill lab-r" type="button" style="--x:87.52%;--y:64.95%" data-node="s5" data-parent="c1" data-cat="Manière de communiquer" data-title="Communication écrite en contexte professionnel">
+                    <span class="node-gem"><i class="fas fa-pen"></i></span><span class="node-label">Écrit</span>
+                    <span class="node-text" hidden>Pendant mon stage, j'ai rédigé des commentaires de Pull Request et des messages d'équipe (Google Chat) pour signaler des blocages et proposer des solutions. Exemple concret : j'ai documenté un bug de génération de diagnostic IA avec un titre clair, une description précise, les erreurs observées et les étapes de reproduction pour accélérer l'analyse et la correction.</span>
+                </button>
+                <button class="sphere-node sphere-skill lab-r" type="button" style="--x:81.71%;--y:75.02%" data-node="s6" data-parent="c1" data-cat="Manière de communiquer" data-title="Réception et prise en compte des feedbacks">
+                    <span class="node-gem"><i class="fas fa-comment-dots"></i></span><span class="node-label">Feedbacks</span>
+                    <span class="node-text" hidden>Les retours de mon équipe — notamment le fait qu'on m'ait dit que je contribuais réellement au projet sans le ralentir — m'ont permis d'ajuster ma façon de travailler et de gagner en assurance.</span>
+                </button>
+                <button class="sphere-node sphere-skill " type="button" style="--x:70.78%;--y:79.0%" data-node="s7" data-parent="c1" data-cat="Manière de communiquer" data-title="Écoute & assertivité">
+                    <span class="node-gem"><i class="fas fa-headphones"></i></span><span class="node-label">Écoute</span>
+                    <span class="node-text" hidden>Je sais identifier quand j'ai besoin d'aide et je la demande sans hésiter. Dans les tâches réalisées en équipe, je communique de façon directe et constructive pour clarifier les responsabilités, proposer des solutions et intégrer les retours rapidement.</span>
+                </button>
+                <button class="sphere-node sphere-cat" type="button" style="--x:29.22%;--y:62.0%" data-node="c2" data-cat="Manière de travailler avec les autres">
+                    <span class="node-gem"><i class="fas fa-users"></i></span><span class="node-label">TRAVAIL D'ÉQUIPE</span>
+                </button>
+                <button class="sphere-node sphere-skill lab-l" type="button" style="--x:24.82%;--y:78.42%" data-node="s8" data-parent="c2" data-cat="Manière de travailler avec les autres" data-title="Travail en équipe & coopération">
+                    <span class="node-gem"><i class="fas fa-puzzle-piece"></i></span><span class="node-label">Coopération</span>
+                    <span class="node-text" hidden>Certaines tâches sont réalisées en binôme (ex. : un développeur gère le back-end, l'autre le front-end). Cette coordination nécessite une communication claire et une bonne compréhension du travail de chacun.</span>
+                </button>
+                <button class="sphere-node sphere-skill lab-l" type="button" style="--x:14.5%;--y:70.5%" data-node="s9" data-parent="c2" data-cat="Manière de travailler avec les autres" data-title="Positionnement dans un collectif">
+                    <span class="node-gem"><i class="fas fa-sitemap"></i></span><span class="node-label">Collectif</span>
+                    <span class="node-text" hidden>Au sein d'une équipe de développeurs expérimentés, je me suis positionné comme un contributeur actif et fiable. Mon intégration dans la méthode Agile (Scrum) m'a appris à m'inscrire dans un rythme collectif structuré.</span>
+                </button>
+                <button class="sphere-node sphere-skill lab-l" type="button" style="--x:12.8%;--y:57.6%" data-node="s10" data-parent="c2" data-cat="Manière de travailler avec les autres" data-title="Prise d'initiative">
+                    <span class="node-gem"><i class="fas fa-lightbulb"></i></span><span class="node-label">Initiative</span>
+                    <span class="node-text" hidden>Je ne me limite pas aux tâches assignées : je propose des améliorations, j'explore des pistes techniques (notamment sur la partie R&D LLM) et j'anticipe les besoins du sprint sans attendre de directives.</span>
+                </button>
+                <a class="secret-item" href="#" data-game="games/pvz.html" data-secret="pvz" aria-label="Objet secret"
+                    style="--d:3.4;--x:8%;--y:92%"><img loading="lazy" src="./assets/pvz/pvz.webp" alt="" aria-hidden="true"></a>
             </div>
 
-            <!-- BLOC 2 : Manière de communiquer -->
-            <div class="softskill-bloc softskill-bloc-comm">
-                <div class="softskill-bloc-header">
-                    <i class="fas fa-comments"></i>
-                    <h3>Manière de communiquer</h3>
+            <aside class="sphere-panel" aria-live="polite">
+                <p class="sphere-panel-cat" id="spherePanelCat">SPHÉRIER D'ELIAS</p>
+                <h3 id="spherePanelTitle">Choisis une aptitude</h3>
+                <p id="spherePanelText">Chaque sphère est une compétence humaine acquise ou renforcée en entreprise.
+                    Active-les pour lire comment je l'ai mise en pratique.</p>
+                <div class="sphere-progress">
+                    <span>APTITUDES DÉBLOQUÉES</span>
+                    <b><span id="sphereCount">0</span> / 11</b>
+                    <div class="sphere-progress-bar"><span id="sphereBar"></span></div>
                 </div>
-                <div class="softskill-cards">
-
-                    <div class="softskill-card">
-                        <div class="softskill-card-icon"><i class="fas fa-microphone"></i></div>
-                        <div class="softskill-card-body">
-                            <h4>Communication en contexte professionnel</h4>
-                            <p>Participation active aux daily stand-ups quotidiens, aux sprint reviews de fin de sprint
-                                et aux sprint plannings. Je prends la parole pour présenter mon avancement et mes
-                                éventuels blocages.</p>
-                        </div>
-                    </div>
-
-                    <div class="softskill-card">
-                        <div class="softskill-card-icon"><i class="fas fa-pen"></i></div>
-                        <div class="softskill-card-body">
-                            <h4>Communication écrite en contexte professionnel</h4>
-                            <p>Pendant mon stage, j'ai rédigé des commentaires de Pull Request et des messages d'équipe
-                                (Google Chat) pour signaler des blocages et proposer des solutions. Exemple concret :
-                                j'ai documenté un bug de génération de diagnostic IA avec un titre clair, une
-                                description précise, les erreurs observées et les étapes de reproduction pour
-                                accélérer l'analyse et la correction.</p>
-                        </div>
-                    </div>
-
-                    <div class="softskill-card">
-                        <div class="softskill-card-icon"><i class="fas fa-comment-dots"></i></div>
-                        <div class="softskill-card-body">
-                            <h4>Réception et prise en compte des feedbacks</h4>
-                            <p>Les retours de mon équipe — notamment le fait qu'on m'ait dit que je contribuais
-                                réellement au projet sans le ralentir — m'ont permis d'ajuster ma façon de travailler et
-                                de gagner en assurance.</p>
-                        </div>
-                    </div>
-
-                    <div class="softskill-card">
-                        <div class="softskill-card-icon"><i class="fas fa-ear-listen"
-                                style="font-family: 'Font Awesome 6 Free'"></i><i class="fas fa-headphones"></i></div>
-                        <div class="softskill-card-body">
-                            <h4>Écoute & assertivité</h4>
-                            <p>Je sais identifier quand j'ai besoin d'aide et je la demande sans hésiter. Dans les
-                                tâches réalisées en équipe, je communique de façon directe et constructive pour
-                                clarifier les responsabilités, proposer des solutions et intégrer les retours
-                                rapidement.</p>
-                        </div>
-                        <a class="softskill-secret-games" href="#" data-game="games/mariods.html" aria-label="Secret MARIO DS">
-                            <img loading="lazy" src="./assets/mario/mario.png" alt="" aria-hidden="true">
-                        </a>
-                    </div>
-
-                </div>
-                <a class="softskill-secret-games" href="#" data-game="games/fnf.html" aria-label="Secret FNF">
-                    <img loading="lazy" src="./assets/fnf/bf.gif" alt="" aria-hidden="true">
-                </a>
-            </div>
-
-            <!-- BLOC 3 : Manière de travailler avec les autres -->
-            <div class="softskill-bloc">
-                <div class="softskill-bloc-header">
-                    <i class="fas fa-users"></i>
-                    <h3>Manière de travailler avec les autres</h3>
-                </div>
-                <div class="softskill-cards">
-
-                    <div class="softskill-card">
-                        <div class="softskill-card-icon"><i class="fas fa-puzzle-piece"></i></div>
-                        <div class="softskill-card-body">
-                            <h4>Travail en équipe & coopération</h4>
-                            <p>Certaines tâches sont réalisées en binôme (ex. : un développeur gère le back-end, l'autre
-                                le front-end). Cette coordination nécessite une communication claire et une bonne
-                                compréhension du travail de chacun.</p>
-                        </div>
-                    </div>
-
-                    <div class="softskill-card">
-                        <div class="softskill-card-icon"><i class="fas fa-sitemap"></i></div>
-                        <div class="softskill-card-body">
-                            <h4>Positionnement dans un collectif</h4>
-                            <p>Au sein d'une équipe de développeurs expérimentés, je me suis positionné comme un
-                                contributeur actif et fiable. Mon intégration dans la méthode Agile (Scrum) m'a appris à
-                                m'inscrire dans un rythme collectif structuré.</p>
-                        </div>
-                    </div>
-
-                    <div class="softskill-card">
-                        <div class="softskill-card-icon"><i class="fas fa-lightbulb"></i></div>
-                        <div class="softskill-card-body">
-                            <h4>Prise d'initiative</h4>
-                            <p>Je ne me limite pas aux tâches assignées : je propose des améliorations, j'explore des
-                                pistes techniques (notamment sur la partie R&D LLM) et j'anticipe les besoins du sprint
-                                sans attendre de directives.</p>
-                        </div>
-                        <a class="softskill-secret-games pvz-secret" href="#" data-game="games/pvz.html" aria-label="Secret PVZ">
-                            <img loading="lazy" src="./assets/pvz/pvz.png" alt="" aria-hidden="true">
-                        </a>
-                    </div>
-                    <a class="softskill-secret-games hk-secret" href="#" data-game="games/hk.html" aria-label="Secret HK">
-                        <img loading="lazy" src="./assets/hollow knight/knight.png" alt="" aria-hidden="true">
-                    </a>
-                </div>
-            </div>
-
-            <!-- ANALYSE RÉFLEXIVE -->
-            <div class="softskill-reflexive">
-                <div class="softskill-reflexive-header">
-                    <i class="fas fa-mirror" style="font-family: inherit"></i>
-                    <i class="fas fa-search"></i>
-                    <h3>Analyse réflexive — Connaissance de soi</h3>
-                </div>
-                <p>
-                    Ce stage chez ADEO m'a confirmé que je suis capable de m'adapter rapidement à un environnement
-                    professionnel exigeant, même face à des technologies totalement inconnues. Apprendre Flutter et Go
-                    directement en production m'a montré que je suis à l'aise avec l'incertitude et que je sais
-                    progresser sous contrainte réelle.
-                    <br /><br />
-                    J'ai également découvert que je fonctionne bien dans un cadre structuré comme la méthode Agile : les
-                    sprints me donnent un rythme clair, les cérémonies (daily, review, planning) me permettent de rester
-                    aligné avec l'équipe sans perdre mon autonomie.
-                    <br /><br />
-                    Mon point fort identifié en situation : la capacité à livrer des résultats concrets sans
-                    supervision constante, y compris sur des technologies jamais utilisées auparavant.
-                    <br /><br />
-                    <strong>Mes axes de progrès :</strong> Je souhaite aller au-delà de l'implémentation de
-                    fonctionnalités isolées et mieux comprendre les décisions d'architecture logicielle — comment les
-                    composants s'articulent, pourquoi certains patterns sont choisis, comment on conçoit un système
-                    à l'échelle. Je veux aussi approfondir la culture de la qualité : tests automatisés, sécurité
-                    applicative, documentation technique.
-                    <br /><br />
-                    <strong>Ce dont j'ai besoin pour évoluer :</strong> Un environnement qui me donne progressivement
-                    plus de responsabilités — pas seulement des tickets à traiter, mais une participation à la
-                    conception, aux choix techniques, et à la vision produit. Le travail chez ADEO m'a donné un
-                    premier aperçu de ce que ça représente ; je veux continuer dans cette direction, idéalement
-                    dans le cadre d'une alternance en école d'ingénieurs qui alliera théorie et pratique
-                    professionnelle réelle.
-                </p>
-            </div>
+            </aside>
         </div>
+
+        <article class="journal">
+            <div class="journal-head">
+                <p class="journal-kicker">JOURNAL INTÉRIEUR</p>
+                <h3>Analyse réflexive — Connaissance de soi</h3>
+            </div>
+            <div class="journal-body">
+                <p>Ce stage chez ADEO m'a confirmé que je suis capable de m'adapter rapidement à un environnement professionnel exigeant, même face à des technologies totalement inconnues. Apprendre Flutter et Go directement en production m'a montré que je suis à l'aise avec l'incertitude et que je sais progresser sous contrainte réelle.</p>
+                <p>J'ai également découvert que je fonctionne bien dans un cadre structuré comme la méthode Agile : les sprints me donnent un rythme clair, les cérémonies (daily, review, planning) me permettent de rester aligné avec l'équipe sans perdre mon autonomie.</p>
+                <p>Mon point fort identifié en situation : la capacité à livrer des résultats concrets sans supervision constante, y compris sur des technologies jamais utilisées auparavant.</p>
+                <div class="journal-callout"><p class="journal-k">MES AXES DE PROGRÈS</p><p>Je souhaite aller au-delà de l'implémentation de fonctionnalités isolées et mieux comprendre les décisions d'architecture logicielle — comment les composants s'articulent, pourquoi certains patterns sont choisis, comment on conçoit un système à l'échelle. Je veux aussi approfondir la culture de la qualité : tests automatisés, sécurité applicative, documentation technique.</p></div>
+                <div class="journal-callout"><p class="journal-k">CE DONT J'AI BESOIN POUR ÉVOLUER</p><p>Un environnement qui me donne progressivement plus de responsabilités — pas seulement des tickets à traiter, mais une participation à la conception, aux choix techniques, et à la vision produit. Le travail chez ADEO m'a donné un premier aperçu de ce que ça représente ; je veux continuer dans cette direction, idéalement dans le cadre d'une alternance en école d'ingénieurs qui alliera théorie et pratique professionnelle réelle.</p></div>
+            </div>
+        </article>
     </section>
 
     <!-- education section starts -->
     <section class="education" id="education">
-        <h1 class="heading">
+        <h1 class="heading" data-rpg="ORIGINES">
             <i class="fas fa-graduation-cap"></i><span> Parcours</span>
         </h1>
         <div class="box-container">
@@ -568,95 +552,108 @@
                 </div>
             </div>
         </div>
+        <!-- objet secret : lance un jeu -->
+        <a class="secret-item" href="#" data-game="games/mariods.html" data-secret="mario"
+            aria-label="Objet secret" style="--d:5.1;--x:3%;--y:55%"><img loading="lazy" src="./assets/mario/mario.webp" alt="" aria-hidden="true"></a>
+        <button class="chest" type="button" data-chest="emerald" aria-label="Coffre caché" style="--x:97%;--y:12%"><svg class="chest-art" viewBox="0 0 40 34" aria-hidden="true"><path class="chest-lid" d="M4 15 V10 Q4 3 11 3 H29 Q36 3 36 10 V15 Z"/><path class="chest-band" d="M10 3.6 V15 M30 3.6 V15"/><rect class="chest-body" x="4" y="15" width="32" height="16" rx="1.5"/><path class="chest-band" d="M10 15 V31 M30 15 V31"/><rect class="chest-rim" x="3" y="13.6" width="34" height="3" rx="1"/><rect class="chest-lock" x="17" y="13" width="6" height="8" rx="1.2"/><circle class="chest-hole" cx="20" cy="17.6" r="1.1"/></svg></button>
     </section>
     <!-- education section ends -->
 
     <!-- work project section starts -->
     <section class="work" id="work">
-        <h2 class="heading">
+        <h2 class="heading" data-rpg="QUÊTES ANNEXES">
             <i class="fas fa-laptop-code"></i><span> Réalisations</span>
         </h2>
-        <h2 class="hello"></h2>
-        <div class="portfolios">
-            <div class="portfolio-item">
-                <div class="image">
-                    <img loading="lazy" draggable="false" src="assets/typefinder.png" alt="Projet Classification" />
+        <div class="quests">
+            <ul class="quest-list" role="tablist" aria-label="Projets">
+                <li><button class="quest-tab is-active" type="button" role="tab" aria-selected="true"
+                        aria-controls="q-totk"><span class="quest-n">01</span><span class="quest-t">TOTK Recomp Mod Manager</span><span
+                            class="quest-tag">Python</span></button></li>
+                <li><button class="quest-tab" type="button" role="tab" aria-selected="false"
+                        aria-controls="q-3arbichat"><span class="quest-n">02</span><span class="quest-t">3arbiChat</span><span
+                            class="quest-tag">Java</span></button></li>
+                <li><button class="quest-tab" type="button" role="tab" aria-selected="false"
+                        aria-controls="q-intellib"><span class="quest-n">03</span><span class="quest-t">Intellib</span><span
+                            class="quest-tag">Spring</span></button></li>
+                <li><button class="quest-tab" type="button" role="tab" aria-selected="false"
+                        aria-controls="q-agile"><span class="quest-n">04</span><span class="quest-t">Projet Agile — Legend of War</span><span
+                            class="quest-tag">Java</span></button></li>
+                <li><button class="quest-tab" type="button" role="tab" aria-selected="false"
+                        aria-controls="q-covoit"><span class="quest-n">05</span><span class="quest-t">Site Internet pour Covoiturage</span><span
+                            class="quest-tag">HTML</span></button></li>
+                <li><button class="quest-tab" type="button" role="tab" aria-selected="false"
+                        aria-controls="q-qppl"><span class="quest-n">06</span><span class="quest-t">Question pour un p'tit loup</span><span
+                            class="quest-tag">Java</span></button></li>
+            </ul>
+            <div class="quest-panels">
+            <article class="quest-detail is-active" id="q-totk" role="tabpanel">
+                <div class="quest-media"><img loading="lazy" draggable="false" src="assets/projets/totk-mod-manager.webp" alt="TOTK Recomp Mod Manager" /></div>
+                <div class="quest-info">
+                    <p class="quest-kicker">QUÊTE ANNEXE 01 <span>·</span> PROJET PERSO</p>
+                    <h3>TOTK Recomp Mod Manager</h3>
+                    <p class="quest-desc">Gestionnaire de mods pour la recompilation PC de Zelda : Tears of the Kingdom, sur Windows et Linux (Steam Deck compris). On importe des mods en .zip, .7z ou .rar, on les active d'un clic, on choisit lequel l'emporte en cas de conflit, et on applique le tout sans ligne de commande.</p>
+                    <div class="quest-loot"><span class="loot-label">LOOT</span><span>Python</span><span>Tkinter</span><span>PyInstaller</span><span>AppImage</span><span>Windows</span><span>Linux</span></div>
+                    <a class="btn quest-link" href="https://github.com/eliasm4r/totk-recomp-mod-manager" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> Voir sur GitHub</a>
                 </div>
-                <div class="blog-text">
-                    <h4>Projet Classification</h4>
-                    <p>Java, JavaFX, CSS, FXML, OpenCSV, Maven, Design Pattern MVC, Travail d'équipe</p>
+            </article>
+            <article class="quest-detail" id="q-3arbichat" role="tabpanel" hidden>
+                <div class="quest-media"><img loading="lazy" draggable="false" src="assets/3arbiChat.png" alt="3arbiChat" /></div>
+                <div class="quest-info">
+                    <p class="quest-kicker">QUÊTE ANNEXE 02 <span>·</span> SAÉ IUT</p>
+                    <h3>3arbiChat</h3>
+                    <p class="quest-desc">Application de discussion par fils : inscription et connexion, création et gestion de fils, profil modifiable, messages en temps réel grâce aux WebSockets. Back-end Java (Servlets, JSP) sur Tomcat avec une base PostgreSQL.</p>
+                    <div class="quest-loot"><span class="loot-label">LOOT</span><span>Java</span><span>Tomcat</span><span>Servlet</span><span>JSP</span><span>WebSocket</span><span>PostgreSQL</span><span>JavaScript</span><span>Tailwind</span><span>HTML</span><span>CSS</span><span>XML</span></div>
+                    <a class="btn quest-link" href="https://github.com/eliasm4r/3arbiChat" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> Voir sur GitHub</a>
                 </div>
-            </div>
-            <div class="portfolio-item">
-                <div class="image">
-                    <img loading="lazy" draggable="false" src="assets/intellib.png" alt="Intellib" />
+            </article>
+            <article class="quest-detail" id="q-intellib" role="tabpanel" hidden>
+                <div class="quest-media"><img loading="lazy" draggable="false" src="assets/intellib.png" alt="Intellib" /></div>
+                <div class="quest-info">
+                    <p class="quest-kicker">QUÊTE ANNEXE 03 <span>·</span> PROJET</p>
+                    <h3>Intellib</h3>
+                    <p class="quest-desc">Application web en Spring Boot : pages publiques, comptes utilisateurs sécurisés avec Spring Security et rendu côté serveur avec Thymeleaf, données stockées en SQL.</p>
+                    <div class="quest-loot"><span class="loot-label">LOOT</span><span>Spring Boot</span><span>Spring MVC</span><span>Spring Security</span><span>Maven</span><span>SQL</span><span>Thymeleaf</span><span>HTML</span><span>CSS</span></div>
                 </div>
-                <div class="blog-text">
-                    <h4>Intellib</h4>
-                    <p>Spring Boot, Spring MVC, Spring Security, Maven, SQL, HTML, CSS, Thymeleaf</p>
+            </article>
+            <article class="quest-detail" id="q-agile" role="tabpanel" hidden>
+                <div class="quest-media"><img loading="lazy" draggable="false" src="assets/LOW.png" alt="Projet Agile — Legend of War" /></div>
+                <div class="quest-info">
+                    <p class="quest-kicker">QUÊTE ANNEXE 04 <span>·</span> PROJET D'ÉQUIPE</p>
+                    <h3>Projet Agile — Legend of War</h3>
+                    <p class="quest-desc">Jeu en Java jouable dans le terminal, en ASCII art, développé en équipe en méthode Agile, sprint après sprint.</p>
+                    <div class="quest-loot"><span class="loot-label">LOOT</span><span>Java</span><span>CSV</span><span>Bash</span><span>Markdown</span><span>ASCII Art</span><span>Méthode Agile</span><span>Travail d'équipe</span></div>
+                    <a class="btn quest-link" href="https://github.com/CursedZyn/ProjetAgile" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> Voir sur GitHub</a>
                 </div>
-            </div>
-            <div class="portfolio-item">
-                <div class="image">
-                    <img loading="lazy" draggable="false" src="assets/LOW.png" alt="Projet Agile" />
+            </article>
+            <article class="quest-detail" id="q-covoit" role="tabpanel" hidden>
+                <div class="quest-media"><img loading="lazy" draggable="false" src="assets/NMS.png" alt="Site Internet pour Covoiturage" /></div>
+                <div class="quest-info">
+                    <p class="quest-kicker">QUÊTE ANNEXE 05 <span>·</span> PROJET D'ÉQUIPE</p>
+                    <h3>Site Internet pour Covoiturage</h3>
+                    <p class="quest-desc">Site vitrine pour un service de covoiturage, intégré en HTML et CSS.</p>
+                    <div class="quest-loot"><span class="loot-label">LOOT</span><span>HTML</span><span>CSS</span><span>Travail d'équipe</span></div>
                 </div>
-                <div class="hover-items">
-                    <div class="icons">
-                        <a href="https://github.com/CursedZyn/ProjetAgile" class="icon" target="_blank">
-                            <i class="fab fa-github"></i>
-                        </a>
-                    </div>
+            </article>
+            <article class="quest-detail" id="q-qppl" role="tabpanel" hidden>
+                <div class="quest-media"><img loading="lazy" draggable="false" src="assets/QPPL.png" alt="Question pour un p'tit loup" /></div>
+                <div class="quest-info">
+                    <p class="quest-kicker">QUÊTE ANNEXE 06 <span>·</span> PROJET D'ÉQUIPE</p>
+                    <h3>Question pour un p'tit loup</h3>
+                    <p class="quest-desc">Jeu de quiz en Java, avec les questions stockées dans des fichiers CSV.</p>
+                    <div class="quest-loot"><span class="loot-label">LOOT</span><span>Java</span><span>CSV</span><span>Travail d'équipe</span></div>
                 </div>
-                <div class="blog-text">
-                    <h4>Projet Agile</h4>
-                    <p>Java, CSV, Interface, Bash, Markdown, Ascii Art, Méthode Agile, Travail d'équipe</p>
-                </div>
-            </div>
-            <div class="portfolio-item">
-                <div class="image">
-                    <img loading="lazy" draggable="false" src="assets/NMS.png" alt="Site Covoiturage" />
-                </div>
-                <div class="hover-items">
-                </div>
-                <div class="blog-text">
-                    <h4>Site Internet pour Covoiturage</h4>
-                    <p>HTML, CSS, Travail d'équipe</p>
-                </div>
-            </div>
-            <div class="portfolio-item">
-                <div class="image">
-                    <img loading="lazy" draggable="false" src="assets/QPPL.png" alt="Question pour un p'tit loup" />
-                </div>
-                <div class="hover-items">
-                </div>
-                <div class="blog-text">
-                    <h4>Question pour un p'tit loup</h4>
-                    <p>Java, CSV, Travail d'équipe</p>
-                </div>
-            </div>
-            <div class="portfolio-item">
-                <div class="image">
-                    <img loading="lazy" draggable="false" src="assets/3arbiChat.png" alt="3arbiChat" />
-                </div>
-                <div class="hover-items">
-                    <div class="icons">
-                        <a href="https://github.com/eliasm4r/3arbiChat" class="icon" target="_blank">
-                            <i class="fab fa-github"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="blog-text">
-                    <h4>3arbiChat</h4>
-                    <p>Java, Tomcat, HTML, CSS, JavaScript, Servlet, JSP, WebSocket, PSQL, XML, Tailwind</p>
-                </div>
+            </article>
             </div>
         </div>
+        <!-- objet secret : lance un jeu -->
+        <a class="secret-item" href="#" data-game="games/fnf.html" data-secret="fnf"
+            aria-label="Objet secret" style="--d:6.8;--x:97%;--y:8%"><img loading="lazy" src="./assets/fnf/bf.gif" alt="" aria-hidden="true"></a>
     </section>
     <!-- work project section ends -->
 
     <!-- experience section starts -->
     <section class="experience" id="experience">
-        <h2 class="heading"><i class="fas fa-briefcase"></i><span> Expériences</span></h2>
+        <h2 class="heading" data-rpg="JOURNAL DE QUÊTES"><i class="fas fa-briefcase"></i><span> Expériences</span></h2>
 
         <div class="timeline">
 
@@ -681,7 +678,7 @@
                     <div class="desc">
                         <h3>ADEO, Lille</h3>
                         <p>Mars – Juillet 2026</p>
-                        <span class="click-hint"><i class="fas fa-info-circle"></i> Cliquer pour les détails</span>
+                        <span class="click-hint">▶ VOIR LES DÉTAILS</span>
                     </div>
                 </div>
             </div>
@@ -707,7 +704,7 @@
                     <div class="desc">
                         <h3>GEONATIVE, Lille</h3>
                         <p>Avril – Juin 2025</p>
-                        <span class="click-hint"><i class="fas fa-info-circle"></i> Cliquer pour les détails</span>
+                        <span class="click-hint">▶ VOIR LES DÉTAILS</span>
                     </div>
                 </div>
             </div>
@@ -769,13 +766,139 @@
                     <div class="desc">
                         <h3>E-SYSTEMS, Lille</h3>
                         <p>Février 2020</p>
-                        <span class="click-hint"><i class="fas fa-info-circle"></i> Cliquer pour les détails</span>
+                        <span class="click-hint">▶ VOIR LES DÉTAILS</span>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="recruit" id="recruit">
+            <div class="recruit-dialog">
+                <p class="recruit-speaker"><span class="player-gem" aria-hidden="true"></span> ELIAS MARUCA
+                    <span>· DÉVELOPPEUR FULL-STACK · NIV. JUNIOR</span></p>
+                <p class="recruit-q" id="recruitQ" data-text="Elias souhaite rejoindre votre équipe. Voulez-vous le recruter ?">
+                    Elias souhaite rejoindre votre équipe. Voulez-vous le recruter ?</p>
+                <div class="recruit-choices" role="group" aria-label="Réponse">
+                    <button class="recruit-choice recruit-yes" type="button">Oui, recrutons-le</button>
+                    <button class="recruit-choice recruit-no" type="button">Non</button>
+                </div>
+                <p class="recruit-reply" aria-live="polite"></p>
+            </div>
+            <div class="recruit-win" hidden>
+                <p class="recruit-win-k">NOUVEAU MEMBRE DANS L'ÉQUIPE</p>
+                <h3>Elias a rejoint votre équipe&nbsp;!</h3>
+                <p>Plus qu'à lui envoyer un message pour lancer la quête.</p>
+                <div class="recruit-win-actions">
+                    <a class="btn" href="mailto:maruca.elias0702@gmail.com"><i class="fas fa-envelope"></i> M'écrire</a>
+                    <a class="btn" href="https://www.linkedin.com/in/elias-m-02b7a131a/" target="_blank"
+                        rel="noopener noreferrer"><i class="fab fa-linkedin"></i> LinkedIn</a>
+                </div>
+            </div>
+        </div>
+        <!-- objet secret : lance un jeu -->
+        <a class="secret-item" href="#" data-game="games/hk.html" data-secret="hk"
+            aria-label="Objet secret" style="--d:8.5;--x:4%;--y:30%"><img loading="lazy" src="./assets/hollow knight/knight.png" alt="" aria-hidden="true"></a>
+        <button class="chest" type="button" data-chest="sakura" aria-label="Coffre caché" style="--x:3%;--y:6%"><svg class="chest-art" viewBox="0 0 40 34" aria-hidden="true"><path class="chest-lid" d="M4 15 V10 Q4 3 11 3 H29 Q36 3 36 10 V15 Z"/><path class="chest-band" d="M10 3.6 V15 M30 3.6 V15"/><rect class="chest-body" x="4" y="15" width="32" height="16" rx="1.5"/><path class="chest-band" d="M10 15 V31 M30 15 V31"/><rect class="chest-rim" x="3" y="13.6" width="34" height="3" rx="1"/><rect class="chest-lock" x="17" y="13" width="6" height="8" rx="1.2"/><circle class="chest-hole" cx="20" cy="17.6" r="1.1"/></svg></button>
     </section>
     <!-- experience section ends -->
+
+    <!-- mini-jeux -->
+    <section class="games" id="games">
+        <h2 class="heading" data-rpg="BONUS"><i class="fas fa-gamepad"></i><span> Mini-jeux</span></h2>
+        <p class="skills-subtitle">Choisis un jeu · tes records sont sauvegardés</p>
+
+        <div class="games-hub" id="gamesHub">
+            <button class="game-card" type="button" data-game-open="fishing">
+                <span class="gc-icon" aria-hidden="true">🎣</span>
+                <b>Pêche</b>
+                <small>Un lac de nuit et 17 poissons à découvrir</small>
+                <span class="gc-best">RECORD <em id="hubFishing">—</em></span>
+            </button>
+            <button class="game-card" type="button" data-game-open="cooking">
+                <span class="gc-icon" aria-hidden="true">🍳</span>
+                <b>Cuisine du campement</b>
+                <small>Suis le rythme et invente une nouvelle recette</small>
+                <span class="gc-best">RECORD <em id="hubCooking">—</em></span>
+            </button>
+            <button class="game-card" type="button" data-game-open="chocobo">
+                <span class="gc-icon" aria-hidden="true">🏁</span>
+                <b>Chocobo Race</b>
+                <small>Saute les obstacles et bats ton temps</small>
+                <span class="gc-best">RECORD <em id="hubChocobo">—</em></span>
+            </button>
+            <button class="game-card" type="button" data-game-open="battle">
+                <span class="gc-icon" aria-hidden="true">⚔️</span>
+                <b>Combat</b>
+                <small>Affronte le Golem de cristal au tour par tour</small>
+                <span class="gc-best">RECORD <em id="hubBattle">—</em></span>
+            </button>
+        </div>
+
+        <div class="game-panel fishing" id="game-fishing" hidden>
+            <div class="game-bar">
+                <button class="game-back" type="button">◂ Mini-jeux</button>
+                <p class="game-title">🎣 Pêche</p>
+            </div>
+            <div class="fish-game">
+                <div class="fish-stage" id="fishStage">
+                    <canvas id="fishCanvas" aria-label="Lac de pêche de nuit"></canvas>
+                    <div class="fish-hud">
+                        <p class="fish-msg" id="fishMsg" aria-live="polite">Maintiens « Lancer » pour charger ton lancer.</p>
+                        <p class="fish-hi">HI-SCORE <b id="fishHi">0</b></p>
+                        <p class="fish-streak" id="fishStreak" hidden></p>
+
+                        <div class="fish-power" id="fishPower" hidden>
+                            <span class="fish-power-perfect"></span>
+                            <span class="fish-power-fill" id="fishPowerFill"></span>
+                            <b>PUISSANCE</b>
+                        </div>
+
+                        <div class="fish-meter" id="fishMeter" hidden>
+                            <div class="fish-track" id="fishTrack">
+                                <span class="fish-zone" id="fishZone"></span>
+                                <span class="fish-icon" id="fishIcon"></span>
+                            </div>
+                            <div class="fish-progress"><span id="fishProgress"></span></div>
+                            <p class="fish-help">Maintiens pour monter la zone</p>
+                        </div>
+
+                        <div class="fish-catch" id="fishCatch" hidden>
+                            <p class="fish-catch-k" id="fishCatchK">PRISE !</p>
+                            <canvas id="fishCatchCanvas" width="420" height="200"></canvas>
+                            <h3 id="fishCatchName"></h3>
+                            <p class="fish-catch-size" id="fishCatchSize"></p>
+                            <p class="fish-catch-stars" id="fishCatchStars"></p>
+                            <p class="fish-catch-record" id="fishCatchRecord" hidden>★ NOUVEAU RECORD ★</p>
+                            <button class="btn" type="button" id="fishCatchOk">Continuer</button>
+                        </div>
+                    </div>
+                    <button class="btn fish-btn" type="button" id="fishBtn">▶ Maintenir pour lancer</button>
+                </div>
+
+                <aside class="fish-log">
+                    <p class="fish-log-k">CARNET DE PÊCHE</p>
+                    <div class="fish-best">
+                        <span>RECORD</span>
+                        <b id="fishBest">—</b>
+                    </div>
+                    <div class="fish-stats">
+                        <p><span>Prises</span><b id="fishCount">0</b></p>
+                        <p><span>Série</span><b id="fishSeries">0</b></p>
+                        <p><span>Meilleure série</span><b id="fishBestSeries">0</b></p>
+                        <p><span>Ratés d'affilée</span><b><span id="fishMiss">0</span> / 3</b></p>
+                    </div>
+                    <p class="fish-log-k fish-dex-k">BESTIAIRE <span id="fishDexCount">0 / 16</span></p>
+                    <ul class="fish-dex" id="fishDex"></ul>
+                    <p class="fish-tip">Astuces : un lancer <b>parfait</b> (zone dorée) attire les gros poissons. Ne ferre pas
+                        sur une simple touche : attends le « ! ».</p>
+                </aside>
+            </div>
+        </div>
+
+        <div class="game-panel cooking" id="game-cooking" hidden></div>
+        <div class="game-panel chocobo" id="game-chocobo" hidden></div>
+        <div class="game-panel battle" id="game-battle" hidden></div>
+    </section>
 
     <!-- Stage Modals -->
     <div class="stage-modal-overlay" id="stage-geonative" onclick="closeStageModal(event, 'stage-geonative')">
@@ -966,36 +1089,63 @@
 
     <!-- footer section starts -->
     <section class="footer">
-        <div class="box-container">
-            <div class="box">
-                <h3>Elias Maruca</h3>
-                <p>
-                    Merci d'avoir consulté mon portfolio numérique !<br />
-                </p>
+        <div class="end-card">
+            <p class="end-kicker">FIN DU JOURNAL</p>
+            <h3>Merci d'avoir joué, <span data-player>PLAYER 1</span>&nbsp;!</h3>
+            <p class="end-text">Merci d'avoir consulté mon portfolio numérique.</p>
+            <div class="end-actions">
                 <a class="footer-secret-btn" href="void.html" target="_blank" rel="noopener noreferrer">
-                    <span>Version secrete du portfolio</span>
+                    <span>Version secrète du portfolio</span>
                 </a>
+                <button class="reset-btn" type="button" data-reset>
+                    <span class="reset-icon" aria-hidden="true">↺</span> Reset votre progression
+                </button>
             </div>
-
-            <div class="box">
-                <h3>Liens rapides</h3>
-                <a href="#home"><i class="fas fa-chevron-circle-right"></i> Accueil</a>
-                <a href="#about"><i class="fas fa-chevron-circle-right"></i> Présentation</a>
-                <a href="#skills"><i class="fas fa-chevron-circle-right"></i> Compétences</a>
-                <a href="#education"><i class="fas fa-chevron-circle-right"></i> Parcours</a>
-                <a href="#work"><i class="fas fa-chevron-circle-right"></i> Réalisations</a>
-                <a href="#experience"><i class="fas fa-chevron-circle-right"></i> Expériences</a>
-            </div>
+            <button class="true-end-btn" type="button" id="trueEndBtn" hidden>▶ La vraie fin</button>
+            <p class="true-end-lock" id="trueEndLock">🔒 Une autre fin existe… <b id="trueEndCount">0</b> / 8</p>
+            <p class="end-credits">ELIAS MARUCA <span>·</span> 2026</p>
         </div>
-        <button class="btn-class-name" type="button" aria-label="Bouton décoratif du footer">
-            <span class="back"></span>
-            <span class="front"></span>
-        </button>
     </section>
     <!-- footer section ends -->
 
-    <!-- scroll top btn -->
-    <a href="#home" aria-label="ScrollTop" class="fas fa-angle-up" id="scroll-top"></a>
+    <!-- Game Over -->
+    <div class="gameover" id="gameOver" hidden role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+        <div class="gameover-inner">
+            <p class="gameover-title" id="gameOverTitle">GAME OVER</p>
+            <p class="gameover-sub" id="gameOverSub"></p>
+            <p class="gameover-q">Continuer ?</p>
+            <div class="gameover-choices">
+                <button class="gameover-yes" type="button">Oui</button>
+                <button class="gameover-no" type="button">Non</button>
+            </div>
+            <p class="gameover-reply" aria-live="polite"></p>
+        </div>
+    </div>
+
+    <!-- Carnet de succès -->
+    <div class="trophies" id="trophies" hidden role="dialog" aria-modal="true" aria-labelledby="trophiesTitle">
+        <div class="trophies-box">
+            <button class="trophies-close" type="button" aria-label="Fermer">✕</button>
+            <p class="trophies-k">CARNET DE SUCCÈS</p>
+            <h3 id="trophiesTitle">Succès <span id="trophyCount2">0</span> / <span id="trophyTotal2">12</span></h3>
+            <ul class="trophies-list" id="trophiesList"></ul>
+        </div>
+    </div>
+    <div class="trophies equip" id="equip" hidden role="dialog" aria-modal="true" aria-labelledby="equipTitle">
+        <div class="trophies-box">
+            <button class="trophies-close" type="button" aria-label="Fermer">✕</button>
+            <p class="trophies-k">ÉQUIPEMENT</p>
+            <h3 id="equipTitle">Accessoires <span id="equipCount">1</span> / <span id="equipTotal">8</span></h3>
+            <ul class="equip-help">
+                <li><b>À quoi ça sert ?</b> C'est purement esthétique : l'accessoire équipé change la couleur du cristal à côté de ton pseudo et de la traînée lumineuse qui suit ta souris.</li>
+                <li><b>Comment les obtenir ?</b> 5 se gagnent avec des succès (mini-jeux, pêche nocturne), 3 sont dans des coffres cachés dans les pages du portfolio.</li>
+                <li><b>Comment équiper ?</b> Clique sur un accessoire débloqué. Ton choix est sauvegardé.</li>
+            </ul>
+            <ul class="trophies-list equip-list" id="equipList"></ul>
+        </div>
+    </div>
+    <div class="trophy-toasts" id="trophyToasts" aria-live="polite"></div>
+
 
     <!-- jquery cdn -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
@@ -1012,7 +1162,10 @@
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <script src="./assets/cat%20cursor/oneko.js"></script>
+    <script src="i18n.js"></script>
     <script src="script.js"></script>
+    <script src="jeu.js"></script>
+    <script src="minijeux.js"></script>
 </body>
 
 </html>

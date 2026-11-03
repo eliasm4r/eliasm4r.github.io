@@ -2,7 +2,7 @@
 <html lang="en-us">
 
 <head>
-    <base href="https://cdn.jsdelivr.net/gh/web-ports/hollow-knight@latest/">
+    <base href="https://cdn.jsdelivr.net/gh/web-ports/hollow-knight@1b7d1e452f66268486e9a000a6006b4e8eb527bc/">
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | Hollow Knight</title>
@@ -26,11 +26,18 @@
             left: 0;
         }
 
+        /* Écran de chargement rétro (même style que le portfolio) */
+        #gl { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; background: #07020f; color: #fff; font-family: "Press Start 2P", monospace; }
+        #gl-title { font-size: clamp(14px, 3vw, 26px); letter-spacing: 2px; text-align: center; padding: 0 16px; text-shadow: 3px 0 #ff2fa0, -3px 0 #2ff3ff, 0 0 14px #ff5fc1; }
+        #gl-track { width: min(420px, 80vw); height: 22px; padding: 3px; border: 3px solid #fff; box-shadow: 0 0 14px rgba(255, 95, 193, .6); }
+        #gl-fill { height: 100%; width: 0; background: repeating-linear-gradient(90deg, #ff5fc1 0 10px, transparent 10px 13px); transition: width .2s; }
+        #gl-info { font-size: 11px; line-height: 1.8; color: #ffd36e; text-align: center; }
     </style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
 </head>
 
 <body>
-    <div id="loading-text" style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;"> LOADING... </div>
+    <div id="gl"><div id="gl-title">HOLLOW KNIGHT</div><div id="gl-track"><div id="gl-fill"></div></div><div id="gl-info">0%</div></div>
     <div hidden id="unity-container" class="unity-desktop">
         <canvas id="unity-canvas"></canvas>
         <div id="unity-loading-bar">
@@ -42,49 +49,46 @@
         <div id="unity-mobile-warning"> WebGL builds are not supported on mobile devices. </div>
     </div>
     <script>
-        var loadingText = document.querySelector("#loading-text");
-        let totalBytes = 0;
+        var gl = document.querySelector("#gl");
+        var glFill = document.querySelector("#gl-fill");
+        var glInfo = document.querySelector("#gl-info");
+        function glSet(pct, text) {
+            glFill.style.width = pct + "%";
+            glInfo.innerHTML = text;
+        }
+        const TOTAL_MB = 860.36;
         let loadedBytes = 0;
-        async function getSize(url) {
-            try {
-                const res = await fetch(url, {
-                    method: "HEAD"
-                });
-                return parseInt(res.headers.get("Content-Length") || "0", 10);
-            } catch {
-                return 0;
-            }
+        let glPending = false;
+        let downloading = true;
+        // Le téléchargement compte pour 0-90 %, le démarrage Unity pour 90-100 %
+        function showDownload() {
+            if (glPending) return;
+            glPending = true;
+            requestAnimationFrame(() => {
+                glPending = false;
+                if (!downloading) return; // ne pas écraser le texte "DÉMARRAGE..."
+                const mb = loadedBytes / (1024 * 1024);
+                const pct = Math.min(mb / TOTAL_MB, 1) * 90;
+                glSet(pct, `${Math.round(pct / 0.9)}%<br>${mb.toFixed(0)} / ${TOTAL_MB.toFixed(0)} MB`);
+            });
         }
         async function fetchWithProgress(url) {
             const response = await fetch(url);
             const reader = response.body.getReader();
-            let chunks = [];
-            let received = 0;
+            const chunks = [];
             while (true) {
-                const {
-                    done,
-                    value
-                } = await reader.read();
+                const { done, value } = await reader.read();
                 if (done) break;
-                received += value.length;
                 loadedBytes += value.length;
                 chunks.push(value);
-                let mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
-                let mbTotal = '860.36';
-                loadingText.textContent = `LOADING... ${mbDone} MB / ${mbTotal} MB`;
+                showDownload();
             }
-            let fullBuffer = new Uint8Array(received);
-            let offset = 0;
-            for (let chunk of chunks) {
-                fullBuffer.set(chunk, offset);
-                offset += chunk.length;
-            }
-            return fullBuffer.buffer;
+            // Blob direct : plus de copie complète du fichier en RAM
+            return new Blob(chunks);
         }
         async function mergeFiles(fileParts) {
-            const buffers = await Promise.all(fileParts.map(part => fetchWithProgress(part)));
-            const mergedBlob = new Blob(buffers);
-            return URL.createObjectURL(mergedBlob);
+            const blobs = await Promise.all(fileParts.map(part => fetchWithProgress(part)));
+            return URL.createObjectURL(new Blob(blobs));
         }
 
         function getParts(file, start, end) {
@@ -95,9 +99,6 @@
             return parts;
         }
         (async () => {
-            const allParts = [...getParts("Build/hk.data", 1, 42), ...getParts("Build/hk.wasm", 1, 2), ];
-            const sizes = await Promise.all(allParts.map(getSize));
-            totalBytes = sizes.reduce((a, b) => a + b, 0);
             const [dataUrl, wasmurl] = await Promise.all([
                 mergeFiles(getParts("Build/hk.data", 1, 42)),
                 mergeFiles(getParts("Build/hk.wasm", 1, 2)),
@@ -146,14 +147,15 @@
                 window.addEventListener('resize', resizeCanvas);
             }
             }
-            loadingBar.style.display = "block";
+            downloading = false;
+            glSet(90, "DÉMARRAGE...");
             var script = document.createElement("script");
             script.src = loaderUrl;
             script.onload = () => {
                 createUnityInstance(canvas, config, (progress) => {
-                    progressBarFull.style.width = 100 * progress + "%";
+                    glSet(90 + 10 * progress, "DÉMARRAGE... " + Math.round(100 * progress) + "%");
                 }).then((unityInstance) => {
-                  loadingText.remove();
+                  gl.remove();
                     loadingBar.style.display = "none";
                     canvas.style.display = "block";
                 }).catch((message) => {
