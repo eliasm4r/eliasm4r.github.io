@@ -1482,8 +1482,9 @@ const equipment = (() => {
         if (!it || !owned(it)) it = ITEMS[0];
         window.trailTint = { glow: it.glow, core: it.core, rainbow: !!it.rainbow };
         const root = document.documentElement;
-        if (it.id === 'crystal') { delete root.dataset.equip; root.style.removeProperty('--eq-rgb'); }
-        else { root.dataset.equip = it.id; root.style.setProperty('--eq-rgb', it.glow); }
+        // toujours posé, même pour le Cristal : sa couleur reste bleue en mode Ardyn
+        root.dataset.equip = it.id;
+        root.style.setProperty('--eq-rgb', it.glow);
         return it;
     };
 

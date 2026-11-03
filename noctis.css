@@ -6362,3 +6362,12 @@ html[lang="en"] #openTrophies { letter-spacing: 0; font-size: 0.95rem; }
     body.tabs-mode header { padding-block: 1.4rem; gap: 1rem; }
     body.tabs-mode .player-card { margin-bottom: 1rem; }
 }
+
+/* Cristal (accessoire de départ) : même rendu bleu que d'origine, fixe, même en mode Ardyn */
+html[data-equip="crystal"] .player-gem {
+    background: linear-gradient(135deg, #ffffff, #8fb8ff 45%, #1e3a66);
+    box-shadow: 0 0 12px rgba(143, 184, 255, 0.9);
+    animation-name: eqCrystalPulse;
+}
+
+@keyframes eqCrystalPulse { 50% { box-shadow: 0 0 22px rgba(143, 184, 255, 1), 0 0 40px rgba(91, 140, 232, 0.5); } }
