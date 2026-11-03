@@ -1102,7 +1102,10 @@
                 </button>
             </div>
             <button class="true-end-btn" type="button" id="trueEndBtn" hidden>▶ La vraie fin</button>
-            <p class="true-end-lock" id="trueEndLock">🔒 Une autre fin existe… <b id="trueEndCount">0</b> / 8</p>
+            <div class="true-end-lock" id="trueEndLock">
+                <button class="true-end-toggle" type="button" aria-expanded="false" aria-controls="trueEndList">🔒 Une autre fin existe… <b id="trueEndCount">0</b> / 8 <span class="true-end-caret" aria-hidden="true">▾</span></button>
+                <ul class="true-end-list" id="trueEndList" hidden></ul>
+            </div>
             <p class="end-credits">ELIAS MARUCA <span>·</span> 2026</p>
         </div>
     </section>
