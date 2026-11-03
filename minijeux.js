@@ -53,6 +53,14 @@ const cooking = (() => {
             pat: [[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5], [0, 0.25, 0.5, 1.5, 2, 2.75, 3.5]], items: ['🌶️', '🍖', '🧄', '🫑'] },
         { id: 'feast', dish: '🍱', name: t('Festin du roi'), bpm: 150, bars: 14, prog: 'dark', key: 5,
             pat: [[0, 0.25, 0.5, 1, 1.5, 2, 2.25, 2.5, 3, 3.5], [0, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 3.25, 3.5]], items: ['🍤', '🍄', '🌶️', '🥚', '🍚'] },
+        // NIVEAU ULTIME : 176 BPM, doubles croches, contretemps, 16 mesures, aucune pause
+        { id: 'ultimate', dish: '👑', name: t('Banquet ultime'), bpm: 176, bars: 16, prog: 'epic', key: 1, ultimate: true,
+            pat: [
+                [0, 0.25, 0.5, 0.75, 1, 1.5, 1.75, 2, 2.25, 2.75, 3, 3.5, 3.75],
+                [0, 0.5, 0.75, 1.25, 1.5, 2, 2.25, 2.5, 2.75, 3.25, 3.5],
+                [0, 0.25, 0.75, 1, 1.25, 1.75, 2, 2.5, 2.75, 3, 3.25, 3.5, 3.75],
+                [0, 0.75, 1, 1.5, 1.75, 2, 2.25, 2.5, 3, 3.25, 3.5, 3.75],
+            ], items: ['🦞', '🥩', '🍣', '🧀', '🍄', '🌶️', '🍋'] },
     ];
     const PERFECT = 0.045, GOOD = 0.1; // fenêtres de frappe (secondes)
 
@@ -207,7 +215,7 @@ const cooking = (() => {
     const pan = [];
     const HIT_X = () => W * 0.2;
     const LANE_Y = () => H * 0.78;
-    const SPEED = () => W * (0.4 + current * 0.035); // plus rapide à chaque niveau
+    const SPEED = () => W * (0.4 + current * 0.035 + (RECIPES[current].ultimate ? 0.12 : 0)); // plus rapide à chaque niveau
 
     const showStart = () => {
         stopSong();
@@ -215,7 +223,7 @@ const cooking = (() => {
         const r = RECIPES[current];
         overlay.hidden = false;
         overlay.innerHTML = `
-            <p class="cook-k">${t('NIVEAU')} ${current + 1} / ${RECIPES.length}</p>
+            <p class="cook-k ${r.ultimate ? 'is-ultimate' : ''}">${r.ultimate ? t('☠ NIVEAU ULTIME ☠') : `${t('NIVEAU')} ${current + 1} / ${RECIPES.length}`}</p>
             <p class="cook-big">${r.dish}</p>
             <h3></h3>
             <p class="cook-sub">${r.bpm} BPM · ${t('Meilleur')} : ${'★'.repeat(data[r.id] || 0) || '—'}</p>
@@ -268,9 +276,10 @@ const cooking = (() => {
             if (d < bestD) { bestD = d; best = n; }
             if (n.t > tt + 0.3) break;
         }
-        if (!best || bestD > GOOD) { combo = 0; bad++; judge(t('Trop tôt'), 'is-miss'); return; }
+        const good = RECIPES[current].ultimate ? 0.075 : GOOD, perfect = RECIPES[current].ultimate ? 0.035 : PERFECT;
+        if (!best || bestD > good) { combo = 0; bad++; judge(t('Trop tôt'), 'is-miss'); return; }
         best.done = true;
-        if (bestD < PERFECT) { best.res = 'perfect'; score += 100 + combo * 5; perfects++; judge(t('PARFAIT'), 'is-perfect'); }
+        if (bestD < perfect) { best.res = 'perfect'; score += 100 + combo * 5; perfects++; judge(t('PARFAIT'), 'is-perfect'); }
         else { best.res = 'good'; score += 50 + combo * 2; judge(t('BIEN'), 'is-good'); }
         hits++;
         combo++;
@@ -290,6 +299,7 @@ const cooking = (() => {
         const prev = data[r.id] || 0;
         if (stars > prev) { data[r.id] = stars; store.set(KEY, JSON.stringify(data)); }
         if (stars === 3) achievements.unlock('chef');
+        if (r.ultimate && stars >= 1) achievements.unlock('ultimateChef'); // débloque l'accessoire Aurore
         if (stars) sfx.fanfare(); else sfx.lose();
         overlay.hidden = false;
         overlay.innerHTML = `
@@ -414,7 +424,7 @@ const cooking = (() => {
         if (state !== 'play') return;
         const tt = clock() - t0;
         for (const n of notes) {
-            if (!n.done && tt - n.t > GOOD) { n.done = true; n.res = 'miss'; combo = 0; judge(t('RATÉ'), 'is-miss'); }
+            if (!n.done && tt - n.t > (RECIPES[current].ultimate ? 0.075 : GOOD)) { n.done = true; n.res = 'miss'; combo = 0; judge(t('RATÉ'), 'is-miss'); }
         }
         $('.cook-score').textContent = score;
         $('.cook-combo').textContent = combo > 2 ? `${t('COMBO')} ×${combo}` : '';
@@ -488,7 +498,8 @@ const chocoboRace = (() => {
     const sprite = new Image();
     let spriteOk = false;
     sprite.onload = () => { spriteOk = true; };
-    sprite.src = 'assets/chocobo/chocobo-run.webp';
+    // chargée seulement quand on ouvre la course (pas au chargement du site)
+    const loadSprite = () => { if (!sprite.src) sprite.src = 'assets/chocobo/chocobo-run.webp'; };
     const FRAMES = 8;
     let stride = 0; // avance dans le cycle de course
 
@@ -967,7 +978,7 @@ const chocoboRace = (() => {
         last = performance.now();
         raf = requestAnimationFrame(loop);
     };
-    document.addEventListener('gameopen', (e) => { if (e.detail === 'chocobo') { deco = null; run(); if (state === 'run' || state === 'count') showMenu(); } });
+    document.addEventListener('gameopen', (e) => { if (e.detail === 'chocobo') { loadSprite(); deco = null; run(); if (state === 'run' || state === 'count') showMenu(); } });
     window.addEventListener('resize', () => { deco = null; if (raf) ({ c, W, H } = fitCanvas(cv)); });
 
     renderBest();
@@ -1470,6 +1481,7 @@ const equipment = (() => {
         { id: 'moon', look: t('Traînée argentée'), icon: '🌙', name: t('Écaille lunaire'), how: t('Succès secret'), glow: '200, 215, 235', core: '255, 255, 255', req: 'nightMonster' },
         { id: 'emerald', look: t('Traînée verte'), icon: '🟢', name: t('Émeraude'), how: t('Coffre caché'), glow: '80, 220, 140', core: '220, 255, 230', chest: 'emerald' },
         { id: 'sakura', look: t('Traînée rose'), icon: '🌸', name: t('Pétale de cerisier'), how: t('Coffre caché'), glow: '255, 130, 190', core: '255, 225, 240', chest: 'sakura' },
+        { id: 'aurora', look: t('Traînée aurore multicolore'), icon: '🌌', name: t('Aurore légendaire'), how: t('Succès « Chef légendaire »'), glow: '160, 120, 255', core: '255, 255, 255', req: 'ultimateChef', rainbow: 'aurora' },
         { id: 'prism', look: t('Traînée arc-en-ciel'), icon: '🌈', name: t('Prisme'), how: t('Coffre caché'), glow: '255, 255, 255', core: '255, 255, 255', chest: 'prism', rainbow: true },
     ];
     const box = document.getElementById('equip');
@@ -1480,7 +1492,7 @@ const equipment = (() => {
     const apply = () => {
         let it = ITEMS.find(x => x.id === store.get(KEY));
         if (!it || !owned(it)) it = ITEMS[0];
-        window.trailTint = { glow: it.glow, core: it.core, rainbow: !!it.rainbow };
+        window.trailTint = { glow: it.glow, core: it.core, rainbow: it.rainbow || false };
         const root = document.documentElement;
         // toujours posé, même pour le Cristal : sa couleur reste bleue en mode Ardyn
         root.dataset.equip = it.id;
@@ -1503,7 +1515,7 @@ const equipment = (() => {
             // aperçu de la couleur de la traînée
             const sw = li.querySelector('.eq-swatch');
             if (!ok) sw.remove();
-            else if (it.rainbow) sw.classList.add('is-rainbow');
+            else if (it.rainbow) sw.classList.add(it.rainbow === 'aurora' ? 'is-aurora' : 'is-rainbow');
             else sw.style.setProperty('--sw', it.glow);
             li.querySelector('b').textContent = ok ? it.name : '???';
             li.querySelector('small').textContent = it.id === cur.id ? `${t('▶ Équipé')} · ${it.look}` : ok ? it.look : it.how;
