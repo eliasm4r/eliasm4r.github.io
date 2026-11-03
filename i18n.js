@@ -8,6 +8,14 @@ const LANG_KEY = 'eliasPortfolio.lang';
 const LANG = (() => { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'fr'; } catch { return 'fr'; } })();
 
 const EN = {
+    "visiter les 7 pages du menu": "visit the 7 menu pages",
+    "trouver les 6 objets secrets": "find the 6 secret items",
+    "débloquer les 11 sphères (Soft Skills)": "unlock the 11 spheres (Soft Skills)",
+    "dire Oui à Elias (Expériences)": "say Yes to Elias (Experience)",
+    "attraper un poisson (Pêche)": "catch a fish (Fishing)",
+    "3 étoiles sur une recette (Cuisine)": "3 stars on a recipe (Cooking)",
+    "terminer une Chocobo Race": "finish a Chocobo Race",
+    "battre le Golem de cristal (Combat)": "beat the Crystal Golem (Battle)",
     "Traînée bleu cristal": "Crystal blue trail",
     "Traînée orange braise": "Ember orange trail",
     "Traînée dorée": "Golden trail",

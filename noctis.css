@@ -6371,3 +6371,65 @@ html[data-equip="crystal"] .player-gem {
 }
 
 @keyframes eqCrystalPulse { 50% { box-shadow: 0 0 22px rgba(143, 184, 255, 1), 0 0 40px rgba(91, 140, 232, 0.5); } }
+
+/* ---------- Vraie fin : liste des 8 conditions sous le cadenas ---------- */
+.true-end-lock { margin-top: 2rem; }
+
+.true-end-toggle {
+    padding: 0.6rem 1.4rem;
+    border: 1px dashed rgba(232, 237, 245, 0.2);
+    border-radius: 999px;
+    background: none;
+    font: 1.15rem var(--n-mono);
+    letter-spacing: 0.1em;
+    color: rgba(232, 237, 245, 0.55);
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+}
+
+.true-end-toggle:hover, .true-end-toggle:focus-visible { border-color: var(--t-gold); color: #fff; outline: none; }
+.true-end-toggle b { color: var(--t-gold); }
+.true-end-caret { display: inline-block; margin-left: 0.4rem; transition: transform .2s; }
+.true-end-toggle[aria-expanded="true"] .true-end-caret { transform: rotate(180deg); }
+
+.true-end-list {
+    list-style: none;
+    display: grid;
+    gap: 0.5rem;
+    width: min(46rem, 100%);
+    margin: 1.4rem auto 0;
+    padding: 1.4rem 1.6rem;
+    border: 1px solid var(--n-line);
+    border-radius: 10px;
+    background: rgba(var(--t-panel-rgb), 0.7);
+    text-align: left;
+}
+
+.true-end-list[hidden] { display: none; }
+
+.true-end-list li {
+    display: grid;
+    grid-template-columns: 2rem auto minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: 0.8rem;
+    font-size: 1.3rem;
+    color: rgba(232, 237, 245, 0.5);
+}
+
+.true-end-list b { font-weight: 600; white-space: nowrap; }
+.true-end-list small { font-size: 1.2rem; }
+.true-end-list small::before { content: "— "; }
+.te-mark { font-family: var(--n-mono); text-align: center; }
+.true-end-list li.is-done { color: rgba(232, 237, 245, 0.9); }
+.true-end-list li.is-done .te-mark { color: #3fb950; }
+.true-end-list li.is-done b { color: var(--t-gold); }
+
+@media (max-width: 560px) {
+    .true-end-list li { grid-template-columns: 2rem minmax(0, 1fr); }
+    .true-end-list small { grid-column: 2; }
+    .true-end-list small::before { content: none; }
+}
+.true-end-list { width: min(56rem, 100%); }
+.true-end-list li, .true-end-list small { text-align: left; }
+.true-end-list li b { color: rgba(232, 237, 245, 0.6); }
+.true-end-list li.is-done b { color: var(--t-gold); }

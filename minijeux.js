@@ -1556,6 +1556,38 @@ document.addEventListener('game', (e) => { if (e.detail.type === 'reset') equipm
    ===================================================================== */
 const trueEnding = (() => {
     const NEEDS = ['explorer', 'secretAll', 'sphere', 'recruit', 'fish1', 'chef', 'chocobo', 'battle'];
+    // nom du succès + où le faire (affichés dans la liste sous le cadenas)
+    const STEPS = {
+        explorer: [t('Explorateur'), t('visiter les 7 pages du menu')],
+        secretAll: [t('Archéologue'), t('trouver les 6 objets secrets')],
+        sphere: [t('Sphérier complet'), t('débloquer les 11 sphères (Soft Skills)')],
+        recruit: [t('Recruteur avisé'), t('dire Oui à Elias (Expériences)')],
+        fish1: [t('Première prise'), t('attraper un poisson (Pêche)')],
+        chef: [t('Nouvelle recette !'), t('3 étoiles sur une recette (Cuisine)')],
+        chocobo: [t('Champion de course'), t('terminer une Chocobo Race')],
+        battle: [t('Golem vaincu'), t('battre le Golem de cristal (Combat)')],
+    };
+    const toggle = document.querySelector('.true-end-toggle');
+    const list = document.getElementById('trueEndList');
+    toggle?.addEventListener('click', () => {
+        const open = list.hidden;
+        list.hidden = !open;
+        toggle.setAttribute('aria-expanded', String(open));
+    });
+    const renderList = () => {
+        if (!list) return;
+        list.innerHTML = '';
+        NEEDS.forEach(id => {
+            const ok = achievements.has(id);
+            const li = document.createElement('li');
+            li.className = ok ? 'is-done' : '';
+            li.innerHTML = '<span class="te-mark" aria-hidden="true"></span><b></b><small></small>';
+            li.querySelector('.te-mark').textContent = ok ? '✓' : '○';
+            li.querySelector('b').textContent = STEPS[id][0];
+            li.querySelector('small').textContent = STEPS[id][1];
+            list.appendChild(li);
+        });
+    };
     const SONG = encodeURI('assets/ending ost/Florence + The Machine - Stand By Me.mp3');
     const btn = document.getElementById('trueEndBtn');
     const lock = document.getElementById('trueEndLock');
@@ -1567,6 +1599,7 @@ const trueEnding = (() => {
         const ready = n === NEEDS.length;
         if (btn) btn.hidden = !ready;
         if (lock) { lock.hidden = ready; document.getElementById('trueEndCount').textContent = n; }
+        renderList();
         if (wasReady === false && ready && typeof showToast === 'function') showToast(t('FIN CACHÉE DÉBLOQUÉE !'));
         wasReady = ready;
     };
