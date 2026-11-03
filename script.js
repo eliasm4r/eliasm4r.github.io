@@ -1786,3 +1786,16 @@ window.addEventListener('keydown', (event) => {
         konamiProgress = (key === konamiSequence[0]) ? 1 : 0;
     }
 });
+
+/* Menu latéral : fondu en bas quand il reste des entrées cachées (écran peu haut, page zoomée) */
+(function menuOverflowHint() {
+    const header = document.querySelector('header');
+    if (!header) return;
+    const check = () => header.classList.toggle('has-more', header.scrollHeight - header.clientHeight - header.scrollTop > 4);
+    header.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check);
+    if (window.ResizeObserver) new ResizeObserver(check).observe(header.querySelector('.navbar') || header);
+    window.addEventListener('load', check);
+    document.fonts?.ready.then(check);
+    check();
+})();

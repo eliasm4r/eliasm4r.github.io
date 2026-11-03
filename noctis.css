@@ -6310,17 +6310,55 @@ html[lang="en"] #openTrophies { letter-spacing: 0; font-size: 0.95rem; }
     .chest.is-opening, .chest.is-opening::after { animation: none; }
 }
 
-/* Fond du menu : l'ancienne animation décalait l'image en "mosaïque" et laissait
-   apparaître un bord net (un rectangle clair qui flottait). On déplace maintenant
-   tout le calque, plus grand que le menu, sans répétition. */
+/* Fond du menu : l'image animée est plus grande que le menu et glisse à l'intérieur.
+   Plus de répétition (le "rectangle clair qui flottait"), et rien ne dépasse,
+   donc le menu ne défile pas pour rien. */
 @media (min-width: 917px) {
     body.tabs-mode header::before {
-        inset: -40px;
         background-repeat: no-repeat;
-        animation: nMistMove 9s ease-in-out infinite alternate;
+        background-size: calc(100% + 80px) calc(100% + 80px);
+        background-position: -40px -40px;
+        animation: nMistPos 9s ease-in-out infinite alternate;
     }
 }
 
-@keyframes nMistMove {
-    to { transform: translate(20px, 14px); filter: hue-rotate(-10deg); }
+@keyframes nMistPos {
+    to { background-position: -20px -26px; filter: hue-rotate(-10deg); }
+}
+
+
+/* ---------- Menu sur écran peu haut (PC portable, page zoomée) ---------- */
+@media (min-width: 917px) {
+    /* le menu peut défiler, sans barre visible */
+    body.tabs-mode header {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: none;
+    }
+
+    body.tabs-mode header::-webkit-scrollbar { display: none; }
+
+    /* fondu en bas tant qu'il reste du menu à voir (classe posée par script.js) */
+    body.tabs-mode header.has-more {
+        -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 5rem), transparent);
+        mask-image: linear-gradient(180deg, #000 calc(100% - 5rem), transparent);
+    }
+}
+
+@media (min-width: 917px) and (max-height: 860px) {
+    body.tabs-mode header { padding: 2rem 2.2rem; gap: 1.6rem; }
+    body.tabs-mode .player-card { padding: 1.2rem 1.4rem; margin-bottom: 1.4rem; row-gap: 0.6rem; }
+    body.tabs-mode .menu-kicker { margin-bottom: 0.8rem; padding-bottom: 0.6rem; }
+    body.tabs-mode header .navbar ul { gap: 0.2rem; }
+    body.tabs-mode header .navbar ul li a { padding: 0.75rem 1.2rem !important; font-size: 1.65rem !important; row-gap: 0; }
+    body.tabs-mode header .navbar ul li a::after { display: none; } /* petits sous-titres TITRE, PROFIL... */
+    body.tabs-mode header .navbar ul li a::before { grid-row: auto; }
+    body.tabs-mode header .navbar ul li.menu-bonus { margin-top: 0.6rem !important; padding-top: 0.6rem; }
+    body.tabs-mode .menu-foot { padding-top: 0.8rem; }
+}
+
+
+@media (min-width: 917px) and (max-height: 640px) {
+    body.tabs-mode header { padding-block: 1.4rem; gap: 1rem; }
+    body.tabs-mode .player-card { margin-bottom: 1rem; }
 }
