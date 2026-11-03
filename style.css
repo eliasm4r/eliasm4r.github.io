@@ -2,13 +2,13 @@
 @import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&display=swap");
 
 :root {
-    --color-dark-grey: #1a1a1a;
+    --color-dark-grey: #0a0d14;
     /* Gris très foncé */
-    --color-grey: #2e2e2e;
+    --color-grey: #111622;
     /* Gris foncé */
-    --color-white: #ffffff;
+    --color-white: #e8edf5;
     /* Blanc */
-    --color-light-pink: #dd689f;
+    --color-light-pink: var(--t-crystal);
     /* Rose léger */
     --neko-toggle-top: 48px;
 }
@@ -411,7 +411,7 @@ header .navbar ul li a:hover {
         align-items: flex-start;
         background-color: var(--color-grey);
         box-shadow: -8px 0 30px rgba(0, 0, 0, 0.45);
-        border-left: 1px solid rgba(221, 104, 159, 0.15);
+        border-left: 1px solid rgba(var(--t-crystal-rgb), 0.15);
         overflow-y: auto;
         transform: translateX(100%);
         transition: transform 0.45s cubic-bezier(0.65, 0, 0.35, 1);
@@ -576,7 +576,7 @@ header .navbar ul li a:hover {
     border-radius: 4em;
     transition: 0.5s;
     color: #fff;
-    background: rgba(193, 59, 197, 0.6);
+    background: rgba(var(--t-deep-rgb), 0.6);
     box-shadow: 0px 5px 18px #410679;
     font-family: "Nunito", sans-serif;
 }
@@ -594,7 +594,7 @@ header .navbar ul li a:hover {
 }
 
 .home .btn:hover {
-    background: #f108e6;
+    background: var(--t-mid);
 }
 
 .home .btn:hover i {
@@ -667,7 +667,7 @@ header .navbar ul li a:hover {
     display: inline-block;
     line-height: 44px;
     color: #ffffff;
-    background-color: rgba(193, 59, 197, 0.6);
+    background-color: rgba(var(--t-deep-rgb), 0.6);
     width: 44px;
     height: 44px;
     text-align: center;
@@ -817,15 +817,15 @@ header .navbar ul li a:hover {
     cursor: pointer;
     padding: 1.2rem 1.6rem;
     border-radius: 0.8rem;
-    border: 1px solid rgba(221, 104, 159, 0.3);
-    background: rgba(221, 104, 159, 0.04);
+    border: 1px solid rgba(var(--t-crystal-rgb), 0.3);
+    background: rgba(var(--t-crystal-rgb), 0.04);
     transition: border-color 0.25s ease, background 0.25s ease, transform 0.15s ease;
 }
 
 .email-copy-box:hover,
 .email-copy-box:focus-visible {
     border-color: var(--color-light-pink);
-    background: rgba(221, 104, 159, 0.08);
+    background: rgba(var(--t-crystal-rgb), 0.08);
 }
 
 .email-copy-box:active {
@@ -852,7 +852,7 @@ header .navbar ul li a:hover {
     color: var(--color-light-pink);
     padding: 0.6rem 1.2rem;
     border-radius: 2rem;
-    background: rgba(221, 104, 159, 0.12);
+    background: rgba(var(--t-crystal-rgb), 0.12);
     white-space: nowrap;
     transition: background 0.25s ease, color 0.25s ease;
 }
@@ -883,11 +883,11 @@ header .navbar ul li a:hover {
     transition: transform 0.3s ease-out, box-shadow 0.3s ease-out,
         border-color 0.3s ease-out, background 0.3s ease-out;
     color: #fff;
-    background: linear-gradient(135deg, rgba(193, 59, 197, 0.88), rgba(15, 5, 20, 0.92));
-    border: 1px solid rgba(221, 104, 159, 0.3);
+    background: linear-gradient(135deg, rgba(var(--t-deep-rgb), 0.88), rgba(var(--t-bg-rgb), 0.92));
+    border: 1px solid rgba(var(--t-crystal-rgb), 0.3);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
-    box-shadow: 0 5px 18px rgba(65, 6, 121, 0.5);
+    box-shadow: 0 5px 18px rgba(5, 10, 25, 0.5);
     font-family: "Nunito", sans-serif;
     opacity: 1;
     text-decoration: none;
@@ -901,7 +901,7 @@ header .navbar ul li a:hover {
     background: linear-gradient(
         90deg,
         transparent,
-        rgba(221, 104, 159, 0.4),
+        rgba(var(--t-crystal-rgb), 0.4),
         transparent
     );
     transform: translateX(-100%);
@@ -929,9 +929,9 @@ header .navbar ul li a:hover {
 
 .resume-btn:hover {
     transform: scale(1.06) rotate(1deg);
-    border-color: rgba(221, 104, 159, 0.6);
-    box-shadow: 0 8px 26px rgba(221, 104, 159, 0.45);
-    background: linear-gradient(135deg, rgba(241, 8, 230, 0.65), rgba(50, 5, 95, 0.92));
+    border-color: rgba(var(--t-crystal-rgb), 0.6);
+    box-shadow: 0 8px 26px rgba(var(--t-crystal-rgb), 0.45);
+    background: linear-gradient(135deg, rgba(var(--t-mid-rgb), 0.65), rgba(15, 30, 60, 0.92));
 }
 
 .resume-btn:active {
@@ -1696,14 +1696,14 @@ header .navbar ul li a:hover {
     margin-top: 1rem;
     padding: 0.95rem 1.6rem;
     border-radius: 4em;
-    background: linear-gradient(135deg, rgba(193, 59, 197, 0.88), rgba(15, 5, 20, 0.92));
-    border: 1px solid rgba(221, 104, 159, 0.3);
+    background: linear-gradient(135deg, rgba(var(--t-deep-rgb), 0.88), rgba(var(--t-bg-rgb), 0.92));
+    border: 1px solid rgba(var(--t-crystal-rgb), 0.3);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     color: #fff;
     font-weight: 700;
     letter-spacing: 0.03rem;
-    box-shadow: 0 5px 18px rgba(65, 6, 121, 0.5);
+    box-shadow: 0 5px 18px rgba(5, 10, 25, 0.5);
     transition: transform 0.3s ease-out, box-shadow 0.3s ease-out,
         border-color 0.3s ease-out, background 0.3s ease-out;
 }
@@ -1715,7 +1715,7 @@ header .navbar ul li a:hover {
     background: linear-gradient(
         90deg,
         transparent,
-        rgba(221, 104, 159, 0.4),
+        rgba(var(--t-crystal-rgb), 0.4),
         transparent
     );
     transform: translateX(-100%);
@@ -1731,9 +1731,9 @@ header .navbar ul li a:hover {
 .footer .box-container .box a.footer-secret-btn:hover {
     color: #fff;
     transform: scale(1.06) rotate(1deg);
-    border-color: rgba(221, 104, 159, 0.6);
-    box-shadow: 0 8px 26px rgba(221, 104, 159, 0.45);
-    background: linear-gradient(135deg, rgba(241, 8, 230, 0.65), rgba(50, 5, 95, 0.92));
+    border-color: rgba(var(--t-crystal-rgb), 0.6);
+    box-shadow: 0 8px 26px rgba(var(--t-crystal-rgb), 0.45);
+    background: linear-gradient(135deg, rgba(var(--t-mid-rgb), 0.65), rgba(15, 30, 60, 0.92));
 }
 
 .footer .box-container .box a.footer-secret-btn:active {
@@ -1760,7 +1760,7 @@ header .navbar ul li a:hover {
     margin-right: 1rem;
     transition: 0.2s;
     background: rgb(230, 230, 230);
-    color: #f108e6;
+    color: var(--t-mid);
     border: none;
 }
 
@@ -2136,13 +2136,13 @@ header .navbar ul li a:hover {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(193, 59, 197, 0.88), rgba(15, 5, 20, 0.92));
-    border: 1px solid rgba(221, 104, 159, 0.3);
+    background: linear-gradient(135deg, rgba(var(--t-deep-rgb), 0.88), rgba(var(--t-bg-rgb), 0.92));
+    border: 1px solid rgba(var(--t-crystal-rgb), 0.3);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     color: #fff;
     border-radius: 50%;
-    box-shadow: 0 5px 18px rgba(65, 6, 121, 0.5);
+    box-shadow: 0 5px 18px rgba(5, 10, 25, 0.5);
     transition: top 1s linear, transform 0.3s ease-out, box-shadow 0.3s ease-out,
         border-color 0.3s ease-out, background 0.3s ease-out;
     z-index: 1000;
@@ -2160,7 +2160,7 @@ header .navbar ul li a:hover {
     background: linear-gradient(
         90deg,
         transparent,
-        rgba(221, 104, 159, 0.4),
+        rgba(var(--t-crystal-rgb), 0.4),
         transparent
     );
     transform: translateX(-100%);
@@ -2170,9 +2170,9 @@ header .navbar ul li a:hover {
 
 #scroll-top:hover {
     transform: scale(1.1) rotate(3deg);
-    border-color: rgba(221, 104, 159, 0.6);
-    box-shadow: 0 8px 26px rgba(221, 104, 159, 0.45);
-    background: linear-gradient(135deg, rgba(241, 8, 230, 0.65), rgba(50, 5, 95, 0.92));
+    border-color: rgba(var(--t-crystal-rgb), 0.6);
+    box-shadow: 0 8px 26px rgba(var(--t-crystal-rgb), 0.45);
+    background: linear-gradient(135deg, rgba(var(--t-mid-rgb), 0.65), rgba(15, 30, 60, 0.92));
 }
 
 #scroll-top:active {
@@ -2227,42 +2227,32 @@ label,
 .cursor-dot {
     width: 10px;
     height: 10px;
-    background: var(--color-light-pink);
+    background: #fff;
     border-radius: 50%;
     position: fixed;
     top: 0;
     left: 0;
     pointer-events: none;
     z-index: 99999;
-    transform: translate(-50%, -50%);
-    transition: width 0.2s, height 0.2s, background 0.2s;
+    transform: translate(-100px, -100px);
+    box-shadow: 0 0 6px 2px var(--t-crystal), 0 0 16px 5px rgba(var(--t-deep-rgb), 0.7);
+    transition: width 0.2s, height 0.2s, box-shadow 0.2s;
+    will-change: transform;
 }
 
-.cursor-outline {
-    width: 36px;
-    height: 36px;
-    border: 2px solid var(--color-light-pink);
-    border-radius: 50%;
-    position: fixed;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    z-index: 99998;
-    transform: translate(-50%, -50%);
-    transition: transform 0.08s linear, width 0.2s, height 0.2s, opacity 0.2s;
-    opacity: 0.6;
-}
-
-body:hover .cursor-dot {
-    opacity: 1;
-}
-
-/* Cursor grow on hoverable elements */
-a:hover~.cursor-dot,
-button:hover~.cursor-dot,
-.skill-td:hover~.cursor-dot {
+.cursor-dot.is-hover {
     width: 16px;
     height: 16px;
+    box-shadow: 0 0 8px 3px var(--t-crystal), 0 0 26px 9px rgba(var(--t-deep-rgb), 0.8);
+}
+
+.cursor-trail {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 99998;
 }
 
 /* ===================================================
@@ -2279,7 +2269,7 @@ button:hover~.cursor-dot,
 
 .skill-td:hover {
     transform: translateY(-8px) scale(1.08);
-    filter: drop-shadow(0 6px 18px rgba(221, 104, 159, 0.55));
+    filter: drop-shadow(0 6px 18px rgba(var(--t-crystal-rgb), 0.55));
 }
 
 .skill-td img {
@@ -2325,7 +2315,7 @@ button:hover~.cursor-dot,
     max-width: 500px;
     width: 90%;
     position: relative;
-    box-shadow: 0 20px 60px rgba(221, 104, 159, 0.25);
+    box-shadow: 0 20px 60px rgba(var(--t-crystal-rgb), 0.25);
     animation: slideUpModal 0.3s ease;
     text-align: center;
 }
@@ -2387,13 +2377,13 @@ button:hover~.cursor-dot,
 
 .experience-stage .stage-content {
     background: linear-gradient(135deg, #fff0f5 0%, #ffe4ef 100%) !important;
-    border: 1.5px solid rgba(221, 104, 159, 0.45);
+    border: 1.5px solid rgba(var(--t-crystal-rgb), 0.45);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .experience-stage:hover .stage-content {
     transform: scale(1.02);
-    box-shadow: 0 8px 28px rgba(221, 104, 159, 0.35);
+    box-shadow: 0 8px 28px rgba(var(--t-crystal-rgb), 0.35);
 }
 
 .experience-stage .stage-content .tag h2,
@@ -2435,7 +2425,7 @@ button:hover~.cursor-dot,
 }
 
 .stage-modal-box {
-    background: linear-gradient(145deg, #1c0a14 0%, #2e1020 100%);
+    background: linear-gradient(145deg, #0d1424 0%, #2e1020 100%);
     border: 1.5px solid var(--color-light-pink);
     border-radius: 18px;
     padding: 3rem 3.5rem;
@@ -2444,7 +2434,7 @@ button:hover~.cursor-dot,
     max-height: 85vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: 0 24px 70px rgba(221, 104, 159, 0.3);
+    box-shadow: 0 24px 70px rgba(var(--t-crystal-rgb), 0.3);
     animation: slideUpModal 0.3s ease;
     color: #fff;
 }
@@ -2460,7 +2450,7 @@ button:hover~.cursor-dot,
     font-size: 1.5rem;
     color: var(--color-light-pink);
     margin: 1.8rem 0 0.7rem 0;
-    border-bottom: 1px solid rgba(221, 104, 159, 0.3);
+    border-bottom: 1px solid rgba(var(--t-crystal-rgb), 0.3);
     padding-bottom: 0.4rem;
 }
 
@@ -2497,8 +2487,8 @@ button:hover~.cursor-dot,
     margin: 1rem 0 1.2rem;
     padding: 1rem 1.2rem;
     border-radius: 12px;
-    background: rgba(221, 104, 159, 0.14);
-    border: 1px solid rgba(221, 104, 159, 0.45);
+    background: rgba(var(--t-crystal-rgb), 0.14);
+    border: 1px solid rgba(var(--t-crystal-rgb), 0.45);
 }
 
 .stage-progress-banner i {
@@ -2521,9 +2511,9 @@ button:hover~.cursor-dot,
 }
 
 .stage-tags span {
-    background: rgba(221, 104, 159, 0.15);
-    border: 1px solid rgba(221, 104, 159, 0.4);
-    color: #f0a0c5;
+    background: rgba(var(--t-crystal-rgb), 0.15);
+    border: 1px solid rgba(var(--t-crystal-rgb), 0.4);
+    color: var(--t-light);
     padding: 0.4rem 1.2rem;
     border-radius: 20px;
     font-size: 1.2rem;
@@ -2564,8 +2554,8 @@ button:hover~.cursor-dot,
    DARKER GREYS (légèrement assombris)
    =================================================== */
 :root {
-    --color-dark-grey: #141414;
-    --color-grey: #252525;
+    --color-dark-grey: #0a0d14;
+    --color-grey: #111622;
 }
 
 /* ===================================================
@@ -2649,88 +2639,7 @@ body.is-loaded {
     }
 }
 
-.page-loader {
-    position: fixed;
-    inset: 0;
-    z-index: 12000;
-    display: grid;
-    place-items: center;
-    background:
-        radial-gradient(circle at 20% 25%, rgba(221, 104, 159, 0.2), transparent 45%),
-        radial-gradient(circle at 80% 70%, rgba(193, 59, 197, 0.18), transparent 42%),
-        linear-gradient(160deg, #0f0f10 0%, #19181b 50%, #141315 100%);
-    transition: opacity 0.6s ease, visibility 0.6s ease;
-}
-
-.page-loader.hide {
-    opacity: 0;
-    visibility: hidden;
-}
-
-.loader-core {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.8rem;
-}
-
-.loader-rings {
-    position: relative;
-    width: 104px;
-    height: 104px;
-}
-
-.loader-rings span {
-    position: absolute;
-    inset: 0;
-    border: 2px solid transparent;
-    border-top-color: var(--color-light-pink);
-    border-radius: 50%;
-    animation: loaderSpin 1.2s linear infinite;
-}
-
-.loader-rings span:nth-child(2) {
-    inset: 11px;
-    border-top-color: rgba(255, 255, 255, 0.9);
-    animation-duration: 0.9s;
-    animation-direction: reverse;
-}
-
-.loader-rings span:nth-child(3) {
-    inset: 22px;
-    border-top-color: rgba(221, 104, 159, 0.55);
-    animation-duration: 1.6s;
-}
-
-.loader-text {
-    font-size: 1.45rem;
-    letter-spacing: 0.12rem;
-    color: rgba(255, 255, 255, 0.82);
-    text-transform: uppercase;
-}
-
-.loader-bar-track {
-    width: 20rem;
-    max-width: 60vw;
-    height: 0.4rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.12);
-    overflow: hidden;
-}
-
-.loader-bar-fill {
-    height: 100%;
-    width: 0%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, var(--color-light-pink), #f2a5c8);
-    transition: width 0.25s ease-out;
-}
-
-@keyframes loaderSpin {
-    to {
-        transform: rotate(360deg);
-    }
-}
+/* Le style de l'écran de chargement est dans noctis.css */
 
 /* ===================================================
    HERO + ABOUT + SKILLS RESPONSIVE REWORK
@@ -2813,7 +2722,7 @@ body.is-loaded {
 
 .experience-stage:hover::after {
     transform: translate(-50%, 0) scale(1.08);
-    filter: drop-shadow(0 0 8px rgba(221, 104, 159, 0.6));
+    filter: drop-shadow(0 0 8px rgba(var(--t-crystal-rgb), 0.6));
 }
 
 .experience-stage.left:hover::before {
@@ -2965,9 +2874,8 @@ body.is-loaded {
         font-size: 1.95rem;
     }
 
-    .loader-text {
-        font-size: 1.2rem;
-        letter-spacing: 0.08rem;
+    .loader-percent {
+        font-size: 1.1rem;
     }
 }
 
@@ -2996,7 +2904,7 @@ body.is-loaded {
     }
 
     .cursor-dot,
-    .cursor-outline {
+    .cursor-trail {
         display: none !important;
     }
 }
@@ -3079,7 +2987,7 @@ body.is-loaded {
     width: 0;
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, #f0a0c5, var(--color-light-pink));
+    background: linear-gradient(90deg, var(--t-light), var(--color-light-pink));
     transition: width 0.45s ease;
 }
 
@@ -3199,7 +3107,7 @@ body.games-modal-open *:focus {
 }
 
 body.games-modal-open .cursor-dot,
-body.games-modal-open .cursor-outline {
+body.games-modal-open .cursor-trail {
     display: none !important;
 }
 
@@ -3365,12 +3273,12 @@ body.games-modal-open marquee {
     background: var(--color-grey);
     border-radius: 1.6rem;
     padding: 2.8rem 3rem;
-    border: 1px solid rgba(221, 104, 159, 0.18);
+    border: 1px solid rgba(var(--t-crystal-rgb), 0.18);
     transition: box-shadow 0.3s ease;
 }
 
 .softskill-bloc:hover {
-    box-shadow: 0 8px 32px rgba(221, 104, 159, 0.15);
+    box-shadow: 0 8px 32px rgba(var(--t-crystal-rgb), 0.15);
 }
 
 .softskill-bloc-comm {
@@ -3417,7 +3325,7 @@ body.games-modal-open marquee {
     gap: 1.2rem;
     margin-bottom: 2.2rem;
     padding-bottom: 1.2rem;
-    border-bottom: 1px solid rgba(221, 104, 159, 0.25);
+    border-bottom: 1px solid rgba(var(--t-crystal-rgb), 0.25);
 }
 
 .softskill-bloc-header i {
@@ -3453,8 +3361,8 @@ body.games-modal-open marquee {
 
 .softskill-card:hover {
     transform: translateY(-5px);
-    border-color: rgba(221, 104, 159, 0.4);
-    box-shadow: 0 6px 24px rgba(221, 104, 159, 0.18);
+    border-color: rgba(var(--t-crystal-rgb), 0.4);
+    box-shadow: 0 6px 24px rgba(var(--t-crystal-rgb), 0.18);
 }
 
 .softskill-card-icon {
@@ -3484,8 +3392,8 @@ body.games-modal-open marquee {
 
 /* Analyse réflexive */
 .softskill-reflexive {
-    background: linear-gradient(135deg, #1c0a14 0%, #2a1020 100%);
-    border: 1.5px solid rgba(221, 104, 159, 0.4);
+    background: linear-gradient(135deg, #0d1424 0%, #2a1020 100%);
+    border: 1.5px solid rgba(var(--t-crystal-rgb), 0.4);
     border-radius: 1.6rem;
     padding: 3rem;
 }
@@ -3496,7 +3404,7 @@ body.games-modal-open marquee {
     gap: 1.2rem;
     margin-bottom: 2rem;
     padding-bottom: 1.2rem;
-    border-bottom: 1px solid rgba(221, 104, 159, 0.3);
+    border-bottom: 1px solid rgba(var(--t-crystal-rgb), 0.3);
 }
 
 .softskill-reflexive-header i {
@@ -3675,91 +3583,7 @@ body.games-modal-open marquee {
     box-shadow: 0 0;
 }
 
-/* ===================================================
-   KONAMI CODE — FF7 CLOUD & CHOCOBO VICTORY
-   =================================================== */
-.ff7-victory-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 20000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    background: radial-gradient(circle at 50% 55%, rgba(40, 20, 55, 0.55), rgba(0, 0, 0, 0.82));
-    animation: ff7FadeIn 0.4s ease;
-}
 
-.ff7-victory-overlay.fade-out {
-    animation: ff7FadeOut 0.8s ease forwards;
-}
-
-@keyframes ff7FadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes ff7FadeOut {
-    to {
-        opacity: 0;
-    }
-}
-
-.ff7-sprites {
-    display: flex;
-    align-items: flex-end;
-    gap: 4rem;
-}
-
-.ff7-sprite {
-    width: 18rem;
-    height: 18rem;
-    object-fit: contain;
-    image-rendering: pixelated;
-    filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.6));
-    animation: ff7PopIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-}
-
-@keyframes ff7PopIn {
-    from {
-        transform: scale(0) translateY(4rem);
-        opacity: 0;
-    }
-
-    to {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-    }
-}
-
-.ff7-gil {
-    position: absolute;
-    top: -3rem;
-    animation: ff7Fall linear forwards;
-    pointer-events: none;
-}
-
-@keyframes ff7Fall {
-    to {
-        transform: translateY(110vh) rotate(360deg);
-    }
-}
-
-@media (max-width: 600px) {
-    .ff7-sprite {
-        width: 11rem;
-        height: 11rem;
-    }
-
-    .ff7-sprites {
-        gap: 2rem;
-    }
-}
 /* ===================================================
    HOME MARQUEE
    =================================================== */
@@ -3804,26 +3628,28 @@ body.games-modal-open marquee {
 /* ===================================================
    LINKEDIN BUTTON — glass / shine hover effect
    =================================================== */
-.social-icons a.linkedin {
+.social-icons a.linkedin,
+.social-icons a.github {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(193, 59, 197, 0.88), rgba(15, 5, 20, 0.92));
-    border: 1px solid rgba(221, 104, 159, 0.3);
+    background: linear-gradient(135deg, rgba(var(--t-deep-rgb), 0.88), rgba(var(--t-bg-rgb), 0.92));
+    border: 1px solid rgba(var(--t-crystal-rgb), 0.3);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
-    box-shadow: 0 4px 14px rgba(65, 6, 121, 0.5);
+    box-shadow: 0 4px 14px rgba(5, 10, 25, 0.5);
     transition: transform 0.3s ease-out, box-shadow 0.3s ease-out,
         border-color 0.3s ease-out, background 0.3s ease-out;
 }
 
-.social-icons a.linkedin::before {
+.social-icons a.linkedin::before,
+.social-icons a.github::before {
     content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(
         90deg,
         transparent,
-        rgba(221, 104, 159, 0.4),
+        rgba(var(--t-crystal-rgb), 0.4),
         transparent
     );
     transform: translateX(-100%);
@@ -3831,23 +3657,27 @@ body.games-modal-open marquee {
     pointer-events: none;
 }
 
-.social-icons a.linkedin:hover {
+.social-icons a.linkedin:hover,
+.social-icons a.github:hover {
     transform: scale(1.12) rotate(3deg);
-    border-color: rgba(221, 104, 159, 0.6);
-    box-shadow: 0 8px 26px rgba(221, 104, 159, 0.45);
-    background: linear-gradient(135deg, rgba(241, 8, 230, 0.65), rgba(50, 5, 95, 0.92));
+    border-color: rgba(var(--t-crystal-rgb), 0.6);
+    box-shadow: 0 8px 26px rgba(var(--t-crystal-rgb), 0.45);
+    background: linear-gradient(135deg, rgba(var(--t-mid-rgb), 0.65), rgba(15, 30, 60, 0.92));
     color: #fff;
 }
 
-.social-icons a.linkedin:active {
+.social-icons a.linkedin:active,
+.social-icons a.github:active {
     transform: scale(0.95) rotate(0deg);
 }
 
-.social-icons a.linkedin:hover::before {
+.social-icons a.linkedin:hover::before,
+.social-icons a.github:hover::before {
     transform: translateX(100%);
 }
 
-.social-icons a.linkedin i {
+.social-icons a.linkedin i,
+.social-icons a.github i {
     position: relative;
     z-index: 1;
     transition: color 0.3s ease-out;
@@ -3858,11 +3688,11 @@ body.games-modal-open marquee {
    =================================================== */
 .home .btn {
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(193, 59, 197, 0.88), rgba(15, 5, 20, 0.92));
-    border: 1px solid rgba(221, 104, 159, 0.3);
+    background: linear-gradient(135deg, rgba(var(--t-deep-rgb), 0.88), rgba(var(--t-bg-rgb), 0.92));
+    border: 1px solid rgba(var(--t-crystal-rgb), 0.3);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
-    box-shadow: 0 5px 18px rgba(65, 6, 121, 0.5);
+    box-shadow: 0 5px 18px rgba(5, 10, 25, 0.5);
     transition: transform 0.3s ease-out, box-shadow 0.3s ease-out,
         border-color 0.3s ease-out, background 0.3s ease-out;
 }
@@ -3874,7 +3704,7 @@ body.games-modal-open marquee {
     background: linear-gradient(
         90deg,
         transparent,
-        rgba(221, 104, 159, 0.4),
+        rgba(var(--t-crystal-rgb), 0.4),
         transparent
     );
     transform: translateX(-100%);
@@ -3884,9 +3714,9 @@ body.games-modal-open marquee {
 
 .home .btn:hover {
     transform: scale(1.06) rotate(1deg);
-    border-color: rgba(221, 104, 159, 0.6);
-    box-shadow: 0 8px 26px rgba(221, 104, 159, 0.45);
-    background: linear-gradient(135deg, rgba(241, 8, 230, 0.65), rgba(50, 5, 95, 0.92));
+    border-color: rgba(var(--t-crystal-rgb), 0.6);
+    box-shadow: 0 8px 26px rgba(var(--t-crystal-rgb), 0.45);
+    background: linear-gradient(135deg, rgba(var(--t-mid-rgb), 0.65), rgba(15, 30, 60, 0.92));
 }
 
 .home .btn:active {
