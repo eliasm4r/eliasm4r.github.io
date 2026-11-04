@@ -98,20 +98,8 @@ const cooking = (() => {
     let data = load(); // { recipeId: stars }
     let current = 0;
 
-    // Recettes débloquées, enregistrées une par une : une recette ajoutée plus tard au site
-    // reste verrouillée pour les anciens joueurs tant qu'ils n'ont pas refait 2 étoiles sur celle d'avant.
-    const UNLOCK_KEY = 'eliasPortfolio.cookingUnlocked';
-    const ORIGINAL = ['skewers', 'stew', 'fish', 'curry', 'omelette', 'soup', 'spicy', 'feast']; // recettes de la 1re version
-    const loadUnlocked = () => {
-        try { const u = JSON.parse(store.get(UNLOCK_KEY)); if (Array.isArray(u)) return new Set(u); } catch { }
-        // ancienne sauvegarde : on reconstruit, mais seulement pour les recettes d'origine
-        const u = new Set();
-        ORIGINAL.forEach((id, i) => { if (i > 0 && (data[ORIGINAL[i - 1]] || 0) >= 2) u.add(id); });
-        store.set(UNLOCK_KEY, JSON.stringify([...u]));
-        return u;
-    };
-    let unlockedSet = loadUnlocked();
-    const unlocked = (i) => i === 0 || unlockedSet.has(RECIPES[i].id);
+    // une recette s'ouvre avec 2 étoiles sur celle d'avant (y compris une recette ajoutée plus tard)
+    const unlocked = (i) => i === 0 || (data[RECIPES[i - 1].id] || 0) >= 2;
 
     /* ---------- musique ---------- */
     let ac = null, master = null, noise = null;
@@ -311,8 +299,6 @@ const cooking = (() => {
         const stars = acc >= 0.9 ? 3 : acc >= 0.72 ? 2 : acc >= 0.5 ? 1 : 0;
         const prev = data[r.id] || 0;
         if (stars > prev) { data[r.id] = stars; store.set(KEY, JSON.stringify(data)); }
-        const next = RECIPES[current + 1];
-        if (stars >= 2 && next && !unlockedSet.has(next.id)) { unlockedSet.add(next.id); store.set(UNLOCK_KEY, JSON.stringify([...unlockedSet])); }
         if (stars === 3) achievements.unlock('chef');
         if (r.ultimate && stars >= 1) achievements.unlock('ultimateChef'); // débloque l'accessoire Aurore
         if (stars) sfx.fanfare(); else sfx.lose();
@@ -469,7 +455,7 @@ const cooking = (() => {
     renderBook();
     showStart();
     return {
-        reset() { store.del(KEY); store.del(UNLOCK_KEY); data = {}; unlockedSet = new Set(); current = 0; showStart(); },
+        reset() { store.del(KEY); store.del('eliasPortfolio.cookingUnlocked'); data = {}; current = 0; showStart(); }, // + ancienne clé de test
         stars: () => Object.values(load()).some(s => s === 3),
     };
 })();
