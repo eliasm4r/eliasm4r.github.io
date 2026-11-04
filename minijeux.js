@@ -362,7 +362,7 @@ const cooking = (() => {
         const prev = data[r.id] || 0;
         if (stars > prev) { data[r.id] = stars; store.set(KEY, JSON.stringify(data)); }
         if (stars === 3) achievements.unlock('chef');
-        if (r.ultimate && stars >= 1) achievements.unlock('ultimateChef'); // débloque l'accessoire Aurore
+        if (r.ultimate && stars >= 2) achievements.unlock('ultimateChef'); // débloque l'accessoire Aurore
         if (stars) sfx.fanfare(); else sfx.lose();
         overlay.hidden = false;
         overlay.innerHTML = `
