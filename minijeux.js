@@ -34,6 +34,7 @@ const cooking = (() => {
         folk: [[69, 72, 76], [65, 69, 72], [60, 64, 67], [67, 71, 74]],   // vi IV I V
         epic: [[57, 60, 64], [65, 69, 72], [60, 64, 67], [67, 71, 74]],   // i VI III VII
         dark: [[57, 60, 64], [62, 65, 69], [55, 59, 62], [64, 68, 71]],   // i iv VII V
+        boss: [[57, 60, 64], [53, 57, 60], [55, 59, 62], [52, 56, 59]],   // Am F G E : thème de boss
     };
     // motifs rythmiques : position des ingrédients dans la mesure (en temps)
     const RECIPES = [
@@ -57,7 +58,9 @@ const cooking = (() => {
         //   { b, h }  = ingrédient à maintenir pendant h temps (barre de cuisson)
         //   { b, x }  = ingrédient piégé : surtout ne pas taper
         // (aucun piège juste après la fin d'une barre de cuisson : au moins 1 temps d'écart)
-        { id: 'ultimate', dish: '👑', name: t('Banquet ultime'), bpm: 144, bars: 16, prog: 'epic', key: 1, ultimate: true,
+        { id: 'ultimate', dish: '👑', name: t('Banquet ultime'), bpm: 156, bars: 16, prog: 'boss', key: 0, ultimate: true,
+            // mélodie écrite (une ligne par accord) : chaque ingrédient touché joue la note suivante
+            melody: [[69, 72, 76, 74, 72, 71, 69, 72], [65, 69, 72, 71, 69, 67, 65, 69], [67, 71, 74, 72, 71, 69, 67, 71], [68, 71, 76, 74, 71, 68, 64, 71]],
             pat: [
                 [0, 0.5, { b: 1, h: 1 }, 3, { b: 3.5, x: 1 }],
                 [0, { b: 0.75, x: 1 }, 1, 1.5, 2, { b: 2.5, h: 1 }],
@@ -175,6 +178,7 @@ const cooking = (() => {
             [0, 1.5, 2, 3.5].forEach((k, i) => tone(midi(ch[0] - 24 + (i === 3 ? 12 : 0)), b0 + k * spb, spb * 0.9, 'sawtooth', 0.045));
             // nappe d'accords
             ch.forEach(n => tone(midi(n - 12), b0, 4 * spb * 0.95, 'triangle', 0.018));
+            if (r.ultimate) for (let k = 0; k < 8; k++) tone(midi(ch[[0, 1, 2, 1][k % 4]] + (k >= 4 ? 12 : 0)), b0 + k * 0.5 * spb, spb * 0.4, 'triangle', 0.016);
         }
     };
     // la mélodie : jouée seulement quand on touche l'ingrédient
@@ -188,29 +192,24 @@ const cooking = (() => {
     const leadHold = (n) => {
         if (!ac || !master) return () => { };
         const at = ac.currentTime;
-        const g = ac.createGain(), lp = ac.createBiquadFilter();
-        lp.type = 'lowpass'; lp.frequency.value = 1400;
+        const lp = ac.createBiquadFilter(), g = ac.createGain();
+        lp.type = 'lowpass'; lp.frequency.value = 2200; lp.Q.value = 0.5;
+        // même instrument que les notes simples (carré + triangle à l'octave), juste tenu et un peu plus doux
+        const sq = ac.createOscillator(), tri = ac.createOscillator(), triG = ac.createGain();
+        sq.type = 'square'; sq.frequency.setValueAtTime(midi(n.pitch), at);
+        tri.type = 'triangle'; tri.frequency.setValueAtTime(midi(n.pitch + 12), at);
+        triG.gain.value = 0.8;
+        sq.connect(lp); tri.connect(triG).connect(lp);
         g.gain.setValueAtTime(0.0001, at);
-        g.gain.exponentialRampToValueAtTime(0.045, at + 0.06);
-        g.gain.setTargetAtTime(0.028, at + 0.1, 0.25); // le son se pose doucement
-        const vib = ac.createOscillator(), vibAmt = ac.createGain();
-        vib.frequency.value = 5; vibAmt.gain.value = 3; // léger vibrato
-        vib.connect(vibAmt);
-        const oscs = [['sine', midi(n.pitch)], ['triangle', midi(n.pitch - 12)]].map(([type, f]) => {
-            const o = ac.createOscillator();
-            o.type = type; o.frequency.setValueAtTime(f, at);
-            vibAmt.connect(o.frequency);
-            o.connect(lp);
-            o.start(at);
-            return o;
-        });
+        g.gain.exponentialRampToValueAtTime(0.03, at + 0.01);
+        g.gain.setTargetAtTime(0.018, at + 0.12, 0.2);
         lp.connect(g).connect(master);
-        vib.start(at);
+        sq.start(at); tri.start(at);
         return () => {
             const t1 = ac.currentTime;
             g.gain.cancelScheduledValues(t1);
-            g.gain.setTargetAtTime(0.0001, t1, 0.06);
-            [...oscs, vib].forEach(o => o.stop(t1 + 0.4));
+            g.gain.setTargetAtTime(0.0001, t1, 0.04);
+            sq.stop(t1 + 0.3); tri.stop(t1 + 0.3);
         };
     };
 
@@ -283,7 +282,8 @@ const cooking = (() => {
             const beats = bar === r.bars - 1 ? [0, 1, 2] : r.pat[bar % r.pat.length];
             beats.forEach((e, k) => {
                 const b = typeof e === 'number' ? e : e.b;
-                const pitch = ch[(k + bar) % 3] + (k % 4 >= 2 ? 12 : 0);
+                const mel = r.melody?.[bar % 4];
+                const pitch = mel ? mel[k % mel.length] : ch[(k + bar) % 3] + (k % 4 >= 2 ? 12 : 0);
                 const n = { t: lead0 + (bar * 4 + b) * spb, item: r.items[(bar + k) % r.items.length], pitch, done: false, res: null, kind: 'tap' };
                 if (e.h) { n.kind = 'hold'; n.len = e.h * spb; }
                 if (e.x) { n.kind = 'trap'; n.item = r.traps[(bar + k) % r.traps.length]; }
