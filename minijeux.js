@@ -56,14 +56,15 @@ const cooking = (() => {
         // NIVEAU ULTIME : rythmes variés + 2 mécaniques
         //   { b, h }  = ingrédient à maintenir pendant h temps (barre de cuisson)
         //   { b, x }  = ingrédient piégé : surtout ne pas taper
-        { id: 'ultimate', dish: '👑', name: t('Banquet ultime'), bpm: 168, bars: 16, prog: 'epic', key: 1, ultimate: true,
+        // (aucun piège juste après la fin d'une barre de cuisson : au moins 1 temps d'écart)
+        { id: 'ultimate', dish: '👑', name: t('Banquet ultime'), bpm: 144, bars: 16, prog: 'epic', key: 1, ultimate: true,
             pat: [
-                [0, 0.5, { b: 1, h: 1 }, { b: 2.5, x: 1 }, 3, 3.5],
+                [0, 0.5, { b: 1, h: 1 }, 3, { b: 3.5, x: 1 }],
                 [0, { b: 0.75, x: 1 }, 1, 1.5, 2, { b: 2.5, h: 1 }],
-                [{ b: 0, h: 2 }, { b: 2, x: 1 }, 2.5, 3, 3.25, 3.5],
-                [0, 0.25, 0.5, { b: 1, x: 1 }, { b: 1.5, x: 1 }, 2, { b: 2.5, h: 1 }, { b: 3.75, x: 1 }],
-                [{ b: 0, x: 1 }, 0.5, 0.75, 1, { b: 1.5, h: 1.5 }, 3.25, { b: 3.5, x: 1 }],
-                [0, { b: 0.5, h: 0.75 }, 1.5, { b: 2, x: 1 }, 2.25, 2.75, { b: 3, h: 0.75 }],
+                [{ b: 0.5, h: 1.5 }, 3, 3.25, { b: 3.5, x: 1 }],
+                [0, 0.25, 0.5, { b: 1, x: 1 }, { b: 1.5, x: 1 }, 2, { b: 2.5, h: 1 }],
+                [0.5, 0.75, 1, { b: 1.5, h: 1.5 }, 3.25],
+                [{ b: 0, x: 1 }, 0.5, 1, { b: 2, h: 1 }, 3.5],
             ], items: ['🦞', '🥩', '🍣', '🧀', '🍄', '🍋'], traps: ['💀', '🦠'] },
     ];
     const PERFECT = 0.045, GOOD = 0.1; // fenêtres de frappe (secondes)
@@ -187,14 +188,30 @@ const cooking = (() => {
     const leadHold = (n) => {
         if (!ac || !master) return () => { };
         const at = ac.currentTime;
-        const o = ac.createOscillator(), g = ac.createGain();
-        o.type = 'square';
-        o.frequency.setValueAtTime(midi(n.pitch), at);
+        const g = ac.createGain(), lp = ac.createBiquadFilter();
+        lp.type = 'lowpass'; lp.frequency.value = 1400;
         g.gain.setValueAtTime(0.0001, at);
-        g.gain.exponentialRampToValueAtTime(0.03, at + 0.02);
-        o.connect(g).connect(master);
-        o.start(at);
-        return () => { const t1 = ac.currentTime; g.gain.cancelScheduledValues(t1); g.gain.setTargetAtTime(0.0001, t1, 0.03); o.stop(t1 + 0.2); };
+        g.gain.exponentialRampToValueAtTime(0.045, at + 0.06);
+        g.gain.setTargetAtTime(0.028, at + 0.1, 0.25); // le son se pose doucement
+        const vib = ac.createOscillator(), vibAmt = ac.createGain();
+        vib.frequency.value = 5; vibAmt.gain.value = 3; // léger vibrato
+        vib.connect(vibAmt);
+        const oscs = [['sine', midi(n.pitch)], ['triangle', midi(n.pitch - 12)]].map(([type, f]) => {
+            const o = ac.createOscillator();
+            o.type = type; o.frequency.setValueAtTime(f, at);
+            vibAmt.connect(o.frequency);
+            o.connect(lp);
+            o.start(at);
+            return o;
+        });
+        lp.connect(g).connect(master);
+        vib.start(at);
+        return () => {
+            const t1 = ac.currentTime;
+            g.gain.cancelScheduledValues(t1);
+            g.gain.setTargetAtTime(0.0001, t1, 0.06);
+            [...oscs, vib].forEach(o => o.stop(t1 + 0.4));
+        };
     };
 
     const stopSong = () => {
@@ -234,7 +251,7 @@ const cooking = (() => {
     const pan = [];
     const HIT_X = () => W * 0.2;
     const LANE_Y = () => H * 0.78;
-    const SPEED = () => W * (0.4 + current * 0.035 + (RECIPES[current].ultimate ? 0.12 : 0)); // plus rapide à chaque niveau
+    const SPEED = () => W * (0.4 + Math.min(current, 7) * 0.035); // plus rapide à chaque niveau (l'ultime garde la vitesse du niveau 8)
 
     const showStart = () => {
         stopSong();
