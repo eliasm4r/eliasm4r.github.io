@@ -130,6 +130,7 @@ if (nekoToggle) {
     nekoToggle.addEventListener('click', () => {
         revealOnekoAtToggle();
         nekoToggle.style.display = 'none';
+        nekoToggle.classList.add('is-gone'); // le CSS du menu force l'affichage : la classe l'emporte
     });
 
     // Sur ordinateur, le chat se cache derrière la carte joueur (sa tête dépasse en haut)
