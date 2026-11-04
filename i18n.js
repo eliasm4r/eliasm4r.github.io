@@ -15,7 +15,7 @@ const EN = {
     "Barre de cuisson : maintiens jusqu'au bout": "Cooking bar: hold until the end",
     "Ingrédient piégé : surtout ne touche pas": "Trapped ingredient: don't touch it",
     "Chef légendaire": "Legendary Chef",
-    "Réussir le Banquet ultime en Cuisine.": "Clear the Ultimate Banquet in Cooking.",
+    "Obtenir 2 étoiles au Banquet ultime en Cuisine.": "Get 2 stars on the Ultimate Banquet in Cooking.",
     "Banquet ultime": "Ultimate Banquet",
     "☠ NIVEAU ULTIME ☠": "☠ ULTIMATE LEVEL ☠",
     "Traînée aurore multicolore": "Multicolor aurora trail",
