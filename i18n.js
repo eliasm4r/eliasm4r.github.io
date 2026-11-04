@@ -8,6 +8,8 @@ const LANG_KEY = 'eliasPortfolio.lang';
 const LANG = (() => { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'fr'; } catch { return 'fr'; } })();
 
 const EN = {
+    "INGRÉDIENT POURRI : PLAT RATÉ": "ROTTEN INGREDIENT: DISH RUINED",
+    "Ingrédient pourri : le toucher = défaite": "Rotten ingredient: touching it = defeat",
     "PIÈGE !": "TRAP!",
     "MAINTIENS !": "HOLD!",
     "CUIT À POINT !": "PERFECTLY COOKED!",

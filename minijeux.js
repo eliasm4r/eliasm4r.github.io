@@ -62,12 +62,12 @@ const cooking = (() => {
             // mélodie écrite (une ligne par accord) : chaque ingrédient touché joue la note suivante
             melody: [[69, 72, 76, 74, 72, 71, 69, 72], [65, 69, 72, 71, 69, 67, 65, 69], [67, 71, 74, 72, 71, 69, 67, 71], [68, 71, 76, 74, 71, 68, 64, 71]],
             pat: [
-                [0, 0.5, { b: 1, h: 1 }, 3, { b: 3.5, x: 1 }],
-                [0, { b: 0.75, x: 1 }, 1, 1.5, 2, { b: 2.5, h: 1 }],
-                [{ b: 0.5, h: 1.5 }, 3, 3.25, { b: 3.5, x: 1 }],
-                [0, 0.25, 0.5, { b: 1, x: 1 }, { b: 1.5, x: 1 }, 2, { b: 2.5, h: 1 }],
-                [0.5, 0.75, 1, { b: 1.5, h: 1.5 }, 3.25],
-                [{ b: 0, x: 1 }, 0.5, 1, { b: 2, h: 1 }, 3.5],
+                [0, 0.5, 0.75, { b: 1, h: 1 }, 2.5, 3, 3.25, { b: 3.75, x: 1 }],
+                [0, { b: 0.25, x: 1 }, 0.5, 1, 1.25, 1.5, 2, { b: 2.5, h: 1 }],
+                [{ b: 0.5, h: 1 }, 2, 2.25, 2.5, { b: 2.75, x: 1 }, 3, 3.5],
+                [0, 0.25, 0.5, { b: 0.75, x: 1 }, 1, { b: 1.5, x: 1 }, 2, { b: 2.5, h: 1 }],
+                [0.5, 0.75, 1, 1.25, { b: 1.5, h: 1.5 }, 3.25, 3.5],
+                [{ b: 0, x: 1 }, 0.25, 0.5, 1, { b: 1.5, x: 1 }, { b: 2, h: 1 }, 3.5, 3.75],
             ], items: ['🦞', '🥩', '🍣', '🧀', '🍄', '🍋'], traps: ['💀', '🦠'] },
     ];
     const PERFECT = 0.045, GOOD = 0.1; // fenêtres de frappe (secondes)
@@ -250,7 +250,7 @@ const cooking = (() => {
     const pan = [];
     const HIT_X = () => W * 0.2;
     const LANE_Y = () => H * 0.78;
-    const SPEED = () => W * (0.4 + Math.min(current, 7) * 0.035); // plus rapide à chaque niveau (l'ultime garde la vitesse du niveau 8)
+    const SPEED = () => W * (0.4 + current * 0.035); // plus rapide à chaque niveau
 
     const showStart = () => {
         stopSong();
@@ -262,7 +262,7 @@ const cooking = (() => {
             <p class="cook-big">${r.dish}</p>
             <h3></h3>
             <p class="cook-sub">${r.bpm} BPM · ${t('Meilleur')} : ${'★'.repeat(data[r.id] || 0) || '—'}</p>
-            ${r.ultimate ? `<p class="cook-rules"><span>🔥 ${t('Barre de cuisson : maintiens jusqu\'au bout')}</span><span>💀 ${t('Ingrédient piégé : surtout ne touche pas')}</span></p>` : ''}
+            ${r.ultimate ? `<p class="cook-rules"><span>🔥 ${t('Barre de cuisson : maintiens jusqu\'au bout')}</span><span>💀 ${t('Ingrédient pourri : le toucher = défaite')}</span></p>` : ''}
             <button class="btn cook-go" type="button">${t('▶ Cuisiner')}</button>`;
         overlay.querySelector('h3').textContent = r.name;
         overlay.querySelector('.cook-go').addEventListener('click', start);
@@ -293,6 +293,7 @@ const cooking = (() => {
         endAt = Math.max(...notes.map(n => n.t + (n.len || 0))) + 1.6;
         score = combo = maxCombo = hits = perfects = bad = 0;
         holding = null;
+        poisoned = false;
         pan.length = 0;
         overlay.hidden = true;
         state = 'play';
@@ -321,10 +322,12 @@ const cooking = (() => {
         const good = RECIPES[current].ultimate ? 0.075 : GOOD, perfect = RECIPES[current].ultimate ? 0.035 : PERFECT;
         if (!best || bestD > good) { combo = 0; bad++; judge(t('Trop tôt'), 'is-miss'); return; }
         best.done = true;
-        if (best.kind === 'trap') { // ingrédient piégé touché
-            best.res = 'burnt'; combo = 0; bad += 3; score = Math.max(0, score - 100);
-            judge(t('PIÈGE !'), 'is-miss'); sfx.back();
+        if (best.kind === 'trap') { // ingrédient pourri touché : le plat est raté, tout de suite
+            best.res = 'burnt';
+            judge(t('PIÈGE !'), 'is-miss');
             for (let i = 0; i < 14; i++) particles.push({ x: HIT_X() + rand(-20, 20), y: LANE_Y(), vx: rand(-90, 90), vy: rand(-160, -40), life: 0, max: rand(0.4, 0.8) });
+            poisoned = true;
+            finish();
             return;
         }
         if (best.kind === 'hold') { // début de cuisson : il faut maintenir jusqu'au bout
@@ -345,6 +348,7 @@ const cooking = (() => {
     };
 
     let holding = null; // note maintenue en cours
+    let poisoned = false; // un ingrédient pourri a été touché
     const endHold = (ok) => {
         const h = holding;
         holding = null;
@@ -375,7 +379,7 @@ const cooking = (() => {
         const r = RECIPES[current];
         // les tapes dans le vide comptent contre toi
         const acc = Math.max(0, (hits + perfects * 0.25 - bad * 0.5) / (notes.length * 1.25));
-        const stars = acc >= 0.9 ? 3 : acc >= 0.72 ? 2 : acc >= 0.5 ? 1 : 0;
+        const stars = poisoned ? 0 : acc >= 0.9 ? 3 : acc >= 0.72 ? 2 : acc >= 0.5 ? 1 : 0;
         const prev = data[r.id] || 0;
         if (stars > prev) { data[r.id] = stars; store.set(KEY, JSON.stringify(data)); }
         if (stars === 3) achievements.unlock('chef');
@@ -383,7 +387,7 @@ const cooking = (() => {
         if (stars) sfx.fanfare(); else sfx.lose();
         overlay.hidden = false;
         overlay.innerHTML = `
-            <p class="cook-k">${stars ? (stars === 3 ? t('NOUVELLE RECETTE !') : t('PLAT RÉUSSI')) : t('LE PLAT A BRÛLÉ…')}</p>
+            <p class="cook-k">${poisoned ? t('INGRÉDIENT POURRI : PLAT RATÉ') : stars ? (stars === 3 ? t('NOUVELLE RECETTE !') : t('PLAT RÉUSSI')) : t('LE PLAT A BRÛLÉ…')}</p>
             <p class="cook-big ${stars ? '' : 'is-burnt'}">${stars ? r.dish : '💨'}</p>
             <h3></h3>
             <p class="cook-stars">${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</p>
