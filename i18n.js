@@ -8,6 +8,12 @@ const LANG_KEY = 'eliasPortfolio.lang';
 const LANG = (() => { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'fr'; } catch { return 'fr'; } })();
 
 const EN = {
+    "PIÈGE !": "TRAP!",
+    "MAINTIENS !": "HOLD!",
+    "CUIT À POINT !": "PERFECTLY COOKED!",
+    "LÂCHÉ TROP TÔT": "RELEASED TOO EARLY",
+    "Barre de cuisson : maintiens jusqu'au bout": "Cooking bar: hold until the end",
+    "Ingrédient piégé : surtout ne touche pas": "Trapped ingredient: don't touch it",
     "Chef légendaire": "Legendary Chef",
     "Réussir le Banquet ultime en Cuisine.": "Clear the Ultimate Banquet in Cooking.",
     "Banquet ultime": "Ultimate Banquet",

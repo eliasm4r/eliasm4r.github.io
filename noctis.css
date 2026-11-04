@@ -6688,3 +6688,8 @@ header .logo .logo-k {
 @media (min-width: 917px) and (max-height: 940px) and (min-height: 861px) {
     body.tabs-mode header { padding-top: 1.2rem; }
 }
+
+/* Cuisine, niveau ultime : rappel des 2 mécaniques */
+.cook-rules { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem 1.6rem; max-width: 46ch; font-size: 1.25rem; color: #ffd27a; }
+.cook-rules span { white-space: nowrap; }
+@media (max-width: 560px) { .cook-rules { font-size: 1.05rem; flex-direction: column; gap: 0.3rem; } .cook-rules span { white-space: normal; } }

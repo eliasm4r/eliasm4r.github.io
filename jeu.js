@@ -687,7 +687,8 @@ const fishing = (() => {
         say(tr('Ça mord ! Garde le poisson dans la zone.'));
         splash(bob.x, bob.y, 18, 1.2);
     };
-    const zoneSize = () => 0.4 - fish.diff * 0.18;
+    // équilibrage : même les légendaires restent attrapables (≈ 2 essais sur 3 pour un joueur correct)
+    const zoneSize = () => 0.42 - fish.diff * 0.16;
 
     const miss = (text) => {
         misses++;
@@ -697,14 +698,6 @@ const fishing = (() => {
         setState('idle');
         say(text);
         render();
-        if (misses >= 3) {
-            setTimeout(() => {
-                if (window.gameOver) window.gameOver({
-                    sub: tr('Trois poissons se sont échappés d\'affilée.'),
-                    onContinue: () => { misses = 0; render(); say(tr('Le lac vous laisse une nouvelle chance.')); },
-                });
-            }, 700);
-        }
     };
 
     /* --- 3. la prise : le poisson saute hors de l'eau, puis la carte --- */
@@ -1150,14 +1143,14 @@ const fishing = (() => {
             if (zoneY < half) { zoneY = half; zoneV = Math.max(0, zoneV); }
             if (zoneY > 1 - half) { zoneY = 1 - half; zoneV = Math.min(0, zoneV); }
             // le poisson : change de cap, et parfois fonce
-            if (Math.random() < dt * (0.7 + fish.diff * 2.5)) fishTarget = rand(0.06, 0.94);
-            if (dash <= 0 && Math.random() < dt * fish.diff * 0.6) { dash = 0.6; fishTarget = Math.random() < 0.5 ? 0.05 : 0.95; say(tr('Il fonce !')); }
+            if (Math.random() < dt * (0.6 + fish.diff * 1.9)) fishTarget = rand(0.06, 0.94);
+            if (dash <= 0 && Math.random() < dt * fish.diff * 0.45) { dash = 0.6; fishTarget = Math.random() < 0.5 ? 0.05 : 0.95; say(tr('Il fonce !')); }
             dash = Math.max(0, dash - dt);
-            fishY += (fishTarget - fishY) * Math.min(1, dt * (1.4 + fish.diff * 3 + dash * 6));
+            fishY += (fishTarget - fishY) * Math.min(1, dt * (1.3 + fish.diff * 2.3 + dash * 5));
             // sauts hors de l'eau pour les poissons nerveux
             if (Math.random() < dt * fish.diff * 0.35) { splash(bob.x, bob.y, 16, 1.1); say(tr('Il saute !')); }
             const inside = Math.abs(fishY - zoneY) < half;
-            progress += (inside ? 0.3 : -0.22) * dt;
+            progress += (inside ? 0.3 : -(0.13 + fish.diff * 0.1)) * dt;
             zoneEl.style.top = `${((zoneY - half) * 100).toFixed(2)}%`;
             zoneEl.classList.toggle('is-on', inside);
             iconEl.style.top = `${(fishY * 100).toFixed(2)}%`;

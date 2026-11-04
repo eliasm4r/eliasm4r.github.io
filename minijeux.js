@@ -53,14 +53,18 @@ const cooking = (() => {
             pat: [[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5], [0, 0.25, 0.5, 1.5, 2, 2.75, 3.5]], items: ['🌶️', '🍖', '🧄', '🫑'] },
         { id: 'feast', dish: '🍱', name: t('Festin du roi'), bpm: 150, bars: 14, prog: 'dark', key: 5,
             pat: [[0, 0.25, 0.5, 1, 1.5, 2, 2.25, 2.5, 3, 3.5], [0, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 3.25, 3.5]], items: ['🍤', '🍄', '🌶️', '🥚', '🍚'] },
-        // NIVEAU ULTIME : 176 BPM, doubles croches, contretemps, 16 mesures, aucune pause
-        { id: 'ultimate', dish: '👑', name: t('Banquet ultime'), bpm: 176, bars: 16, prog: 'epic', key: 1, ultimate: true,
+        // NIVEAU ULTIME : rythmes variés + 2 mécaniques
+        //   { b, h }  = ingrédient à maintenir pendant h temps (barre de cuisson)
+        //   { b, x }  = ingrédient piégé : surtout ne pas taper
+        { id: 'ultimate', dish: '👑', name: t('Banquet ultime'), bpm: 168, bars: 16, prog: 'epic', key: 1, ultimate: true,
             pat: [
-                [0, 0.25, 0.5, 0.75, 1, 1.5, 1.75, 2, 2.25, 2.75, 3, 3.5, 3.75],
-                [0, 0.5, 0.75, 1.25, 1.5, 2, 2.25, 2.5, 2.75, 3.25, 3.5],
-                [0, 0.25, 0.75, 1, 1.25, 1.75, 2, 2.5, 2.75, 3, 3.25, 3.5, 3.75],
-                [0, 0.75, 1, 1.5, 1.75, 2, 2.25, 2.5, 3, 3.25, 3.5, 3.75],
-            ], items: ['🦞', '🥩', '🍣', '🧀', '🍄', '🌶️', '🍋'] },
+                [0, 0.5, { b: 1, h: 1 }, { b: 2.5, x: 1 }, 3, 3.5],
+                [0, { b: 0.75, x: 1 }, 1, 1.5, 2, { b: 2.5, h: 1 }],
+                [{ b: 0, h: 2 }, { b: 2, x: 1 }, 2.5, 3, 3.25, 3.5],
+                [0, 0.25, 0.5, { b: 1, x: 1 }, { b: 1.5, x: 1 }, 2, { b: 2.5, h: 1 }, { b: 3.75, x: 1 }],
+                [{ b: 0, x: 1 }, 0.5, 0.75, 1, { b: 1.5, h: 1.5 }, 3.25, { b: 3.5, x: 1 }],
+                [0, { b: 0.5, h: 0.75 }, 1.5, { b: 2, x: 1 }, 2.25, 2.75, { b: 3, h: 0.75 }],
+            ], items: ['🦞', '🥩', '🍣', '🧀', '🍄', '🍋'], traps: ['💀', '🦠'] },
     ];
     const PERFECT = 0.045, GOOD = 0.1; // fenêtres de frappe (secondes)
 
@@ -179,6 +183,20 @@ const cooking = (() => {
         tone(midi(n.pitch), at, 0.22, 'square', 0.035);
         tone(midi(n.pitch + 12), at, 0.16, 'triangle', 0.03);
     };
+    // note tenue : le son dure tant qu'on maintient
+    const leadHold = (n) => {
+        if (!ac || !master) return () => { };
+        const at = ac.currentTime;
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'square';
+        o.frequency.setValueAtTime(midi(n.pitch), at);
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(0.03, at + 0.02);
+        o.connect(g).connect(master);
+        o.start(at);
+        return () => { const t1 = ac.currentTime; g.gain.cancelScheduledValues(t1); g.gain.setTargetAtTime(0.0001, t1, 0.03); o.stop(t1 + 0.2); };
+    };
+
     const stopSong = () => {
         if (!master) return;
         const m = master;
@@ -228,6 +246,7 @@ const cooking = (() => {
             <p class="cook-big">${r.dish}</p>
             <h3></h3>
             <p class="cook-sub">${r.bpm} BPM · ${t('Meilleur')} : ${'★'.repeat(data[r.id] || 0) || '—'}</p>
+            ${r.ultimate ? `<p class="cook-rules"><span>🔥 ${t('Barre de cuisson : maintiens jusqu\'au bout')}</span><span>💀 ${t('Ingrédient piégé : surtout ne touche pas')}</span></p>` : ''}
             <button class="btn cook-go" type="button">${t('▶ Cuisiner')}</button>`;
         overlay.querySelector('h3').textContent = r.name;
         overlay.querySelector('.cook-go').addEventListener('click', start);
@@ -245,13 +264,18 @@ const cooking = (() => {
         for (let bar = 0; bar < r.bars; bar++) {
             const ch = PROG[r.prog][bar % 4].map(n => n + r.key);
             const beats = bar === r.bars - 1 ? [0, 1, 2] : r.pat[bar % r.pat.length];
-            beats.forEach((b, k) => {
+            beats.forEach((e, k) => {
+                const b = typeof e === 'number' ? e : e.b;
                 const pitch = ch[(k + bar) % 3] + (k % 4 >= 2 ? 12 : 0);
-                notes.push({ t: lead0 + (bar * 4 + b) * spb, item: r.items[(bar + k) % r.items.length], pitch, done: false, res: null });
+                const n = { t: lead0 + (bar * 4 + b) * spb, item: r.items[(bar + k) % r.items.length], pitch, done: false, res: null, kind: 'tap' };
+                if (e.h) { n.kind = 'hold'; n.len = e.h * spb; }
+                if (e.x) { n.kind = 'trap'; n.item = r.traps[(bar + k) % r.traps.length]; }
+                notes.push(n);
             });
         }
-        endAt = notes[notes.length - 1].t + 1.6;
+        endAt = Math.max(...notes.map(n => n.t + (n.len || 0))) + 1.6;
         score = combo = maxCombo = hits = perfects = bad = 0;
+        holding = null;
         pan.length = 0;
         overlay.hidden = true;
         state = 'play';
@@ -280,6 +304,19 @@ const cooking = (() => {
         const good = RECIPES[current].ultimate ? 0.075 : GOOD, perfect = RECIPES[current].ultimate ? 0.035 : PERFECT;
         if (!best || bestD > good) { combo = 0; bad++; judge(t('Trop tôt'), 'is-miss'); return; }
         best.done = true;
+        if (best.kind === 'trap') { // ingrédient piégé touché
+            best.res = 'burnt'; combo = 0; bad += 3; score = Math.max(0, score - 100);
+            judge(t('PIÈGE !'), 'is-miss'); sfx.back();
+            for (let i = 0; i < 14; i++) particles.push({ x: HIT_X() + rand(-20, 20), y: LANE_Y(), vx: rand(-90, 90), vy: rand(-160, -40), life: 0, max: rand(0.4, 0.8) });
+            return;
+        }
+        if (best.kind === 'hold') { // début de cuisson : il faut maintenir jusqu'au bout
+            best.res = 'holding';
+            best.startPerfect = bestD < perfect;
+            holding = { n: best, stop: leadHold(best) };
+            judge(t('MAINTIENS !'), 'is-good');
+            return;
+        }
         if (bestD < perfect) { best.res = 'perfect'; score += 100 + combo * 5; perfects++; judge(t('PARFAIT'), 'is-perfect'); }
         else { best.res = 'good'; score += 50 + combo * 2; judge(t('BIEN'), 'is-good'); }
         hits++;
@@ -290,8 +327,33 @@ const cooking = (() => {
         for (let i = 0; i < 10; i++) particles.push({ x: W * 0.55 + rand(-50, 50), y: H * 0.5, vx: rand(-60, 60), vy: rand(-140, -40), life: 0, max: rand(0.4, 0.8) });
     };
 
+    let holding = null; // note maintenue en cours
+    const endHold = (ok) => {
+        const h = holding;
+        holding = null;
+        h.stop();
+        const n = h.n;
+        if (ok) {
+            n.res = h.n.startPerfect ? 'perfect' : 'good';
+            hits++; if (h.n.startPerfect) perfects++;
+            score += 150 + combo * 5; combo++; maxCombo = Math.max(maxCombo, combo);
+            judge(t('CUIT À POINT !'), 'is-perfect');
+            pan.push({ item: n.item, x: HIT_X(), y: LANE_Y(), t: 0 });
+        } else {
+            n.res = 'broken'; combo = 0;
+            judge(t('LÂCHÉ TROP TÔT'), 'is-miss');
+        }
+    };
+    const release = () => {
+        if (state !== 'play' || !holding) return;
+        const tt = clock() - t0;
+        const end = holding.n.t + holding.n.len;
+        endHold(tt >= end - 0.12); // un peu de marge pour relâcher juste à la fin
+    };
+
     const finish = () => {
         state = 'end';
+        if (holding) endHold(false);
         stopSong();
         const r = RECIPES[current];
         // les tapes dans le vide comptent contre toi
@@ -324,6 +386,9 @@ const cooking = (() => {
         if (e.target.closest('button')) return;
         if (state === 'play') { e.preventDefault(); hit(); }
     });
+    window.addEventListener('pointerup', () => { if (gameOn('cooking')) release(); });
+    window.addEventListener('pointercancel', () => { if (gameOn('cooking')) release(); });
+    window.addEventListener('keyup', (e) => { if ((e.code === 'Space' || e.code === 'Enter') && gameOn('cooking')) release(); });
     window.addEventListener('keydown', (e) => {
         if (!gameOn('cooking') || e.repeat) return;
         if (e.code === 'Space' || e.code === 'Enter') {
@@ -408,10 +473,41 @@ const cooking = (() => {
         c.lineWidth = 1;
         if (state === 'play') {
             for (const n of notes) {
-                if (n.done && n.res) continue;
-                const x = hx + (n.t - tt) * SPEED();
+                const isHeld = holding && holding.n === n;
+                if (n.done && n.res && !isHeld) continue;
+                let x = hx + (n.t - tt) * SPEED();
                 if (x > W + 30) break;
-                if (x < -30) continue;
+                if (n.kind === 'hold') {
+                    // barre de cuisson : de la tête jusqu'à la fin de la note
+                    const xEnd = hx + (n.t + n.len - tt) * SPEED();
+                    if (xEnd < -30) continue;
+                    if (isHeld) x = hx;
+                    const grad = c.createLinearGradient(x, 0, xEnd, 0);
+                    grad.addColorStop(0, isHeld ? 'rgba(255, 190, 90, 0.95)' : 'rgba(255, 170, 80, 0.55)');
+                    grad.addColorStop(1, 'rgba(255, 120, 40, 0.25)');
+                    c.fillStyle = grad;
+                    c.beginPath(); c.roundRect(x, ly - 9, Math.max(0, xEnd - x), 18, 9); c.fill();
+                    c.strokeStyle = isHeld ? '#ffd27a' : 'rgba(255, 200, 120, 0.7)';
+                    c.lineWidth = 2;
+                    c.beginPath(); c.moveTo(xEnd, ly - 14); c.lineTo(xEnd, ly + 14); c.stroke();
+                    c.lineWidth = 1;
+                    if (isHeld) { c.fillStyle = 'rgba(255, 210, 120, 0.35)'; c.beginPath(); c.arc(hx, ly, 30, 0, 6.283); c.fill(); }
+                } else if (x < -30) continue;
+                if (n.kind === 'trap') {
+                    // piège : cercle rouge barré
+                    c.fillStyle = 'rgba(248, 60, 60, 0.18)';
+                    c.beginPath(); c.arc(x, ly, 22, 0, 6.283); c.fill();
+                    c.strokeStyle = '#ff5a5a'; c.lineWidth = 2.5;
+                    c.beginPath(); c.arc(x, ly, 22, 0, 6.283); c.stroke();
+                    c.lineWidth = 1;
+                    c.font = '24px serif';
+                    c.fillStyle = '#fff';
+                    c.fillText(n.item, x, ly + 1);
+                    c.strokeStyle = 'rgba(255, 90, 90, 0.9)'; c.lineWidth = 3;
+                    c.beginPath(); c.moveTo(x - 16, ly - 16); c.lineTo(x + 16, ly + 16); c.stroke();
+                    c.lineWidth = 1;
+                    continue;
+                }
                 c.fillStyle = 'rgba(232, 237, 245, 0.08)';
                 c.beginPath(); c.arc(x, ly, 22, 0, 6.283); c.fill();
                 c.font = '26px serif';
@@ -424,8 +520,13 @@ const cooking = (() => {
     const update = () => {
         if (state !== 'play') return;
         const tt = clock() - t0;
+        if (holding && tt >= holding.n.t + holding.n.len) endHold(true);
         for (const n of notes) {
-            if (!n.done && tt - n.t > (RECIPES[current].ultimate ? 0.075 : GOOD)) { n.done = true; n.res = 'miss'; combo = 0; judge(t('RATÉ'), 'is-miss'); }
+            if (!n.done && tt - n.t > (RECIPES[current].ultimate ? 0.075 : GOOD)) {
+                n.done = true;
+                if (n.kind === 'trap') { n.res = 'avoided'; hits++; } // bien joué : on n'y a pas touché
+                else { n.res = 'miss'; combo = 0; judge(t('RATÉ'), 'is-miss'); }
+            }
         }
         $('.cook-score').textContent = score;
         $('.cook-combo').textContent = combo > 2 ? `${t('COMBO')} ×${combo}` : '';
