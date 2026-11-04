@@ -1237,7 +1237,9 @@ const fishing = (() => {
     const busy = () => !document.body.classList.contains('is-loaded')
         || !document.getElementById('gameOver')?.hidden
         || document.querySelector('.rbd, .credits')
-        || (openGame && gameOn(openGame));
+        || (openGame && gameOn(openGame))
+        // jeu secret (ou CV) ouvert : il tourne dans une iframe, ses touches et clics n'arrivent pas jusqu'ici
+        || document.querySelector('.stage-modal-overlay.active');
 
     const recap = () => {
         const best = (() => { try { return JSON.parse(store.get('eliasPortfolio.fishing'))?.best; } catch { return null; } })();
