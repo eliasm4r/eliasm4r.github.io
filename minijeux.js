@@ -834,10 +834,23 @@ const chocoboRace = (() => {
     };
 
     // un rival : même chocobo, teinté, un peu en retrait (couloir du fond)
-    const drawRival = (r, t2) => {
+    const drawRival = (r, t2, ghost = false) => {
         const x = P_X() + (r.m - dist) * PX_PER_M();
         if (x < -80 || x > W + 80) return;
         const G = GROUND();
+        // passé derrière le joueur : on le redessine en transparence par-dessus pour ne pas le perdre de vue
+        if (ghost) {
+            if (!spriteOk || Math.abs(x - P_X()) > H * 0.2) return;
+            const fw = sprite.naturalWidth / FRAMES, fh = sprite.naturalHeight;
+            const h = H * 0.24, w = h * (fw / fh);
+            const frame = state === 'run' && r.v > 1 ? Math.floor(r.m * 1.1 + r.i * 3) % FRAMES : 0;
+            c.save();
+            c.globalAlpha = 0.45;
+            c.filter = r.filter;
+            c.drawImage(sprite, frame * fw, 0, fw, fh, x - w * 0.5, G - h, w, h);
+            c.restore();
+            return;
+        }
         c.fillStyle = 'rgba(40, 20, 5, 0.22)';
         c.beginPath(); c.ellipse(x, G + 3, H * 0.05, 4, 0, 0, TAU); c.fill();
         if (spriteOk) {
@@ -1195,6 +1208,7 @@ const chocoboRace = (() => {
             }
         }
         drawRunner(P_X(), G + y, t2);
+        for (const r of rivals) drawRival(r, t2, true);
         // brins d'herbe au premier plan + lumière chaude
         const fOff = ((dist * PX_PER_M() * 1.4) % 40 + 40) % 40;
         c.fillStyle = 'rgba(60, 80, 30, 0.85)';
