@@ -214,6 +214,8 @@ const EN = {
     "Moi, c'est Lumi, l'esprit du cristal de ce menu. Je connais tous les secrets du site !": "I'm Lumi, the crystal spirit of this menu. I know every secret on this site!",
     "Rien n'a bougé depuis un moment… Tiens, un indice :": "Nothing has moved in a while… Here, a hint:",
     "Psst !": "Psst!",
+    "Volume de la musique du menu": "Menu music volume",
+    "♪ Musique du menu": "♪ Menu music",
     "Change de voie avec ← → (ou A / D), ou touche la gauche / la droite de la route. Attention aux clignotants, aux barrières et aux flaques d'huile. Ramasse les jerricans avant la panne sèche.": "Change lanes with ← → (or A / D), or tap the left / right of the road. Watch for turn signals, barriers and oil slicks. Grab fuel cans before you run dry.",
     "Dérapage !": "Skid!",
     "⚠ ATTAQUE CHARGÉE · DÉFENDS-TOI !": "⚠ CHARGED ATTACK · DEFEND NOW!",

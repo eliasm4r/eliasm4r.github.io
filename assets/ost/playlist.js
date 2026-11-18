@@ -34,4 +34,8 @@ window.OST_PLAYLIST = [
 window.OST_GAMES = {
     battle: 'assets/ost/Stand Your Ground.mp3',
     chocobo: 'assets/ost/FF7 chocobo Theme.mp3',
+    fishing: 'assets/ost/FINAL FANTASY XV OST Fishing Theme ( Reel Rumble ).mp3',
+    road: 'assets/ost/FINAL FANTASY XV OST Regalia-F Theme ( Flying R ).mp3',
+    // menu des mini-jeux et écran d'accueil de chaque jeu (sauf la pêche, qui a son thème)
+    menu: 'assets/ost/FINAL FANTASY XV OST Menu Theme ( Crystalline Chill ).mp3',
 };

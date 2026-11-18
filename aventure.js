@@ -995,7 +995,7 @@ const gameMusic = (() => {
     let current = null, fadeId = 0;
 
     // le curseur du jeu règle sa musique (0.5 par défaut -> assez bas)
-    const level = () => (current ? gameVolume(current) : 0.5) * 0.5;
+    const level = () => gameVolume(current || 'menu') * 0.5;
     const fade = (to, ms, done) => {
         const id = ++fadeId;
         const from = audio.volume, t0 = performance.now();
@@ -1011,12 +1011,16 @@ const gameMusic = (() => {
     // le jeu dont la musique doit jouer en ce moment (ou aucun)
     const wanted = () => {
         if (!sfx.on || document.hidden || document.body.classList.contains('games-modal-open')) return null;
-        if (!openGame || !TRACKS[openGame]) return null;
-        // en pause, gameOn() est faux : la musique du jeu continue, mais plus bas
-        const on = gamePaused ? !!document.getElementById('games')?.classList.contains('is-active') : gameOn(openGame);
-        // seulement pendant une partie (course lancée, combat en cours), pas dans le menu du jeu
-        const playing = window.gamePlaying?.[openGame];
-        return on && (!playing || playing()) ? openGame : null;
+        // seulement sur l'onglet Mini-jeux (en pause aussi, mais plus bas)
+        if (!document.getElementById('games')?.classList.contains('is-active')) return null;
+        const id = openGame;
+        // une partie en cours : la musique du jeu (ou rien s'il n'en a pas)
+        const playing = id && window.gamePlaying?.[id];
+        if (playing && playing()) return TRACKS[id] ? id : null;
+        // la pêche a son thème du début à la fin
+        if (id === 'fishing') return TRACKS.fishing ? 'fishing' : null;
+        // menu des mini-jeux, écran d'accueil d'un jeu : le thème du menu
+        return TRACKS.menu ? 'menu' : null;
     };
 
     const stop = (rewind) => {
@@ -1054,7 +1058,7 @@ const gameMusic = (() => {
     document.addEventListener('tabshow', later);
     document.addEventListener('visibilitychange', later);
     // retour à la liste des jeux : le morceau repartira du début à la prochaine partie
-    document.addEventListener('gameclose', () => stop(true));
+    document.addEventListener('gameclose', later);
     document.getElementById('soundToggle')?.addEventListener('click', later);
     document.addEventListener('gamevolume', (e) => { if (e.detail.id === current && !audio.paused) fade(level() * (gamePaused ? 0.3 : 1), 150); });
     audio.addEventListener('error', () => window.ost?.release('game'));

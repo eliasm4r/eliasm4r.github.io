@@ -346,16 +346,14 @@ function setGameVolume(id, v) {
     document.dispatchEvent(new CustomEvent('gamevolume', { detail: { id, v: all[id] } }));
 }
 (function initGameVolume() {
-    const add = (panel) => {
-        const id = panel.id.replace('game-', '');
-        const bar = panel.querySelector('.game-bar');
+    const add = (panel, id = panel.id.replace('game-', ''), bar = panel.querySelector('.game-bar')) => {
         if (!bar || bar.querySelector('.game-vol')) return;
         const label = document.createElement('label');
         label.className = 'game-vol';
-        label.title = tr('Volume du jeu');
+        label.title = tr(id === 'menu' ? 'Volume de la musique du menu' : 'Volume du jeu');
         label.innerHTML = '<i class="fas fa-volume-down" aria-hidden="true"></i><input type="range" min="0" max="100" step="5">';
         const input = label.querySelector('input');
-        input.setAttribute('aria-label', tr('Volume du jeu'));
+        input.setAttribute('aria-label', label.title);
         const show = () => {
             const v = Math.round(gameVolume(id) * 100);
             input.value = v;
@@ -366,9 +364,12 @@ function setGameVolume(id, v) {
         show();
         bar.appendChild(label);
     };
-    const scan = () => document.querySelectorAll('.game-panel[id^="game-"]').forEach(add);
+    const scan = () => document.querySelectorAll('.game-panel[id^="game-"]').forEach(p => add(p));
     scan();
     document.addEventListener('gameopen', scan);
+    // la musique du menu des mini-jeux a son propre réglage
+    const menuBar = document.getElementById('gamesMenuVol');
+    if (menuBar) add(null, 'menu', menuBar);
 })();
 let openGame = null;
 // menu pause (Échap, aventure.js) : les jeux se figent tant qu'il est ouvert, puis reçoivent « gameresume »

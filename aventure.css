@@ -4040,3 +4040,17 @@ html.cat-in-battle #oneko {
 @media (prefers-reduced-motion: reduce) {
     .bt-menu button.is-urge { animation: none; }
 }
+
+/* réglage du volume de la musique du menu des mini-jeux */
+.games-menu-vol {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 0 auto 1.6rem;
+    font-size: 1.3rem;
+    color: var(--text-color, #cfd6e6);
+    opacity: 0.85;
+}
+.games-menu-vol { width: fit-content; }
+.games-menu-vol .game-vol { margin-left: 0; }
