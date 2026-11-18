@@ -534,7 +534,7 @@ const lumi = (() => {
     add('chef', 'end', () => ach('chef'), tr('Un bon aventurier sait aussi cuisiner.'), lookIn('games'), tr('Mini-jeux, Cuisine : obtiens 3 étoiles sur une recette.'));
     add('chocobo', 'end', () => ach('chocobo'), tr('Les chocobos t\'attendent sur la piste.'), lookIn('games'), tr('Mini-jeux, Chocobo Race : termine une course.'));
     add('battle', 'end', () => ach('battle'), tr('Un golem de cristal garde le dernier passage.'), lookIn('games'), tr('Mini-jeux, Combat : bats le Golem de cristal.'));
-    add('trueEnd', 'end', () => ach('trueEnd'), tr('Quand tout est accompli, une dernière porte s\'ouvre…'), tr('Les 8 conditions de la fin cachée sont listées dans Mini-jeux.'), tr('Remplis les 8 conditions, puis lance la fin cachée depuis Mini-jeux.'));
+    add('trueEnd', 'end', () => ach('trueEnd'), tr('Quand tout est accompli, une dernière porte s\'ouvre…'), tr('Les 8 conditions de la fin cachée sont listées tout en bas de la page Expériences.'), tr('Remplis les 8 conditions, puis lance la fin cachée tout en bas de la page Expériences.'));
     /* --- les cristaux --- */
     add('c-carousel', 'crystal', () => crystal('carousel'), tr('Un cristal suit le roi quand il passe au premier rang.'), lookIn('home'), tr('Fais tourner le carrousel jusqu\'à Final Fantasy XV : le cristal brille à côté du titre.'));
     add('c-cv', 'crystal', () => crystal('cv'), tr('Un cristal dort entre les pages de mon histoire.'), lookIn('about'), tr('Ouvre le CV : il est à côté du bouton de téléchargement.'));
