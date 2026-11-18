@@ -1249,7 +1249,9 @@ const chocoboRace = (() => {
         last = ms;
         T = ms / 1000;
         update(dt);
-        draw(dt, T);
+        // panneau pas encore mis en page (transition d'onglet) : on remesure et on saute l'image
+        if (W < 2 || H < 2) { ({ c, W, H } = fitCanvas(cv)); deco = null; }
+        if (W >= 2 && H >= 2) draw(dt, T);
         raf = gameOn('chocobo') ? requestAnimationFrame(loop) : 0;
     };
     const run = () => {
@@ -2577,7 +2579,8 @@ const arena = (() => {
     const loop = (ms) => {
         const dt = Math.min((ms - last) / 1000, 0.05);
         last = ms;
-        if (s) { update(dt); draw(dt, ms / 1000); }
+        if (s && (W < 2 || H < 2)) ({ c, W, H } = fitCanvas(cv));
+        if (s) { update(dt); if (W >= 2 && H >= 2) draw(dt, ms / 1000); }
         raf = gameOn('arena') && s ? requestAnimationFrame(loop) : 0;
     };
     const run = () => {
@@ -3009,7 +3012,8 @@ const roadTrip = (() => {
         last = ms;
         T = ms / 1000;
         update(dt);
-        draw();
+        if (W < 2 || H < 2) { ({ c, W, H } = fitCanvas(cv)); deco = null; }
+        if (W >= 2 && H >= 2) draw();
         raf = gameOn('road') ? requestAnimationFrame(loop) : 0;
     };
     const run = () => {

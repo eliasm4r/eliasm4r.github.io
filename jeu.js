@@ -1246,6 +1246,8 @@ const fishing = (() => {
         last = now;
         T = now / 1000;
         update(dt);
+        // panneau pas encore mis en page (transition d'onglet) : on remesure et on saute l'image
+        if (W < 2 || H < 2) { resize(); if (W < 2 || H < 2) { raf = gameOn('fishing') ? requestAnimationFrame(loop) : 0; return; } }
         drawScene(T, dt);
         drawRodAndLine(T);
         if (state === 'jump') drawJump(T);
