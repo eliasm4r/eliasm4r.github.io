@@ -2113,21 +2113,21 @@ const arena = (() => {
             lunge = 1;
             const second = alive().find(f => f !== target);
             setTimeout(() => {
-                [target, second].filter(Boolean).forEach((f, k) => setTimeout(() => { const h = weaponHit(85, 105); hurtFoe(f, h.dmg, k ? null : t('TAILLE CROISÉE'), '#fff'); }, k * 180));
+                [target, second].filter(Boolean).forEach((f, k) => setTimeout(() => { const h = weaponHit(50, 65); hurtFoe(f, h.dmg, k ? null : t('TAILLE CROISÉE'), '#fff'); }, k * 180));
                 say(t('Taille croisée !'));
                 done(700);
             }, 260);
         } else if (id === 'warp') {
             lunge = 1;
             flash = 0.6;
-            setTimeout(() => { const h = weaponHit(140, 170); hurtFoe(target, h.dmg, t('TÉLÉFRAPPE'), '#bfe0ff'); say(t('Téléfrappe !')); done(); }, 300);
+            setTimeout(() => { const h = weaponHit(105, 125); hurtFoe(target, h.dmg, t('TÉLÉFRAPPE'), '#bfe0ff'); say(t('Téléfrappe !')); done(); }, 300);
         } else if (id === 'phantom') {
             flash = 0.8;
             say(t('Lames fantômes !'));
             alive().forEach((f, k) => setTimeout(() => {
                 const p = foePos(f);
                 for (let i = 0; i < 14; i++) fx.push({ x: p.x + rand(-60, 60), y: p.y - 140, vx: rand(-30, 30), vy: rand(260, 420), life: 0, max: 0.5, col: '#bcd8ff', kind: 'blade' });
-                const h = weaponHit(70, 90);
+                const h = weaponHit(45, 60);
                 hurtFoe(f, h.dmg, null, '#bcd8ff');
             }, 200 + k * 160));
             done(900);
@@ -2137,7 +2137,7 @@ const arena = (() => {
                 const p = foePos(f);
                 burst('fire', p.x, p.y);
                 const [m, tag] = elemMult(f, 'fire');
-                hurtFoe(f, Math.round(rand(80, 100) * m), tag, '#ff7a3a');
+                hurtFoe(f, Math.round(rand(55, 70) * m), tag, '#ff7a3a');
             }, 250 + k * 140));
             done(900);
         } else if (id.startsWith('m-')) {
@@ -2160,7 +2160,7 @@ const arena = (() => {
             burst(el, p.x, p.y);
             if (el === 'thunder') flash = 1;
             const [m, tag] = elemMult(target, el);
-            setTimeout(() => { hurtFoe(target, Math.round(rand(95, 125) * m), tag, e.color); say(`${e.name} !`); done(); }, 350);
+            setTimeout(() => { hurtFoe(target, Math.round(rand(80, 100) * m), tag, e.color); say(`${e.name} !`); done(); }, 350);
         } else if (id === 'i-potion') {
             s.potions--;
             const heal = Math.round(120 * (s.a.potion || 1));
