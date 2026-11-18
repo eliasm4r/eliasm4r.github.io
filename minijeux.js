@@ -2994,8 +2994,8 @@ const roadTrip = (() => {
     const geo = () => {
         const roadW = Math.min(W * 0.56, Math.max(240, H * 0.62));
         const laneW = roadW / 3;
-        const carW = laneW * 0.5, carL = carW * 2.1;
-        G = { roadW, laneW, x0: W / 2 - roadW / 2, carW, carL, carY: H * 0.8, ppm: H / 52 };
+        const carW = laneW * 0.42, carL = carW * 2;
+        G = { roadW, laneW, x0: W / 2 - roadW / 2, carW, carL, carY: H * 0.8, ppm: H / 60 };
     };
     const laneCenter = (l) => G.x0 + G.laneW * (l + 0.5);
     const yOf = (m) => G.carY - (m - dist) * G.ppm;
@@ -3070,13 +3070,16 @@ const roadTrip = (() => {
     const CAR_COLORS = [205, 0, 45, 130, 280, 30, 190, 340];
     const free = (l, m, span) => !things.some(o => o.kind !== 'can' && Math.round(o.lane) === l && Math.abs(o.m - m) < span);
     const spawnRow = () => {
-        const far = dist + 60; // juste au-dessus de l'écran
+        const far = dist + 66; // juste au-dessus de l'écran
         const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
         const late = Math.min(1, dist / 6000);
-        const blocked = dist > 600 && Math.random() < 0.25 + late * 0.45 ? 2 : 1;
+        const blocked = dist > 600 && Math.random() < 0.15 + late * 0.3 ? 2 : 1;
+        const clear = (l) => free(l, far, 26) && !things.some(o => o.turn && o.turn.dir && Math.round(o.lane + o.turn.dir) === l);
         for (let i = 0; i < blocked; i++) {
             const l = lanes[i];
             if (!free(l, far, 14)) continue;
+            // la dernière voie dégagée ne doit jamais être fermée
+            if (![0, 1, 2].some(k => k !== l && !lanes.slice(0, i).includes(k) && clear(k))) break;
             const r = Math.random();
             if (r < 0.12 + late * 0.1 && dist > 400) things.push({ kind: 'barrier', lane: l, laneX: l, m: far, v: 0 });
             else {
@@ -3084,20 +3087,20 @@ const roadTrip = (() => {
                 const v = rand(12, 24);
                 // certains changent de voie en cours de route (avec clignotant)
                 const turner = dist > 300 && Math.random() < 0.18 + late * 0.25;
-                things.push({ kind: truck ? 'truck' : 'car', lane: l, laneX: l, m: far, v, hue: CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)], turn: turner ? { at: rand(14, 34), dir: 0, t: 0 } : null });
+                things.push({ kind: truck ? 'truck' : 'car', lane: l, laneX: l, m: far, v, hue: CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)], turn: turner ? { at: rand(36, 54), dir: 0, t: 0 } : null });
             }
         }
         // flaque d'huile dans une voie libre, parfois
-        if (dist > 900 && Math.random() < 0.12 + late * 0.15) things.push({ kind: 'oil', lane: lanes[2], laneX: lanes[2], m: far + 18, v: 0 });
+        if (dist > 900 && blocked === 1 && Math.random() < 0.12 + late * 0.12 && free(lanes[1], far + 18, 20)) things.push({ kind: 'oil', lane: lanes[1], laneX: lanes[1], m: far + 18, v: 0 });
         // jerrican : plus rare qu'avant, et pas toujours dans la voie libre
         if (Math.random() < (fuel < 40 ? 0.42 : 0.2)) { const cl = lanes[Math.random() < 0.7 ? 2 : 1]; things.push({ kind: 'can', lane: cl, laneX: cl, m: far + 8, v: 0 }); }
-        nextRow = dist + Math.max(16, 46 - dist / 160) + rand(0, 14);
+        nextRow = dist + Math.max(30, speed) * Math.max(0.7, 1.15 - dist / 12000) + rand(0, 10);
     };
 
     const update = (dt) => {
         lock = Math.max(0, lock - dt);
         slide = Math.max(0, slide - dt);
-        laneX += (lane - laneX) * Math.min(1, dt * (slide > 0 ? 4 : 13));
+        laneX += (lane - laneX) * Math.min(1, dt * (slide > 0 ? 4 : 16));
         if (state === 'count') {
             countT -= dt;
             center.textContent = countT > 0 ? String(Math.ceil(countT)) : t('GO !');
@@ -3106,7 +3109,7 @@ const roadTrip = (() => {
         }
         if (state !== 'run') return;
         // vitesse : de 100 à ~270 km/h, ça monte vite ; à sec, la voiture s'arrête
-        const target = fuel > 0 ? 28 + Math.min(47, dist / 85) : 0;
+        const target = fuel > 0 ? 34 + Math.min(28, dist / 120) : 0;
         speed += (target - speed) * Math.min(1, dt * (fuel > 0 ? 0.7 : 0.9));
         dist += speed * dt;
         fuel = Math.max(0, fuel - dt * (3.2 + speed / 30));
@@ -3121,19 +3124,20 @@ const roadTrip = (() => {
                 o.m += v * dt;
                 // changement de voie annoncé
                 if (o.turn && o.turn.dir === 0 && o.m - dist < o.turn.at) {
-                    const opts = [o.lane - 1, o.lane + 1].filter(l => l >= 0 && l <= 2 && free(l, o.m, 12));
+                    const busy = things.some(q => q !== o && q.turn && q.turn.dir);
+                    const opts = busy ? [] : [o.lane - 1, o.lane + 1].filter(l => l >= 0 && l <= 2 && free(l, o.m, 22));
                     if (opts.length) { o.turn.dir = opts[Math.floor(Math.random() * opts.length)] - o.lane; o.turn.t = 0; }
                     else o.turn = null;
                 }
                 if (o.turn && o.turn.dir) {
                     o.turn.t += dt;
-                    if (o.turn.t > 0.9) { o.laneX += o.turn.dir * dt * 1.6; if (Math.abs(o.laneX - o.lane) >= 1) { o.lane += o.turn.dir; o.laneX = o.lane; o.turn = null; } }
+                    if (o.turn.t > 1.1) { o.laneX += o.turn.dir * dt * 1.4; if (Math.abs(o.laneX - o.lane) >= 1) { o.lane += o.turn.dir; o.laneX = o.lane; o.turn = null; } }
                 }
             }
             const dy = Math.abs((o.m - dist) * G.ppm);
             const len = o.kind === 'truck' ? G.carL * 1.7 : o.kind === 'oil' ? G.carL * 0.6 : o.kind === 'can' ? G.carW * 0.6 : o.kind === 'barrier' ? G.carW * 0.5 : G.carL;
-            if (o.hit || dy > (G.carL + len) * 0.45) continue;
-            if (Math.abs(laneX - o.laneX) > (o.kind === 'can' ? 0.45 : 0.62)) continue;
+            if (o.hit || dy > (G.carL + len) * (o.kind === 'can' ? 0.5 : 0.4)) continue;
+            if (Math.abs(laneX - o.laneX) > (o.kind === 'can' ? 0.5 : 0.55)) continue;
             o.hit = true;
             if (o.kind === 'can') { fuel = Math.min(100, fuel + 28); sfx.select(); }
             else if (o.kind === 'oil') {
@@ -3373,7 +3377,7 @@ const roadTrip = (() => {
 
     renderBest();
     showMenu();
-    return { reset() { store.del(KEY); store.del('eliasPortfolio.road'); best = 0; renderBest(); showMenu(); } };
+    return { reset() { store.del(KEY); store.del('eliasPortfolio.road'); best = 0; renderBest(); showMenu(); }, peek: () => ({ lane, dist, hp, fuel, speed, state, things }), steer };
 })();
 
 /* Menus de combat : ils gardent leur plus grande hauteur, sinon la page
