@@ -43,6 +43,7 @@ const sfx = (() => {
     const api = {
         get on() { return on; },
         ctx: audio, // partagé avec la musique des mini-jeux
+        tone: note, // une note libre, pour les petits sons des autres fichiers
         toggle() {
             on = !on;
             store.set(SOUND_KEY, on ? 'on' : 'off');
@@ -159,6 +160,7 @@ const achievements = (() => {
         { id: 'nightOwl', icon: '🦉', name: tr('Oiseau de nuit'), desc: tr('Visiter le site entre 3 h et 4 h du matin.'), hidden: true },
         { id: 'nightMonster', icon: '🌙', name: tr('Monstre de la nuit'), desc: tr('Pêcher le Mummy Bass.'), hidden: true },
         { id: 'trueEnd', icon: '🎬', name: tr('La vraie fin'), desc: tr('Voir la fin cachée du portfolio.'), hidden: true },
+        { id: 'alias', icon: '🎭', name: tr('Identité secrète'), desc: tr('Jouer sous un nom très spécial.'), hidden: true },
     ];
     const get = () => { try { return new Set(JSON.parse(store.get(KEY) || '[]')); } catch { return new Set(); } };
     const save = (set) => store.set(KEY, JSON.stringify([...set]));

@@ -671,7 +671,7 @@ let replayIntro = null; // relance l'écran d'intro (après "Reset votre progres
     const finish = () => {
         cancelAnimationFrame(raf);
         raf = 0;
-        loader.classList.remove('warp', 'shattering', 'hide', 'ask-name', 'replay');
+        loader.classList.remove('warp', 'shattering', 'hide', 'ask-name', 'replay', 'is-egg');
         loader.classList.add('is-off');
         loader.setAttribute('aria-hidden', 'true');
         leaving = false;
@@ -706,12 +706,17 @@ let replayIntro = null; // relance l'écran d'intro (après "Reset votre progres
         setTimeout(() => nameInput.focus(), 350);
     };
 
+    let greeting = false;
     gate.addEventListener('submit', (e) => {
         e.preventDefault();
-        if (leaving) return;
+        if (leaving || greeting) return;
         setPlayer(nameInput.value);
         nameInput.blur();
-        leave();
+        // certains pseudos déclenchent une petite scène avant d'entrer (aventure.js)
+        const egg = typeof window.pseudoEgg === 'function' ? window.pseudoEgg(getPlayer(), loader) : null;
+        if (!egg) { leave(); return; }
+        greeting = true;
+        egg.then(() => { greeting = false; leave(); }, () => { greeting = false; leave(); });
     });
 
     replayIntro = () => {

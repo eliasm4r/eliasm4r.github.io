@@ -551,3 +551,517 @@
         display: none;
     }
 }
+
+/* =====================================================================
+   CYCLE JOUR/NUIT — html[data-time] = dawn | day | dusk | night
+   Le ciel derrière les pages change avec l'heure du visiteur ;
+   les panneaux et le texte ne bougent pas (lisibilité d'abord).
+   ===================================================================== */
+/* <html> a son propre fond : sans ça, les calques à z-index -1 (ce ciel,
+   la brume du thème Ardyn) passaient sous le fond de <body>, invisibles */
+body {
+    isolation: isolate;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
+html[data-time="day"] body::before {
+    background: radial-gradient(70% 50% at 82% -12%, rgba(205, 226, 255, 0.07), transparent 70%);
+}
+
+html[data-time="dawn"] body::before {
+    background:
+        radial-gradient(120% 55% at 50% 118%, rgba(255, 150, 135, 0.17), transparent 62%),
+        radial-gradient(60% 45% at 92% -8%, rgba(255, 214, 170, 0.09), transparent 70%);
+}
+
+html[data-time="dusk"] body::before {
+    background:
+        radial-gradient(110% 52% at 70% 116%, rgba(255, 128, 64, 0.18), transparent 62%),
+        radial-gradient(80% 55% at 6% -6%, rgba(150, 84, 210, 0.16), transparent 68%);
+}
+
+/* nuit : ciel plus profond, étoiles et clair de lune */
+html[data-time="night"] {
+    --n-bg: #080a11;
+}
+
+html[data-time="night"] body::before {
+    background:
+        radial-gradient(circle at 88% 9%, rgba(226, 236, 255, 0.17) 0, rgba(226, 236, 255, 0.05) 3.5%, transparent 12%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='23' cy='41' r='1.1' opacity='.7'/%3E%3Ccircle cx='97' cy='12' r='.7' opacity='.5'/%3E%3Ccircle cx='151' cy='88' r='1.3' opacity='.8'/%3E%3Ccircle cx='212' cy='33' r='.8' opacity='.45'/%3E%3Ccircle cx='288' cy='71' r='1' opacity='.6'/%3E%3Ccircle cx='371' cy='24' r='1.4' opacity='.75'/%3E%3Ccircle cx='402' cy='132' r='.7' opacity='.4'/%3E%3Ccircle cx='57' cy='167' r='.8' opacity='.5'/%3E%3Ccircle cx='133' cy='214' r='1' opacity='.55'/%3E%3Ccircle cx='247' cy='176' r='1.2' opacity='.7'/%3E%3Ccircle cx='331' cy='229' r='.7' opacity='.45'/%3E%3Ccircle cx='18' cy='288' r='1.2' opacity='.65'/%3E%3Ccircle cx='109' cy='331' r='.7' opacity='.4'/%3E%3Ccircle cx='196' cy='297' r='.9' opacity='.6'/%3E%3Ccircle cx='272' cy='362' r='1.3' opacity='.75'/%3E%3Ccircle cx='356' cy='318' r='.8' opacity='.5'/%3E%3Ccircle cx='77' cy='402' r='1' opacity='.55'/%3E%3Ccircle cx='392' cy='397' r='.9' opacity='.6'/%3E%3C/g%3E%3C/svg%3E"),
+        radial-gradient(90% 60% at 50% -20%, rgba(40, 70, 140, 0.16), transparent 70%);
+    background-size: auto, 420px 420px, auto;
+    animation: dayStars 7s ease-in-out infinite alternate;
+}
+
+@keyframes dayStars {
+    from { opacity: 0.75; }
+    to { opacity: 1; }
+}
+
+/* thème Ardyn : aube cramoisie, crépuscule de sang, nuit de braises */
+html.theme-ardyn[data-time="day"] body::before {
+    background: radial-gradient(70% 50% at 82% -12%, rgba(255, 170, 180, 0.05), transparent 70%);
+}
+
+html.theme-ardyn[data-time="dawn"] body::before {
+    background:
+        radial-gradient(120% 55% at 50% 118%, rgba(255, 84, 104, 0.17), transparent 62%),
+        radial-gradient(60% 45% at 92% -8%, rgba(255, 170, 150, 0.08), transparent 70%);
+}
+
+html.theme-ardyn[data-time="dusk"] body::before {
+    background:
+        radial-gradient(110% 52% at 70% 116%, rgba(255, 92, 36, 0.2), transparent 62%),
+        radial-gradient(80% 55% at 6% -6%, rgba(130, 20, 60, 0.22), transparent 68%);
+}
+
+html.theme-ardyn[data-time="night"] {
+    --n-bg: #080405;
+}
+
+html.theme-ardyn[data-time="night"] body::before {
+    background:
+        radial-gradient(circle at 88% 9%, rgba(255, 110, 120, 0.2) 0, rgba(255, 90, 100, 0.06) 3.5%, transparent 12%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='380' height='380'%3E%3Cg fill='%23ff7a45'%3E%3Ccircle cx='31' cy='57' r='1.2' opacity='.6'/%3E%3Ccircle cx='118' cy='21' r='.8' opacity='.45'/%3E%3Ccircle cx='176' cy='109' r='1.4' opacity='.7'/%3E%3Ccircle cx='263' cy='48' r='.9' opacity='.5'/%3E%3Ccircle cx='341' cy='131' r='1.1' opacity='.55'/%3E%3Ccircle cx='72' cy='193' r='.8' opacity='.4'/%3E%3Ccircle cx='219' cy='231' r='1.2' opacity='.6'/%3E%3Ccircle cx='303' cy='287' r='.8' opacity='.45'/%3E%3Ccircle cx='44' cy='322' r='1.3' opacity='.65'/%3E%3Ccircle cx='151' cy='349' r='.9' opacity='.5'/%3E%3C/g%3E%3C/svg%3E"),
+        radial-gradient(90% 60% at 50% 120%, rgba(120, 20, 30, 0.2), transparent 70%);
+    background-size: auto, 380px 380px, auto;
+    animation: dayEmbers 16s linear infinite;
+}
+
+@keyframes dayEmbers {
+    from { background-position: 0 0, 0 0, 0 0; }
+    to { background-position: 0 0, 0 -380px, 0 0; }
+}
+
+/* horloge du menu : soleil, soleil à l'horizon, croissant de lune */
+.menu-clock {
+    float: right;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-size: 1.05rem;
+    letter-spacing: 0.12em;
+    color: var(--n-muted);
+}
+
+.menu-clock i {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+}
+
+html[data-time="day"] .menu-clock i {
+    background: var(--n-gold);
+    box-shadow: 0 0 8px rgba(var(--t-gold-rgb), 0.7);
+}
+
+html[data-time="dawn"] .menu-clock i {
+    background: linear-gradient(180deg, #ffb59a 55%, transparent 55%);
+    box-shadow: 0 0.2rem 0 -0.1rem rgba(255, 181, 154, 0.5);
+}
+
+html[data-time="dusk"] .menu-clock i {
+    background: linear-gradient(180deg, #ff8a4c 55%, transparent 55%);
+    box-shadow: 0 0.2rem 0 -0.1rem rgba(255, 138, 76, 0.5);
+}
+
+html[data-time="night"] .menu-clock i {
+    box-shadow: inset -0.32rem -0.06rem 0 0 #dfe8ff;
+    transform: rotate(-20deg);
+}
+
+/* titre gagné avec un pseudo secret, sous le nom du joueur */
+.player-title {
+    grid-column: 2 / -1;
+    margin-top: -0.6rem;
+    font-family: var(--n-mono);
+    font-size: 0.95rem;
+    letter-spacing: 0.2em;
+    color: var(--n-gold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-title[hidden] {
+    display: none;
+}
+
+/* =====================================================================
+   PSEUDOS SECRETS — scène jouée dans l'écran d'intro
+   ===================================================================== */
+.page-loader.is-egg .loader-gate {
+    display: none;
+}
+
+.egg-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2.2rem;
+    text-align: center;
+    transition: opacity .35s ease;
+}
+
+.egg-card.is-out,
+.egg-fx.is-out {
+    opacity: 0;
+}
+
+.egg-k {
+    font-family: var(--n-mono);
+    font-size: 1.15rem;
+    letter-spacing: 0.45em;
+    margin-right: -0.45em;
+    color: var(--n-muted);
+    animation: nFadeUp .5s ease-out both;
+}
+
+.egg-title {
+    font-family: var(--n-title);
+    font-weight: 700;
+    font-size: clamp(2.2rem, 4.6vw, 4.4rem);
+    letter-spacing: 0.14em;
+    margin-right: -0.14em;
+    white-space: nowrap;
+    color: var(--n-gold);
+    text-shadow: 0 0 22px rgba(var(--t-gold-rgb), 0.55);
+    animation: eggTitle .9s cubic-bezier(.2, .8, .2, 1) .35s both;
+}
+
+@keyframes eggTitle {
+    from { opacity: 0; letter-spacing: 0.5em; filter: blur(10px); }
+}
+
+.egg-line {
+    max-width: 34ch;
+    font-size: 1.6rem;
+    line-height: 1.5;
+    font-style: italic;
+    color: var(--n-text);
+    animation: nFadeUp .6s ease-out 1s both;
+}
+
+.egg-fx {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity .35s ease;
+}
+
+/* LE CRÉATEUR : couronne d'or et paillettes qui montent */
+.egg-crown {
+    position: absolute;
+    left: var(--cx);
+    top: calc(var(--top) - 1.4rem);
+    width: clamp(6rem, 8vw, 8.8rem);
+    translate: -50% -100%;
+    filter: drop-shadow(0 0 14px rgba(var(--t-gold-rgb), 0.8));
+    animation: eggCrown 1s cubic-bezier(.2, .9, .3, 1.2) .15s both;
+}
+
+.egg-crown svg {
+    display: block;
+    width: 100%;
+    fill: var(--n-gold);
+}
+
+@keyframes eggCrown {
+    from { opacity: 0; transform: translateY(-4rem) rotate(-8deg); }
+}
+
+.egg-mote {
+    position: absolute;
+    left: var(--x);
+    bottom: -2rem;
+    width: var(--s);
+    height: var(--s);
+    border-radius: 50%;
+    background: #ffe9a8;
+    box-shadow: 0 0 10px rgba(var(--t-gold-rgb), 0.9);
+    opacity: 0;
+    animation: eggMote 2.6s ease-out var(--d) both;
+}
+
+@keyframes eggMote {
+    15% { opacity: 1; }
+    to { opacity: 0; transform: translateY(-75vh); }
+}
+
+/* CELUI QUI REVIENT : rembobinage, image délavée, horloge à l'envers */
+.page-loader.egg-gray .loader-canvas {
+    filter: grayscale(1) brightness(0.75) contrast(1.15);
+    transition: filter .4s ease;
+}
+
+.egg-clock {
+    position: absolute;
+    left: var(--cx);
+    top: var(--cy);
+    width: min(56vmin, 46rem);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    border-radius: 50%;
+    box-shadow: 0 0 60px rgba(255, 255, 255, 0.06) inset;
+    animation: nFadeUp .5s ease-out both;
+}
+
+.egg-clock i {
+    position: absolute;
+    left: 50%;
+    bottom: 50%;
+    width: 2px;
+    margin-left: -1px;
+    transform-origin: 50% 100%;
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.egg-hand-h {
+    height: 28%;
+    animation: eggRewind 2.2s linear infinite;
+}
+
+.egg-hand-m {
+    height: 42%;
+    animation: eggRewind .45s linear infinite;
+}
+
+@keyframes eggRewind {
+    to { transform: rotate(-360deg); }
+}
+
+.egg-scan {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 4px);
+    animation: eggScan .2s steps(2) infinite;
+}
+
+@keyframes eggScan {
+    to { background-position: 0 2px; }
+}
+
+.egg-osd {
+    position: absolute;
+    left: 4rem;
+    top: 3.6rem;
+    font-family: var(--n-mono);
+    font-size: clamp(1.6rem, 2.2vw, 2.4rem);
+    letter-spacing: 0.15em;
+    color: #fff;
+    text-shadow: 2px 0 rgba(255, 60, 90, 0.7), -2px 0 rgba(60, 200, 255, 0.7);
+}
+
+.egg-osd span {
+    margin-left: 1.6rem;
+}
+
+/* ROI DE LUMIÈRE : les lames fantômes tombent et entourent le nom */
+.egg-blade {
+    position: absolute;
+    left: var(--cx);
+    top: var(--cy);
+    width: 2.4rem;
+    height: 10rem;
+    margin: -5rem 0 0 -1.2rem;
+    filter: drop-shadow(0 0 8px rgba(var(--t-crystal-rgb), 0.95));
+    transform: translate(var(--bx), var(--by)) rotate(var(--rot));
+    animation: eggBlade .7s cubic-bezier(.3, 1.4, .5, 1) var(--d) both, eggHover 1.6s ease-in-out calc(var(--d) + .7s) infinite alternate;
+}
+
+.egg-blade b {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(var(--t-crystal-rgb), 0.7) 35%, rgba(var(--t-mid-rgb), 0.15));
+    clip-path: polygon(50% 100%, 60% 80%, 60% 22%, 92% 19%, 92% 14%, 58% 14%, 58% 2%, 42% 2%, 42% 14%, 8% 14%, 8% 19%, 40% 22%, 40% 80%);
+}
+
+@keyframes eggBlade {
+    from { opacity: 0; transform: translate(var(--bx), calc(var(--by) - 60vh)) rotate(var(--rot)); }
+}
+
+@keyframes eggHover {
+    to { transform: translate(var(--bx), calc(var(--by) - 0.8rem)) rotate(var(--rot)); }
+}
+
+/* PHOTOGRAPHE : viseur d'appareil photo et flashs */
+.egg-viewfinder {
+    position: absolute;
+    inset: 4vmin;
+    animation: nFadeUp .4s ease-out both;
+}
+
+.egg-viewfinder i {
+    position: absolute;
+    width: 4rem;
+    height: 4rem;
+    border: 0 solid rgba(255, 255, 255, 0.85);
+}
+
+.egg-viewfinder i:nth-child(1) { left: 0; top: 0; border-width: 3px 0 0 3px; }
+.egg-viewfinder i:nth-child(2) { right: 0; top: 0; border-width: 3px 3px 0 0; }
+.egg-viewfinder i:nth-child(3) { left: 0; bottom: 0; border-width: 0 0 3px 3px; }
+.egg-viewfinder i:nth-child(4) { right: 0; bottom: 0; border-width: 0 3px 3px 0; }
+
+.egg-rec {
+    position: absolute;
+    left: 2.4rem;
+    top: 2rem;
+    font-family: var(--n-mono);
+    font-size: 1.3rem;
+    letter-spacing: 0.2em;
+    color: #ff6b6b;
+}
+
+.egg-rec span {
+    margin-left: 1rem;
+    color: #fff;
+}
+
+.egg-flash {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: #fff;
+    opacity: 0;
+}
+
+.egg-flash.is-on {
+    animation: eggFlash .45s ease-out;
+}
+
+@keyframes eggFlash {
+    from { opacity: 0.85; }
+    to { opacity: 0; }
+}
+
+/* BOUCLIER DU ROI : le bouclier s'abat, l'écran tremble */
+.egg-shield {
+    position: absolute;
+    left: var(--cx);
+    top: var(--cy);
+    width: min(30vmin, 26rem);
+    translate: -50% -50%;
+    opacity: 0.22;
+    animation: eggSlam .45s cubic-bezier(.6, 0, .9, .4) both;
+}
+
+.egg-shield svg {
+    display: block;
+    width: 100%;
+    fill: none;
+    stroke: var(--n-gold);
+    stroke-width: 2.5;
+}
+
+.egg-shield-in {
+    stroke-width: 1.5;
+    opacity: 0.6;
+}
+
+@keyframes eggSlam {
+    from { opacity: 0; transform: scale(2.4); }
+}
+
+.egg-dust {
+    position: absolute;
+    left: var(--cx);
+    top: var(--cy);
+    width: 10rem;
+    height: 10rem;
+    translate: -50% -50%;
+    border: 3px solid rgba(var(--t-gold-rgb), 0.5);
+    border-radius: 50%;
+    opacity: 0;
+    animation: eggDust .9s ease-out .42s both;
+}
+
+@keyframes eggDust {
+    from { opacity: 0.9; transform: scale(0.4); }
+    to { opacity: 0; transform: scale(7); }
+}
+
+.page-loader.egg-shake .loader-core {
+    animation: eggShake .45s linear;
+}
+
+@keyframes eggShake {
+    20% { transform: translate(-6px, 4px); }
+    40% { transform: translate(5px, -5px); }
+    60% { transform: translate(-4px, 3px); }
+    80% { transform: translate(3px, -2px); }
+}
+
+/* STRATÈGE ET CHEF : l'idée qui surgit, la vapeur qui monte */
+.egg-idea {
+    position: absolute;
+    left: var(--cx);
+    top: calc(var(--top) - 1.6rem);
+    display: grid;
+    place-items: center;
+    width: 5.6rem;
+    height: 5.6rem;
+    translate: -50% -100%;
+    border: 2px solid var(--n-gold);
+    border-radius: 50%;
+    background: rgba(var(--t-gold-rgb), 0.12);
+    box-shadow: 0 0 30px rgba(var(--t-gold-rgb), 0.5);
+    animation: eggPop .5s cubic-bezier(.2, 1.6, .4, 1) .3s both;
+}
+
+.egg-idea span {
+    font-family: var(--n-title);
+    font-size: 3.4rem;
+    font-weight: 700;
+    color: var(--n-gold);
+}
+
+@keyframes eggPop {
+    from { opacity: 0; transform: scale(0.2); }
+}
+
+.egg-steam {
+    position: absolute;
+    left: calc(var(--cx) + (var(--i) - 1) * 2.6rem);
+    top: calc(var(--top) - 2rem);
+    width: 1.2rem;
+    height: 6rem;
+    border-left: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    opacity: 0;
+    animation: eggSteam 1.8s ease-out calc(.5s + var(--i) * .25s) infinite;
+}
+
+@keyframes eggSteam {
+    20% { opacity: 1; }
+    to { opacity: 0; transform: translateY(-5rem) scaleX(-1); }
+}
+
+@media (max-width: 600px) {
+    .egg-osd { left: 2rem; top: 2rem; }
+    .egg-blade { width: 1.6rem; height: 6.6rem; margin: -3.3rem 0 0 -0.8rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-time="night"] body::before,
+    html.theme-ardyn[data-time="night"] body::before {
+        animation: none;
+    }
+
+    .egg-title, .egg-line, .egg-k {
+        animation: none;
+    }
+}

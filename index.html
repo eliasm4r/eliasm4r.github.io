@@ -9,6 +9,8 @@
     <!-- Custom CSS -->
     <!-- mode Ardyn appliqué avant l'affichage : l'écran de chargement est déjà rouge -->
     <script>try { if (localStorage.getItem('eliasPortfolio.ardyn') === 'on') document.documentElement.classList.add('theme-ardyn'); } catch (e) { }</script>
+    <!-- cycle jour/nuit (heure du visiteur), posé lui aussi avant l'affichage : pas de flash de couleurs -->
+    <script>(function () { var d = new Date(), h = d.getHours() + d.getMinutes() / 60, off = false; try { off = localStorage.getItem('eliasPortfolio.daycycle') === 'off'; } catch (e) { } document.documentElement.setAttribute('data-time', off ? 'day' : h >= 5 && h < 8 ? 'dawn' : h >= 8 && h < 17.5 ? 'day' : h >= 17.5 && h < 21 ? 'dusk' : 'night'); })();</script>
     <link rel="stylesheet" href="style.css" />
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
@@ -1221,6 +1223,7 @@
     <script src="script.js"></script>
     <script src="jeu.js"></script>
     <script src="minijeux.js"></script>
+    <script src="aventure.js"></script>
 </body>
 
 </html>
