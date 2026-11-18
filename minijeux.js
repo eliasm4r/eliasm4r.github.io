@@ -1777,6 +1777,7 @@ const trueEnding = (() => {
 
         const audio = new Audio(SONG);
         audio.volume = 0.8;
+        window.ost?.hold('credits');
         audio.play().catch(() => { });
 
         const roll = el.querySelector('.credits-roll');
@@ -1808,7 +1809,7 @@ const trueEnding = (() => {
                 if (k < 1) requestAnimationFrame(fade); else audio.pause();
             };
             fade();
-            setTimeout(() => { el.remove(); document.body.classList.remove('credits-open'); }, 900);
+            setTimeout(() => { el.remove(); document.body.classList.remove('credits-open'); window.ost?.release('credits'); }, 900);
             document.removeEventListener('keydown', onKey);
         };
         const opened = performance.now();

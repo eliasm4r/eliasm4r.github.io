@@ -1684,3 +1684,484 @@ span.stat-use {
         transition: none;
     }
 }
+
+/* =====================================================================
+   LECTEUR DE MUSIQUE (OST) — bouton 🎧 de la carte joueur
+   Carte flottante en bas à gauche du contenu ; réduite, elle devient
+   une pastille avec la jaquette qui tourne comme un disque.
+   ===================================================================== */
+.player-ost {
+    font-size: 1.3rem;
+}
+
+.player-ost.is-on {
+    border-color: rgba(var(--t-crystal-rgb), 0.55);
+    background: rgba(var(--t-crystal-rgb), 0.12);
+    color: var(--t-light);
+}
+
+.player-ost.is-playing i {
+    animation: ostBeat 1s ease-in-out infinite;
+}
+
+@keyframes ostBeat {
+    50% { transform: scale(1.15); }
+}
+
+.ost {
+    position: fixed;
+    left: calc(var(--side, 0px) + 2.4rem);
+    bottom: 2.4rem;
+    z-index: 990;
+    width: min(36rem, calc(100vw - 3.2rem));
+    padding: 1.4rem 1.6rem 1.2rem;
+    border: 1px solid var(--n-line);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(var(--t-panel2-rgb), 0.95), rgba(var(--t-panel-rgb), 0.97));
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 22px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    color: var(--n-text);
+    font-family: var(--n-body);
+    animation: ostIn .35s cubic-bezier(.2, .8, .2, 1);
+}
+
+.ost[hidden] {
+    display: none;
+}
+
+@keyframes ostIn {
+    from { opacity: 0; transform: translateY(1.6rem); }
+}
+
+.ost-main {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.ost-cover {
+    position: relative;
+    width: 5.2rem;
+    height: 5.2rem;
+    margin-right: 0.6rem;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: #000;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.ost-cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+}
+
+.ost-meta {
+    min-width: 0;
+}
+
+.ost-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.45rem;
+    font-weight: 600;
+}
+
+.ost-name,
+.ost-artist {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ost-artist {
+    margin-top: 0.2rem;
+    font-size: 1.2rem;
+    color: var(--n-muted);
+}
+
+/* petit égaliseur : visible seulement pendant la lecture */
+.ost-eq {
+    display: none;
+    flex: none;
+    align-items: flex-end;
+    gap: 2px;
+    height: 1.1rem;
+}
+
+.ost-eq i {
+    width: 3px;
+    height: 100%;
+    border-radius: 1px;
+    background: var(--t-crystal);
+    transform-origin: bottom;
+    animation: ostEq .9s ease-in-out infinite;
+}
+
+.ost-eq i:nth-child(2) { animation-delay: -.3s; }
+.ost-eq i:nth-child(3) { animation-delay: -.6s; }
+
+@keyframes ostEq {
+    0%, 100% { transform: scaleY(0.3); }
+    50% { transform: scaleY(1); }
+}
+
+.ost.is-playing .ost-title .ost-eq,
+.ost.is-playing .ost-track[aria-current="true"] .ost-eq {
+    display: inline-flex;
+}
+
+.ost-btn {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 3.4rem;
+    height: 3.4rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    font-size: 1.35rem;
+    color: var(--n-muted);
+    cursor: pointer;
+    transition: color .2s, background-color .2s, transform .15s;
+}
+
+.ost-btn:hover {
+    color: var(--n-text);
+    background: rgba(var(--t-crystal-rgb), 0.09);
+}
+
+.ost-btn:focus-visible,
+.ost-range:focus-visible,
+.ost-cover:focus-visible,
+.ost-track:focus-visible {
+    outline: 2px solid var(--n-gold);
+    outline-offset: 2px;
+}
+
+/* option active (aléatoire, répétition, file d'attente) : couleur + point dessous */
+.ost-btn[aria-pressed="true"],
+.ost-list-btn.is-on {
+    color: var(--t-crystal);
+}
+
+.ost-btn[aria-pressed="true"]::after,
+.ost-list-btn.is-on::after {
+    content: "";
+    position: absolute;
+    bottom: 0.2rem;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.ost-repeat b {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.4rem;
+    display: none;
+    font-family: var(--n-mono);
+    font-size: 0.85rem;
+}
+
+.ost-repeat[data-mode="one"] b {
+    display: block;
+}
+
+.ost-mini-play {
+    display: none;
+}
+
+.ost-seek {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.8rem;
+    margin-top: 1.2rem;
+}
+
+.ost-t {
+    min-width: 3.4rem;
+    font-family: var(--n-mono);
+    font-size: 1.05rem;
+    text-align: center;
+    color: var(--n-muted);
+}
+
+/* barres de progression et de volume */
+.ost-range {
+    --p: 0%;
+    width: 100%;
+    height: 1.6rem;
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.ost-range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--t-light) var(--p), rgba(var(--t-crystal-rgb), 0.18) var(--p));
+}
+
+.ost-range::-webkit-slider-thumb {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-top: -4px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 8px rgba(var(--t-crystal-rgb), 0.85);
+    opacity: 0;
+    -webkit-appearance: none;
+    transition: opacity .2s;
+}
+
+.ost-range:hover::-webkit-slider-thumb,
+.ost-range:focus-visible::-webkit-slider-thumb,
+.ost-range:active::-webkit-slider-thumb {
+    opacity: 1;
+}
+
+.ost-range::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(var(--t-crystal-rgb), 0.18);
+}
+
+.ost-range::-moz-range-progress {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--t-light);
+}
+
+.ost-range::-moz-range-thumb {
+    width: 1.2rem;
+    height: 1.2rem;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.ost-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.6rem;
+}
+
+.ost-play {
+    width: 4.6rem;
+    height: 4.6rem;
+    font-size: 1.6rem;
+    color: #0a0d14;
+    background: #fff;
+    box-shadow: 0 0 22px rgba(var(--t-crystal-rgb), 0.35);
+}
+
+.ost-play:hover {
+    color: #0a0d14;
+    background: #fff;
+    transform: scale(1.06);
+}
+
+.ost-play .fa-play {
+    margin-left: 0.2rem;
+}
+
+.ost-bottom {
+    display: grid;
+    grid-template-columns: auto minmax(0, 10rem) 1fr auto;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+}
+
+.ost-list-btn {
+    grid-column: 4;
+}
+
+.ost-list {
+    max-height: 24rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-top: 1px dashed var(--n-line);
+}
+
+.ost-list[hidden] {
+    display: none;
+}
+
+.ost-list-k {
+    margin: 0 0 0.6rem 0.8rem;
+    font-family: var(--n-mono);
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    color: var(--n-muted);
+}
+
+.ost-list ol {
+    display: grid;
+    gap: 0.2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ost-track {
+    display: grid;
+    grid-template-columns: 2.6rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.8rem;
+    width: 100%;
+    padding: 0.7rem 0.8rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    text-align: left;
+    color: var(--n-text);
+    cursor: pointer;
+}
+
+.ost-track:hover {
+    background: rgba(var(--t-crystal-rgb), 0.07);
+}
+
+.ost-track[aria-current="true"] {
+    background: rgba(var(--t-crystal-rgb), 0.1);
+}
+
+.ost-track[aria-current="true"] b {
+    color: var(--t-crystal);
+}
+
+.ost-n {
+    font-family: var(--n-mono);
+    font-size: 1.05rem;
+    color: var(--n-muted);
+}
+
+.ost-tt {
+    display: grid;
+    min-width: 0;
+}
+
+.ost-tt b,
+.ost-tt small {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ost-tt b {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.ost-tt small {
+    font-size: 1.1rem;
+    color: var(--n-muted);
+}
+
+.ost-msg {
+    margin-top: 0.6rem;
+    font-family: var(--n-mono);
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+    color: var(--n-gold);
+}
+
+.ost-msg:empty {
+    display: none;
+}
+
+/* ---------- réduit : une pastille, la jaquette tourne comme un disque ---------- */
+.ost.is-mini {
+    width: auto;
+    max-width: min(32rem, calc(100vw - 3.2rem));
+    padding: 0.7rem 0.8rem 0.7rem 0.7rem;
+    border-radius: 999px;
+}
+
+.ost.is-mini .ost-seek,
+.ost.is-mini .ost-controls,
+.ost.is-mini .ost-bottom,
+.ost.is-mini .ost-list,
+.ost.is-mini .ost-msg {
+    display: none;
+}
+
+.ost.is-mini .ost-cover {
+    width: 4.2rem;
+    height: 4.2rem;
+    border-radius: 50%;
+}
+
+/* anneau de progression autour du disque */
+.ost.is-mini .ost-cover::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(var(--t-light) var(--p, 0%), rgba(var(--t-crystal-rgb), 0.18) var(--p, 0%));
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+}
+
+.ost.is-mini.is-playing .ost-cover img {
+    animation: ostSpin 8s linear infinite;
+}
+
+@keyframes ostSpin {
+    to { transform: rotate(360deg); }
+}
+
+.ost.is-mini .ost-mini-play {
+    display: inline-grid;
+    color: var(--n-text);
+}
+
+.ost.is-mini .ost-title {
+    font-size: 1.3rem;
+}
+
+.ost.is-mini .ost-artist {
+    font-size: 1.1rem;
+}
+
+@media (max-width: 916px) {
+    .ost {
+        left: 1.2rem;
+        right: 1.2rem;
+        bottom: calc(1.2rem + env(safe-area-inset-bottom));
+        width: auto;
+    }
+
+    .ost.is-mini {
+        right: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ost,
+    .ost-eq i,
+    .ost.is-mini.is-playing .ost-cover img,
+    .player-ost.is-playing i {
+        animation: none;
+    }
+}

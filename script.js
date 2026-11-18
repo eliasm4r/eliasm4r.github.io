@@ -1270,6 +1270,7 @@ const gamesModalFullscreen = document.getElementById('gamesModalFullscreen');
 function openGameModal(gameSrc) {
     if (!gamesModal || !gamesModalFrame) return;
     gamesModalFrame.src = gameSrc;
+    window.ost?.hold('iframe');
     gamesModal.classList.add('active');
     gamesModal.setAttribute('aria-hidden', 'false');
     document.documentElement.classList.add('games-modal-open');
@@ -1290,6 +1291,7 @@ function closeGameModal() {
     gamesModal.classList.remove('active');
     gamesModal.setAttribute('aria-hidden', 'true');
     if (gamesModalFrame) gamesModalFrame.src = 'about:blank';
+    window.ost?.release('iframe');
     document.documentElement.classList.remove('games-modal-open');
     document.body.classList.remove('games-modal-open');
 }
@@ -1931,6 +1933,7 @@ if (resetButtons.length) {
         if (rbdRunning) return;
         rbdRunning = true;
         rewinding = true;
+        window.ost?.hold('rbd');
 
         const audio = new Audio('./assets/rbd/ReturnByDeath.mp3');
         audio.volume = 0.1;
@@ -1964,7 +1967,7 @@ if (resetButtons.length) {
             root.classList.add('is-white');
             restartGame();
             audio.play().catch(() => { });
-            later(900, () => { root.remove(); rbdRunning = false; });
+            later(900, () => { root.remove(); rbdRunning = false; window.ost?.release('rbd'); });
             return;
         }
 
@@ -2141,6 +2144,7 @@ if (resetButtons.length) {
         later(REWIND_AT + REWIND_MS + 1400, () => {
             root.remove();
             rbdRunning = false;
+            window.ost?.release('rbd');
         });
     };
 

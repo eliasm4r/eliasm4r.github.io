@@ -83,7 +83,7 @@ const sfx = (() => {
 
 (function initMenuSounds() {
     const SEL = '.navbar a, .quest-tab, .sphere-node, .btn, .recruit-choice, .player-btn, .menu-reset, .lang-toggle, .game-card, .game-back, .reset-btn, '
-        + '.gameover button, .stat-row, .stat-domain, .stat-use, .experience-stage, .trophies-close, .loader-gate button, .footer-secret-btn';
+        + '.gameover button, .stat-row, .stat-domain, .stat-use, .ost-btn, .ost-track, .experience-stage, .trophies-close, .loader-gate button, .footer-secret-btn';
     // survol : un petit "tic" (souris uniquement)
     document.addEventListener('pointerover', (e) => {
         if (e.pointerType !== 'mouse') return;

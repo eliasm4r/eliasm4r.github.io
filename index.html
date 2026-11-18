@@ -73,10 +73,12 @@
                 <p class="player-secrets" title="Des objets brillants sont cachés dans les pages…">✦ OBJETS SECRETS
                     <b><span id="secretCount">0</span> / <span id="secretTotal">6</span></b></p>
                 <div class="player-actions">
-                    <button class="player-btn" type="button" id="openTrophies">🏆 SUCCÈS <b><span id="trophyCount">0</span>/<span
+                    <button class="player-btn" type="button" id="openTrophies" aria-label="Succès" title="Succès">🏆 <b><span id="trophyCount">0</span>/<span
                                 id="trophyTotal">12</span></b></button>
                     <button class="player-btn player-sound" type="button" id="openEquip"
                         aria-label="Équipement" title="Équipement">🎒</button>
+                    <button class="player-btn player-sound player-ost" type="button" id="openOst" aria-pressed="false"
+                        aria-label="Musique (OST)" title="Musique (OST)"><i class="fas fa-headphones" aria-hidden="true"></i></button>
                     <button class="player-btn player-sound" type="button" id="soundToggle" aria-pressed="true"
                         aria-label="Couper les sons du menu">♪</button>
                 </div>
@@ -1119,6 +1121,8 @@
     <script src="script.js"></script>
     <script src="jeu.js"></script>
     <script src="minijeux.js"></script>
+    <script src="assets/ost/playlist.js"></script>
+    <script src="ost.js"></script>
     <script src="aventure.js"></script>
 </body>
 
