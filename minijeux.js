@@ -1874,7 +1874,7 @@ const arena = (() => {
         sentinel: { name: t('Sentinelle de fer'), hp: 880, speed: 3.0, weak: 'thunder', resist: 'ice', size: 0.95 },
         drone: { name: t('Drone réparateur'), hp: 420, speed: 2.5, weak: 'thunder', resist: 'fire', size: 0.55 },
         devourer: { name: t('Dévoreur d\'étoiles'), hp: 1900, /* par phase : il en a deux */ speed: 3.2, weak: 'fire', resist: 'thunder', size: 0.72 },
-        shard: { name: t('Éclat du néant'), hp: 280, speed: 2.6, weak: 'fire', resist: 'ice', size: 0.5 },
+        shard: { name: t('Éclat du néant'), hp: 170, speed: 2.6, weak: 'fire', resist: 'ice', size: 0.5 },
     };
     const FIGHTS = [
         { id: 'golem', icon: '💎', name: t('Golem de cristal'), sub: t('Le premier combat'), golem: true },
@@ -2110,8 +2110,8 @@ const arena = (() => {
     // gagnable avec un bon équipement, serré, et perdu si on joue mal
     const TUNE = {speed: 1.0, heal: 80, healChance: 0.45, wolves: {hp: 1.5, dmg: 1.35}, swamp: {hp: 1.4, dmg: 1.2}, iron: {hp: 1.05, dmg: 0.78}, boss: {hp: 1.4, dmg: 1.35}};
     const HARD = { speed: TUNE.speed };
-    // le Dévoreur a deux vies : une première plus courte (×0,75), puis une renaissance plus solide (×1,4)
-    const BOSS_PHASE = [0.75, 1.4];
+    // le Dévoreur a deux vies : une première plus courte (×0,75), puis une renaissance plus solide (×1,25)
+    const BOSS_PHASE = [0.75, 1.25];
     const makeFoe = (kind) => { const d = FOES[kind], hp = Math.round(d.hp * (TUNE[fight?.id]?.hp || 1) * (kind === 'devourer' ? BOSS_PHASE[0] : 1)); return { kind, ...d, hp, max: hp, speed: d.speed * HARD.speed, eatb: Math.random() * 0.4, charging: false, fury: false, known: {} }; };
 
     const start = (i) => {
@@ -2509,11 +2509,9 @@ const arena = (() => {
                 break;
             }
             case 'devourer':
-                if (s.phase === 2 && r < 0.18) {
-                    const n = Math.round(s.php * 0.2);
-                    hit(n, t('Trou noir ! Il dévore ta vie.'));
-                    healFoe(f, f, 150);
-                } else if (r < (s.phase === 2 ? 0.34 : 0.26)) charge(f, t('Le Dévoreur aspire la lumière des étoiles…'));
+                // phase 2 : soit il frappe, soit il se soigne, jamais les deux à la fois
+                if (s.phase === 2 && r < 0.09 && f.hp < f.max) healFoe(f, f, 150);
+                else if (s.phase === 2 && r < 0.18) hit(Math.round(s.php * 0.2), t('Trou noir ! Il dévore ta vie.')); else if (r < (s.phase === 2 ? 0.34 : 0.26)) charge(f, t('Le Dévoreur aspire la lumière des étoiles…'));
                 else if (r < 0.6) { s.pmp = Math.max(0, s.pmp - 8); hit(rand(35, 50), t('Pluie d\'étoiles')); }
                 else hit(rand(50, 70), t('Griffe du néant'));
                 break;
