@@ -698,7 +698,6 @@ const EN = {
     "FIN DU JOURNAL": "END OF THE JOURNAL",
     "Merci d'avoir joué,": "Thanks for playing,",
     "Merci d'avoir consulté mon portfolio numérique.": "Thanks for checking out my digital portfolio.",
-    "Version secrète du portfolio": "Secret version of the portfolio",
     "▶ La vraie fin": "▶ The true ending",
     "🔒 Une autre fin existe…": "🔒 Another ending exists…",
     "Continuer ?": "Continue?",
