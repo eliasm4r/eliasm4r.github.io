@@ -4054,7 +4054,7 @@ html.cat-in-battle #oneko {
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    margin: 0 auto 1.6rem;
+    margin: 2.6rem auto 1.6rem;
     font-size: 1.3rem;
     color: var(--text-color, #cfd6e6);
     opacity: 0.85;
