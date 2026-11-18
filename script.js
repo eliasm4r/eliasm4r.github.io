@@ -736,6 +736,24 @@ let replayIntro = null; // relance l'écran d'intro (après "Reset votre progres
         egg.then(() => { greeting = false; leave(); }, () => { greeting = false; leave(); });
     });
 
+    // pseudo changé depuis le menu pause : on rejoue seulement la scène de l'identité secrète
+    window.playPseudoEgg = () => {
+        if (leaving || greeting || !loader.classList.contains('is-off') || typeof window.pseudoEgg !== 'function') return false;
+        loader.classList.remove('is-off', 'warp', 'shattering', 'hide');
+        loader.classList.add('replay', 'ask-name');
+        loader.setAttribute('aria-hidden', 'false');
+        document.body.classList.remove('is-loaded');
+        writeTitle();
+        last = performance.now();
+        if (!raf) raf = requestAnimationFrame(frame);
+        nameInput.value = getPlayer() || '';
+        const egg = window.pseudoEgg(getPlayer(), loader);
+        if (!egg) { leave(); return false; }
+        greeting = true;
+        egg.then(() => { greeting = false; leave(); }, () => { greeting = false; leave(); });
+        return true;
+    };
+
     replayIntro = () => {
         loader.classList.remove('is-off', 'warp', 'shattering', 'hide');
         loader.classList.add('replay');
@@ -881,7 +899,7 @@ const skillData = {
 
 const skillLevels = {
     html: 90,
-    claude: 88,
+    claude: 96,
     javascript: 86,
     java: 84,
     github: 83,

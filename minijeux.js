@@ -1729,20 +1729,21 @@ const battle = (() => {
    rejoindre l'équipe si on le laisse dormir au bon endroit.
    ===================================================================== */
 /* =====================================================================
-   RELIQUES ROYALES — 5 bonus permanents cachés dans les pages du site.
-   Presque invisibles (comme les coffres) ; une fois trouvées, elles
-   renforcent le héros dans les combats de l'arène, surtout contre le boss.
+   RELIQUES ROYALES — 7 bonus de combat permanents.
+   Cachées comme les cristaux : chacune n'apparaît qu'au bon endroit, après
+   la bonne action (une jaquette, une compétence, une sphère, une quête…).
+   Une fois ramassées, elles s'équipent dans le sac de l'arène.
    ===================================================================== */
 const relics = (() => {
     const KEY = 'eliasPortfolio.relics';
     const LIST = [
-        { id: 'vigor', icon: '❤', page: 'about', x: '96%', y: '90%', name: t('Relique de vigueur'), what: t('+40 HP') },
-        { id: 'aether', icon: '❖', page: 'softskills', x: '4%', y: '94%', name: t('Relique d\'éther'), what: t('+15 MP') },
-        { id: 'might', icon: '⚔', page: 'education', x: '95%', y: '62%', name: t('Relique de force'), what: t('+8 % de dégâts') },
-        { id: 'starbane', icon: '✶', page: 'work', x: '2.5%', y: '82%', name: t('Fléau des étoiles'), what: t('+18 % de dégâts contre le Dévoreur') },
-        { id: 'moonward', icon: '☾', page: 'experience', x: '97%', y: '42%', name: t('Égide lunaire'), what: t('-15 % de dégâts reçus du Dévoreur') },
-        { id: 'swift', icon: '➹', page: 'skills', x: '97%', y: '95%', name: t('Plume du vent'), what: t('jauge ATB 10 % plus rapide') },
-        { id: 'phoenix', icon: '♨', page: 'home', x: '3%', y: '93%', name: t('Plume de phénix'), what: t('une fois par combat, te relève avec 25 % des HP') },
+        { id: 'vigor', icon: '❤', hue: '#ff6b7a', name: t('Relique de vigueur'), what: t('+40 HP') },
+        { id: 'aether', icon: '❖', hue: '#6bc7ff', name: t('Relique d\'éther'), what: t('+15 MP') },
+        { id: 'might', icon: '⚔', hue: '#ffb04d', name: t('Relique de force'), what: t('+8 % de dégâts') },
+        { id: 'starbane', icon: '✶', hue: '#c79bff', name: t('Fléau des étoiles'), what: t('+18 % de dégâts contre le Dévoreur') },
+        { id: 'moonward', icon: '☾', hue: '#dfe8ff', name: t('Égide lunaire'), what: t('-15 % de dégâts reçus du Dévoreur') },
+        { id: 'swift', icon: '➹', hue: '#7dffc0', name: t('Plume du vent'), what: t('jauge ATB 10 % plus rapide') },
+        { id: 'phoenix', icon: '♨', hue: '#ff8a3d', name: t('Plume de phénix'), what: t('une fois par combat, te relève avec 25 % des HP') },
     ];
     const ON_KEY = 'eliasPortfolio.relicsOn';
     const load = () => { try { return new Set(JSON.parse(store.get(KEY) || '[]')); } catch { return new Set(); } };
@@ -1758,37 +1759,89 @@ const relics = (() => {
         on.has(id) ? on.delete(id) : on.add(id);
         store.set(ON_KEY, JSON.stringify([...on]));
     };
-    LIST.forEach((r) => {
-        const sec = document.getElementById(r.page);
-        if (!sec) return;
+
+    const make = (r, cls) => {
         const b = document.createElement('button');
         b.type = 'button';
-        b.className = 'relic';
+        b.className = `relic ${cls || ''}`.trim();
         b.dataset.relic = r.id;
         b.setAttribute('aria-label', t('Relique cachée'));
-        b.style.setProperty('--x', r.x);
-        b.style.setProperty('--y', r.y);
-        b.textContent = r.icon;
-        b.classList.toggle('is-taken', has(r.id));
-        b.addEventListener('click', () => {
-            if (has(r.id)) return;
+        b.style.setProperty('--hue', r.hue);
+        b.innerHTML = `<svg class="relic-art" viewBox="0 0 24 24" aria-hidden="true">
+            <path class="relic-rim" d="M12 1.5 21 12 12 22.5 3 12Z"/>
+            <path class="relic-gem" d="M12 5 17.6 12 12 19 6.4 12Z"/>
+            <path class="relic-shine" d="M12 5 9.2 8.5 12 12Z"/>
+        </svg>`;
+        // le carrousel capte le pointeur pour tourner : la relique garde le sien
+        b.addEventListener('pointerdown', (e) => e.stopPropagation());
+        b.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (has(r.id) || b.classList.contains('is-taking')) return;
             got.add(r.id);
             store.set(KEY, JSON.stringify([...got]));
             if (on) { on.add(r.id); store.set(ON_KEY, JSON.stringify([...on])); }
-            b.classList.add('is-taken');
+            // la relique s'élève, brille, puis disparaît pour de bon
+            b.classList.add('is-taking');
+            setTimeout(() => b.remove(), reduceMotion ? 250 : 1100);
             sfx.fanfare?.();
             if (typeof showToast === 'function') showToast(`${r.icon} ${r.name} : ${r.what} · ${t('à équiper dans le sac du combat')}`);
             document.dispatchEvent(new CustomEvent('relic', { detail: r.id }));
         });
-        sec.appendChild(b);
+        return b;
+    };
+    const byId = (id) => LIST.find(r => r.id === id);
+    // pose la relique dans `parent` (ou l'enlève si elle est déjà ramassée)
+    const place = (id, parent, cls) => {
+        const cur = document.querySelector(`.relic[data-relic="${id}"]`);
+        if (has(id) || !parent) { if (!cur?.classList.contains('is-taking')) cur?.remove(); return; }
+        if (cur && cur.parentElement === parent) return;
+        cur?.remove();
+        parent.appendChild(make(byId(id), cls));
+    };
+    const remove = (id) => { const cur = document.querySelector(`.relic[data-relic="${id}"]`); if (cur && !cur.classList.contains('is-taking')) cur.remove(); };
+
+    /* ---------- les cachettes ---------- */
+    // Accueil : sur le titre de la jaquette de Final Fantasy XVI (le jeu du phénix), seulement quand elle passe devant
+    let front = '';
+    const placePhoenix = () => {
+        if (/final fantasy xvi$/i.test(front)) place('phoenix', document.querySelector('.cover-label b'), 'is-inline');
+        else remove('phoenix');
+    };
+    document.addEventListener('coverfront', (e) => { front = e.detail || ''; placePhoenix(); });
+    // Compétences : dans la fiche de Java, au bout du niveau
+    document.addEventListener('skillshow', (e) => {
+        if (e.detail === 'java') place('vigor', document.querySelector('#statDetail .sd-level p'), 'is-inline');
+        else remove('vigor');
     });
+    // Soft Skills : dans le panneau, seulement quand la sphère « Écoute & assertivité » est choisie
+    document.getElementById('sphereBoard')?.addEventListener('click', (e) => {
+        const node = e.target.closest('.sphere-node');
+        if (!node) return;
+        if (node.dataset.node === 's7') place('aether', document.querySelector('.sphere-panel'), 'is-panel');
+        else remove('aether');
+    });
+    const placeStatic = () => {
+        // Réalisations : dans le coin de l'image de la quête « TOTK Recomp Mod Manager »
+        place('might', document.querySelector('#q-totk .quest-media'), 'is-corner');
+        // Carnet de succès : à côté du titre (on y regarde ses étoiles)
+        place('starbane', document.querySelector('#trophiesTitle'), 'is-inline');
+        // Expériences : dans la fiche du stage GEONATIVE
+        place('moonward', document.querySelector('#stage-geonative .stage-meta'), 'is-inline');
+        // Parcours : dans la carte du dernier diplôme, visible seulement au survol
+        const boxes = document.querySelectorAll('#education .box .content');
+        place('swift', boxes[boxes.length - 1], 'is-hover');
+    };
+    placeStatic();
+
     document.addEventListener('game', (e) => {
         if (e.detail.type !== 'reset') return;
         store.del(KEY);
         store.del(ON_KEY);
         got = new Set();
         on = null;
-        document.querySelectorAll('.relic').forEach(b => b.classList.remove('is-taken'));
+        placeStatic();
+        placePhoenix();
     });
     // bonus appliqués en combat
     const bonus = () => ({
@@ -2055,7 +2108,7 @@ const arena = (() => {
 
     // réglage de chaque combat (vie des ennemis, force de leurs coups), calé avec un joueur automatique :
     // gagnable avec un bon équipement, serré, et perdu si on joue mal
-    const TUNE = {speed: 0.92, heal: 70, healChance: 0.4, wolves: {hp: 1.25, dmg: 1.15}, swamp: {hp: 1.15, dmg: 1.0}, iron: {hp: 0.85, dmg: 0.62}, boss: {hp: 1.0, dmg: 1.0}};
+    const TUNE = {speed: 1.0, heal: 80, healChance: 0.45, wolves: {hp: 1.5, dmg: 1.35}, swamp: {hp: 1.4, dmg: 1.2}, iron: {hp: 1.05, dmg: 0.78}, boss: {hp: 1.4, dmg: 1.35}};
     const HARD = { speed: TUNE.speed };
     const makeFoe = (kind) => { const d = FOES[kind], hp = Math.round(d.hp * (TUNE[fight?.id]?.hp || 1)); return { kind, ...d, hp, max: hp, speed: d.speed * HARD.speed, eatb: Math.random() * 0.4, charging: false, fury: false, known: {} }; };
 
@@ -2380,7 +2433,7 @@ const arena = (() => {
     const hit = (dmg, name, big) => {
         lunge = -1;
         // la phase 2 du boss frappe plus fort : le héros vient d'être remis sur pied
-        dmg *= (TUNE[fight.id]?.dmg || 1) * (fight.boss && s.rb ? s.rb.bossTaken : 1) * (fight.boss && s.phase === 2 ? 1.2 : 1);
+        dmg *= (TUNE[fight.id]?.dmg || 1) * (fight.boss && s.rb ? s.rb.bossTaken : 1) * (fight.boss && s.phase === 2 ? 1.35 : 1);
         say(name);
         setTimeout(() => {
             if (!s || s.over) return;

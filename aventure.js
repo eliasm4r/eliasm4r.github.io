@@ -515,7 +515,8 @@ const lumi = (() => {
     const secret = (id) => getFound().has(id);
     const crystal = (id) => crystalHunt.has(id);
 
-    const CAT = { end: tr('FIN CACHÉE'), secret: tr('OBJET SECRET'), crystal: tr('CRISTAL'), chest: tr('COFFRE'), trophy: tr('SUCCÈS') };
+    const relicGot = (id) => typeof relics !== 'undefined' && relics.has(id);
+    const CAT = { end: tr('FIN CACHÉE'), secret: tr('OBJET SECRET'), crystal: tr('CRISTAL'), chest: tr('COFFRE'), relic: tr('RELIQUE'), trophy: tr('SUCCÈS') };
     const topics = [];
     // un sujet = une catégorie, une condition « déjà fait », puis 3 phrases de plus en plus claires
     const add = (id, cat, done, riddle, where, exact) => topics.push({ id, cat: CAT[cat] || cat, done, lines: [riddle, where, exact] });
@@ -549,6 +550,14 @@ const lumi = (() => {
     add('k-prism', 'chest', () => chestOpen('prism'), tr('Un coffre se cache dans la marge de ma présentation.'), lookIn('about'), tr('Sur le bord gauche de la page Présentation, à mi-hauteur.'));
     add('k-emerald', 'chest', () => chestOpen('emerald'), tr('Un coffre vert attend près des diplômes.'), lookIn('education'), tr('En haut à droite de la page Parcours.'));
     add('k-sakura', 'chest', () => chestOpen('sakura'), tr('Des pétales tombent quelque part dans le journal.'), lookIn('experience'), tr('Tout en haut à gauche de la page Expériences.'));
+    /* --- les reliques royales (bonus de combat) --- */
+    add('r-phoenix', 'relic', () => relicGot('phoenix'), tr("Un phénix renaît sur l'une des jaquettes de l'accueil."), lookIn('home'), tr("Fais tourner le carrousel jusqu'à Final Fantasy XVI : la relique brille à côté du titre."));
+    add('r-vigor', 'relic', () => relicGot('vigor'), tr("Une relique bat dans le cœur d'un langage très robuste."), lookIn('skills'), tr("Choisis « Java » : elle brille au bout du niveau."));
+    add('r-aether', 'relic', () => relicGot('aether'), tr("Une relique écoute en silence au milieu du sphérier."), lookIn('softskills'), tr("Active la sphère « Écoute & assertivité » : elle apparaît dans le panneau."));
+    add('r-might', 'relic', () => relicGot('might'), tr("Une relique de force garde le mod manager d'un royaume d'Hyrule."), lookIn('work'), tr("Ouvre la quête « TOTK Recomp Mod Manager » : coin en haut à gauche de l'image."));
+    add('r-starbane', 'relic', () => relicGot('starbane'), tr("Une relique contemple les étoiles que tu as déjà gagnées."), tr('Elle n\'est sur aucune page : cherche dans tes succès.'), tr("Ouvre le carnet de succès : elle brille à côté du titre."));
+    add('r-moonward', 'relic', () => relicGot('moonward'), tr("Une relique veille sur mon stage de développeur."), lookIn('experience'), tr("Ouvre la fiche du stage GEONATIVE : juste à côté de la date."));
+    add('r-swift', 'relic', () => relicGot('swift'), tr("Une relique ne se montre qu'à ceux qui s'attardent sur un diplôme."), lookIn('education'), tr("Passe la souris sur la dernière carte de la page Parcours."));
     /* --- les succès les plus cachés --- */
     add('alias', 'trophy', () => ach('alias'), tr('Certains noms réveillent des souvenirs : un prince, ses trois amis, ou un garçon qui revient de la mort.'), tr('Le pseudo se change à tout moment : Échap, puis Options.'), tr('Dans Options (Échap), prends Noctis, Prompto, Gladio, Ignis, Subaru… ou Elias comme pseudo.'));
     add('konami', 'trophy', () => ach('konami'), tr('Un vieux code de triche réveille quelqu\'un de très sombre.'), tr('Il se tape au clavier, sur n\'importe quelle page.'), tr('Tape ↑ ↑ ↓ ↓ ← → ← → B A.'));
@@ -861,7 +870,15 @@ const pauseMenu = (() => {
         const before = getPlayer();
         setPlayer(input.value);
         input.value = getPlayer();
-        if (getPlayer() !== before) { sfx.select(); showToast(`${tr('Pseudo')} : ${getPlayer()}`); }
+        if (getPlayer() === before) return;
+        // un pseudo spécial rejoue sa scène d'identité secrète, comme dans l'intro
+        if (pseudoIdentity.of(getPlayer()) && typeof window.playPseudoEgg === 'function') {
+            close();
+            setTimeout(() => window.playPseudoEgg(), 120);
+            return;
+        }
+        sfx.select();
+        showToast(`${tr('Pseudo')} : ${getPlayer()}`);
         renderPanel();
     };
 
