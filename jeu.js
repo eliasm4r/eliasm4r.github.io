@@ -173,6 +173,7 @@ const achievements = (() => {
         { id: 'chef', icon: '🍳', name: tr('Nouvelle recette !'), desc: tr('Réussir une recette avec 3 étoiles.') },
         { id: 'ultimateChef', icon: '👑', name: tr('Chef légendaire'), desc: tr('Obtenir 2 étoiles au Banquet ultime en Cuisine.') },
         { id: 'chocobo', icon: '🏁', name: tr('Champion de course'), desc: tr('Terminer une Chocobo Race.') },
+        { id: 'chocoboLegend', icon: '🏆', name: tr('Légende de la piste'), desc: tr('Finir premier de la Chocobo Race en mode Expert.') },
         { id: 'battle', icon: '⚔️', name: tr('Golem vaincu'), desc: tr('Gagner le combat contre le Golem de cristal.') },
         { id: 'chest', icon: '🗝️', name: tr('Fouineur'), desc: tr('Ouvrir un coffre caché.') },
         { id: 'campfire', icon: '🔥', name: tr('Pause au campement'), desc: tr('Rester une minute sans rien toucher.'), hidden: true },

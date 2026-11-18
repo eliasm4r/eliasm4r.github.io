@@ -3565,3 +3565,94 @@ html.is-paused body *:not(.pause, .pause *) {
         --x: 0;
     }
 }
+
+/* ---------- Chocobo Race : rivaux, position, endurance, sprint ---------- */
+.race-progress b {
+    position: absolute;
+    top: 50%;
+    width: 0.8rem;
+    height: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    background: var(--c);
+    transform: translate(-50%, -50%);
+}
+
+.race-pos {
+    position: absolute;
+    top: 1.4rem;
+    left: 50%;
+    margin: 0;
+    font: 700 2.4rem "Cinzel", serif;
+    color: #fff;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    transform: translateX(-50%);
+}
+
+.race-stamina {
+    --s: 100%;
+    position: absolute;
+    left: 1.6rem;
+    bottom: 1.6rem;
+    width: min(22rem, 40%);
+    height: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 99px;
+    background: rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity .3s;
+}
+
+.race-stage.is-running .race-stamina {
+    opacity: 1;
+}
+
+.race-stamina span {
+    display: block;
+    width: var(--s);
+    height: 100%;
+    background: linear-gradient(90deg, #f6c94a, #ffe9a0);
+}
+
+.race-stamina.is-on span {
+    background: linear-gradient(90deg, #ff9a3c, #ffd36b);
+}
+
+.race-stamina.is-low span {
+    background: #e05a4a;
+}
+
+.race-sprint {
+    position: absolute;
+    right: 1.6rem;
+    bottom: 1.6rem;
+    z-index: 3;
+    display: none;
+    padding: 1.2rem 1.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    background: rgba(20, 12, 30, 0.55);
+    color: #ffe9a0;
+    font: 700 1.3rem var(--n-mono);
+    letter-spacing: 0.15em;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+@media (pointer: coarse) {
+    .race-stage.is-running .race-sprint {
+        display: block;
+    }
+}
+
+.race-modes .btn[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.race-records,
+.race-lock {
+    font-size: 1.3rem;
+}

@@ -592,7 +592,14 @@ const chocoboRace = (() => {
     const panel = document.getElementById('game-chocobo');
     if (!panel) return { reset() { } };
     const KEY = 'eliasPortfolio.chocobo';
-    const DIST = 800; // mètres
+    const WINS_KEY = 'eliasPortfolio.chocoboWins';
+    const DIST = 1000; // mètres
+    // les rivaux : couleur (filtre sur l'image du chocobo) et vitesse de base selon le mode
+    const RIVALS = [
+        { name: 'Ébène', filter: 'brightness(0.42) saturate(0.6)', dot: '#3a3a48', speed: { normal: 11.7, expert: 13.3 } },
+        { name: 'Carmin', filter: 'hue-rotate(-45deg) saturate(1.5)', dot: '#e0524a', speed: { normal: 12.3, expert: 13.8 } },
+        { name: 'Azur', filter: 'hue-rotate(170deg) saturate(1.2)', dot: '#5aa0ff', speed: { normal: 12.8, expert: 14.25 } },
+    ];
 
     panel.innerHTML = `
         <div class="game-bar">
@@ -603,13 +610,16 @@ const chocoboRace = (() => {
             <canvas class="race-canvas" aria-label="${t('Course')}"></canvas>
             <div class="race-hud">
                 <p class="race-time">0.00 s</p>
-                <div class="race-progress"><span></span><i></i></div>
+                <div class="race-progress"><span></span>${RIVALS.map(r => `<b style="--c:${r.dot}"></b>`).join('')}<i></i></div>
                 <p class="race-best">${t('RECORD')} <b>—</b></p>
+                <p class="race-pos"></p>
+                <div class="race-stamina" aria-hidden="true"><span></span></div>
             </div>
             <p class="race-center"></p>
+            <button class="race-sprint" type="button" aria-label="${t('Sprint')}">${t('SPRINT')}</button>
             <div class="race-overlay"></div>
         </div>
-        <p class="fish-tip race-tip">${t('Appuie (clic, doigt ou Espace) pour sauter, maintiens pour sauter plus haut. Les herbes donnent un coup de boost, les obstacles te ralentissent.')}</p>`;
+        <p class="fish-tip race-tip">${t('Saute avec clic, doigt ou Espace (maintiens pour sauter plus haut). Sprinte avec Maj ou → tant que ta jauge tient. Saute par-dessus la boue, mais pas dans les corbeaux. Les herbes rechargent la jauge.')}</p>`;
 
     const $ = (sel) => panel.querySelector(sel);
     const cv = $('.race-canvas');
@@ -627,17 +637,25 @@ const chocoboRace = (() => {
     const FRAMES = 8;
     let stride = 0; // avance dans le cycle de course
 
-    let best = Number(store.get(KEY)) || 0;
+    // un record par mode ; l'ancien record (course solo de 800 m) n'est plus comparable
+    const bestKey = (m) => (m === 'expert' ? `${KEY}.expert` : `${KEY}.v2`);
+    const bestOf = (m) => Number(store.get(bestKey(m))) || 0;
+    const wins = () => { try { return JSON.parse(store.get(WINS_KEY) || '{}') || {}; } catch { return {}; } };
+    let mode = 'normal';
+    const fmt = (s) => (s ? `${s.toFixed(2)} s` : '—');
     const renderBest = () => {
-        $('.race-best b').textContent = best ? `${best.toFixed(2)} s` : '—';
-        setHubRecord('chocobo', best ? `${best.toFixed(2)} s` : '—');
+        $('.race-best b').textContent = fmt(bestOf(mode));
+        setHubRecord('chocobo', fmt(bestOf('expert') || bestOf('normal')));
     };
 
     /* --- état --- */
     let state = 'menu'; // menu | count | run | end
-    let T = 0, dist = 0, speed = 0, time = 0, boost = 0, stun = 0, countT = 0;
+    let T = 0, dist = 0, speed = 0, time = 0, boost = 0, stun = 0, countT = 0, mud = 0;
     let y = 0, vy = 0, onGround = true, holding = false, jumpHold = 0;
-    let obstacles = [], herbs = [], dust = [], nextSpawn = 0;
+    let stamina = 100, sprintKey = false, sprintBtn = false;
+    let obstacles = [], herbs = [], dust = [], nextSpawn = 0, rivals = [];
+    const ORD = (n) => (LANG === 'en' ? `${n}${['st', 'nd', 'rd'][n - 1] || 'th'}` : `${n}${n === 1 ? 'er' : 'e'}`);
+    const place = () => 1 + rivals.filter(r => (r.time ? r.time <= time : r.m > dist)).length;
 
     const GROUND = () => H * 0.8;
     const PX_PER_M = () => W / 22; // 22 m visibles à l'écran
@@ -645,26 +663,39 @@ const chocoboRace = (() => {
 
     const showMenu = () => {
         state = 'menu';
+        stage.classList.remove('is-running');
+        const expertOpen = !!wins().normal;
         overlay.hidden = false;
         overlay.innerHTML = `
             <p class="cook-k">${t('CHOCOBO RACE')}</p>
             <h3>${DIST} m</h3>
-            <p class="cook-sub">${t('Meilleur temps')} : ${best ? `${best.toFixed(2)} s` : '—'}</p>
-            <button class="btn race-go" type="button">${t('▶ Départ')}</button>`;
-        overlay.querySelector('.race-go').addEventListener('click', countdown);
+            <p class="cook-sub">${t('Trois rivaux sur la piste. Finis premier pour l\'or.')}</p>
+            <div class="cook-actions race-modes">
+                <button class="btn race-go" type="button" data-mode="normal">${t('▶ Normal')}</button>
+                <button class="btn race-go" type="button" data-mode="expert" ${expertOpen ? '' : 'disabled'}>${expertOpen ? t('▶ Expert') : t('🔒 Expert')}</button>
+            </div>
+            <p class="cook-sub race-records">${t('Records')} : ${t('Normal')} ${fmt(bestOf('normal'))} · ${t('Expert')} ${fmt(bestOf('expert'))}</p>
+            ${expertOpen ? '' : `<p class="cook-sub race-lock">${t('Gagne une course en Normal pour débloquer le mode Expert.')}</p>`}`;
+        overlay.querySelectorAll('.race-go').forEach(b => b.addEventListener('click', () => countdown(b.dataset.mode)));
         center.textContent = '';
+        $('.race-pos').textContent = '';
     };
 
-    const countdown = () => {
+    const countdown = (m = mode) => {
+        mode = m === 'expert' && wins().normal ? 'expert' : 'normal';
+        renderBest();
         overlay.hidden = true;
-        dist = time = boost = stun = 0;
+        dist = time = boost = stun = mud = 0;
         speed = 0;
         y = vy = 0;
+        stamina = 100;
         onGround = true;
         obstacles = []; herbs = []; dust = [];
+        rivals = RIVALS.map((r, i) => ({ ...r, i, m: -1.5 - i * 1.2, v: 0, time: 0, phase: Math.random() * 6, trip: 0 }));
         nextSpawn = 30;
         countT = 3;
         state = 'count';
+        stage.classList.add('is-running');
     };
 
     const jump = () => {
@@ -677,20 +708,37 @@ const chocoboRace = (() => {
 
     const finish = () => {
         state = 'end';
+        stage.classList.remove('is-running');
+        const pos = place();
+        const best = bestOf(mode);
         const record = !best || time < best;
-        if (record) { best = time; store.set(KEY, String(best)); }
+        if (record) store.set(bestKey(mode), String(time));
         renderBest();
         achievements.unlock('chocobo');
-        sfx.fanfare();
-        const medal = time < 70 ? t('🥇 OR') : time < 80 ? t('🥈 ARGENT') : t('🥉 BRONZE');
+        let unlockedExpert = false;
+        if (pos === 1) {
+            const w = wins();
+            unlockedExpert = mode === 'normal' && !w.normal;
+            w[mode] = true;
+            store.set(WINS_KEY, JSON.stringify(w));
+            if (mode === 'expert') achievements.unlock('chocoboLegend');
+        }
+        if (pos <= 3) sfx.fanfare(); else sfx.back();
+        const medal = [t('🥇 OR'), t('🥈 ARGENT'), t('🥉 BRONZE')][pos - 1] || t('Pas de médaille');
         overlay.hidden = false;
         overlay.innerHTML = `
-            <p class="cook-k">${t('ARRIVÉE !')}</p>
-            <h3>${time.toFixed(2)} s</h3>
+            <p class="cook-k">${t('ARRIVÉE !')} · ${mode === 'expert' ? t('Expert') : t('Normal')}</p>
+            <h3>${ORD(pos)} / ${RIVALS.length + 1}</h3>
             <p class="cook-stars">${medal}</p>
+            <p class="cook-sub">${time.toFixed(2)} s</p>
             ${record ? `<p class="fish-catch-record">${t('★ NOUVEAU RECORD ★')}</p>` : ''}
-            <div class="cook-actions"><button class="btn" type="button">${t('↺ Rejouer')}</button></div>`;
-        overlay.querySelector('button').addEventListener('click', countdown);
+            ${unlockedExpert ? `<p class="fish-catch-record">${t('Mode Expert débloqué !')}</p>` : ''}
+            <div class="cook-actions">
+                <button class="btn" type="button" data-act="again">${t('↺ Rejouer')}</button>
+                <button class="btn" type="button" data-act="menu">${t('◂ Menu')}</button>
+            </div>`;
+        overlay.querySelector('[data-act="again"]').addEventListener('click', () => countdown(mode));
+        overlay.querySelector('[data-act="menu"]').addEventListener('click', showMenu);
     };
 
     /* --- contrôles --- */
@@ -700,14 +748,26 @@ const chocoboRace = (() => {
         if (state === 'run') { e.preventDefault(); press(); }
     });
     window.addEventListener('pointerup', () => { holding = false; });
+    const SPRINT_KEYS = ['ShiftLeft', 'ShiftRight', 'ArrowRight', 'KeyD'];
     window.addEventListener('keydown', (e) => {
-        if (!gameOn('chocobo') || e.code !== 'Space' || e.target.closest?.('input, textarea')) return;
+        if (!gameOn('chocobo') || e.target.closest?.('input, textarea')) return;
+        if (SPRINT_KEYS.includes(e.code)) { if (state === 'run' || state === 'count') { e.preventDefault(); sprintKey = true; } return; }
+        if (e.code !== 'Space') return;
         e.preventDefault();
         if (e.repeat) return;
         if (state === 'run') press();
-        else if (state === 'menu' || state === 'end') countdown();
+        else if (state === 'end') countdown(mode);
+        else if (state === 'menu') countdown('normal');
     });
-    window.addEventListener('keyup', (e) => { if (e.code === 'Space') holding = false; });
+    window.addEventListener('keyup', (e) => {
+        if (e.code === 'Space') holding = false;
+        if (SPRINT_KEYS.includes(e.code)) sprintKey = false;
+    });
+    window.addEventListener('blur', () => { sprintKey = sprintBtn = holding = false; });
+    // bouton SPRINT (écrans tactiles) : on le maintient avec un doigt, on saute avec l'autre
+    const sprintEl = $('.race-sprint');
+    sprintEl.addEventListener('pointerdown', (e) => { e.preventDefault(); sprintBtn = true; sprintEl.setPointerCapture?.(e.pointerId); });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => sprintEl.addEventListener(ev, () => { sprintBtn = false; }));
 
     /* --- logique --- */
     const update = (dt) => {
@@ -719,12 +779,26 @@ const chocoboRace = (() => {
         }
         if (state !== 'run') return;
         time += dt;
-        // vitesse : accélère jusqu'à 13 m/s, boostée par les herbes, freinée par les chocs
-        const target = stun > 0 ? 4 : (boost > 0 ? 17 : 13);
-        speed += (target - speed) * Math.min(1, dt * (stun > 0 ? 6 : 1.4));
+        // sprint : vide la jauge ; elle se recharge doucement quand on relâche
+        const sprinting = (sprintKey || sprintBtn) && stamina > 0 && stun <= 0;
+        stamina = Math.max(0, Math.min(100, stamina + (sprinting ? -34 : 13) * dt));
+        // vitesse : 13 m/s, plus en sprint ou avec une herbe, freinée par les chocs et la boue
+        const target = stun > 0 ? 4 : mud > 0 ? 7 : (boost > 0 ? 18 : sprinting ? 16 : 13);
+        speed += (target - speed) * Math.min(1, dt * (stun > 0 || mud > 0 ? 6 : 1.4));
         boost = Math.max(0, boost - dt);
         stun = Math.max(0, stun - dt);
+        mud = Math.max(0, mud - dt);
         dist += speed * dt;
+        // rivaux : allure qui ondule, petits faux pas, et ils ne se laissent pas trop distancer
+        for (const r of rivals) {
+            if (r.time) { r.m += r.v * dt; continue; }
+            const gap = r.m - dist;
+            let tv = r.speed[mode] + Math.sin(time * 0.7 + r.phase) * 0.9 + (gap < -45 ? 0.9 : gap > 45 ? -0.7 : 0);
+            if (r.trip > 0) { r.trip -= dt; tv = 5; } else if (Math.random() < dt * (mode === 'expert' ? 0.025 : 0.05)) r.trip = 0.7;
+            r.v += (tv - r.v) * Math.min(1, dt * 1.5);
+            r.m += r.v * dt;
+            if (r.m >= DIST) r.time = time - (r.m - DIST) / Math.max(1, r.v);
+        }
         stride += speed * dt * 1.1; // ≈ 14 images/s à pleine vitesse
         // saut : maintenir = monter plus haut
         if (!onGround) {
@@ -733,12 +807,23 @@ const chocoboRace = (() => {
             y += vy * dt;
             if (y >= 0) { y = 0; vy = 0; onGround = true; for (let i = 0; i < 6; i++) dust.push({ x: P_X(), y: GROUND(), vx: rand(-60, 10), vy: rand(-50, -10), life: 0 }); }
         }
-        // apparition des obstacles et des herbes
+        // apparition des obstacles et des herbes (de plus en plus serrés ; l'Expert en met plus)
         if (dist + 22 > nextSpawn && nextSpawn < DIST - 15) {
             const r = Math.random();
-            if (r < 0.7) obstacles.push({ m: nextSpawn, kind: Math.random() < 0.5 ? 'rock' : 'log', hit: false });
-            else herbs.push({ m: nextSpawn, got: false, alt: Math.random() < 0.5 ? 0 : 1 });
-            nextSpawn += rand(14, 30) - Math.min(8, dist / 120);
+            const late = dist / DIST;
+            if (r < 0.66) {
+                const k = Math.random();
+                if (k < 0.3) obstacles.push({ m: nextSpawn, kind: 'rock', hit: false });
+                else if (k < 0.52) obstacles.push({ m: nextSpawn, kind: 'log', hit: false });
+                else if (k < 0.7) obstacles.push({ m: nextSpawn, kind: 'mud', hit: false });
+                else if (k < 0.86 && late > 0.15) obstacles.push({ m: nextSpawn, kind: 'crow', hit: false });
+                else if (late > 0.3 || mode === 'expert') {
+                    // double tronc : un saut long (maintenu) passe les deux
+                    obstacles.push({ m: nextSpawn, kind: 'log', hit: false }, { m: nextSpawn + 2.4, kind: 'log', hit: false });
+                    nextSpawn += 2.4;
+                } else obstacles.push({ m: nextSpawn, kind: 'rock', hit: false });
+            } else herbs.push({ m: nextSpawn, got: false, alt: Math.random() < 0.5 ? 0 : 1 });
+            nextSpawn += mode === 'expert' ? rand(11, 22) - Math.min(5, dist / 160) : rand(14, 28) - Math.min(7, dist / 130);
         }
         // collisions
         const px = dist; // position du joueur, en mètres
@@ -746,7 +831,13 @@ const chocoboRace = (() => {
             if (o.hit) continue;
             // la zone de choc suit la taille dessinée de l'obstacle
             const hw = (H * OBS[o.kind].w * 0.5) / PX_PER_M() + 0.25;
-            if (Math.abs(o.m - px) < hw && -y < H * OBS[o.kind].h * 0.8) {
+            const near = Math.abs(o.m - px) < hw;
+            if (o.kind === 'mud') {
+                // la boue colle aux pattes tant qu'on est dedans au sol
+                if (near && onGround) { mud = 0.3; if (!o.hit) { o.hit = true; sfx.back(); } }
+                continue;
+            }
+            if (o.kind === 'crow' ? (near && -y > H * 0.06) : (near && -y < H * OBS[o.kind].h * 0.8)) {
                 o.hit = true;
                 stun = 0.7;
                 sfx.back();
@@ -760,6 +851,7 @@ const chocoboRace = (() => {
             if (Math.abs(h.m - px) < 0.8 && Math.abs(-y - hy) < H * 0.1) {
                 h.got = true;
                 boost = 2.2;
+                stamina = Math.min(100, stamina + 35);
                 sfx.select();
             }
         }
@@ -769,7 +861,41 @@ const chocoboRace = (() => {
         $('.race-time').textContent = `${time.toFixed(2)} s`;
         $('.race-progress span').style.width = `${Math.min(100, (dist / DIST) * 100)}%`;
         $('.race-progress i').style.left = `${Math.min(100, (dist / DIST) * 100)}%`;
+        panel.querySelectorAll('.race-progress b').forEach((b, i) => { b.style.left = `${Math.max(0, Math.min(100, (rivals[i].m / DIST) * 100))}%`; });
+        $('.race-pos').textContent = `${ORD(place())} / ${RIVALS.length + 1}`;
+        const st = $('.race-stamina');
+        st.style.setProperty('--s', `${stamina}%`);
+        st.classList.toggle('is-low', stamina < 25);
+        st.classList.toggle('is-on', sprinting);
         if (dist >= DIST) finish();
+    };
+
+    // un rival : même chocobo, teinté, un peu en retrait (couloir du fond)
+    const drawRival = (r, t2) => {
+        const x = P_X() + (r.m - dist) * PX_PER_M();
+        if (x < -80 || x > W + 80) return;
+        const G = GROUND() - H * 0.035;
+        c.fillStyle = 'rgba(40, 20, 5, 0.22)';
+        c.beginPath(); c.ellipse(x, G + 3, H * 0.05, 4, 0, 0, TAU); c.fill();
+        if (spriteOk) {
+            const fw = sprite.naturalWidth / FRAMES, fh = sprite.naturalHeight;
+            const h = H * 0.21, w = h * (fw / fh);
+            const frame = state === 'run' && r.v > 1 ? Math.floor(r.m * 1.1 + r.i * 3) % FRAMES : 0;
+            c.save();
+            c.filter = r.filter;
+            c.drawImage(sprite, frame * fw, 0, fw, fh, x - w * 0.5, G - h, w, h);
+            c.restore();
+        } else {
+            c.fillStyle = r.dot;
+            c.beginPath(); c.moveTo(x, G - 60); c.lineTo(x + 15, G - 34); c.lineTo(x, G - 8); c.lineTo(x - 15, G - 34); c.closePath(); c.fill();
+        }
+        c.font = `600 ${Math.max(10, H * 0.032)}px "JetBrains Mono", monospace`;
+        c.textAlign = 'center';
+        c.fillStyle = 'rgba(20, 10, 20, 0.55)';
+        c.fillText(r.name, x + 1, G - H * 0.225 + 1);
+        c.fillStyle = r.dot === '#3a3a48' ? '#d9d9e6' : r.dot;
+        c.fillText(r.name, x, G - H * 0.225);
+        c.textAlign = 'start';
     };
 
     const drawRunner = (x, yy, t2) => {
@@ -972,9 +1098,38 @@ const chocoboRace = (() => {
     };
 
     // obstacles bien lisibles : contour sombre, ombre portée, reflet clair
-    const OBS = { rock: { h: 0.1, w: 0.13 }, log: { h: 0.075, w: 0.2 } };
+    const OBS = { rock: { h: 0.1, w: 0.13 }, log: { h: 0.075, w: 0.2 }, mud: { h: 0, w: 0.34 }, crow: { h: 0, w: 0.12 } };
     const drawObstacle = (o, x) => {
         const G = GROUND();
+        if (o.kind === 'mud') {
+            const ow = H * OBS.mud.w;
+            c.fillStyle = '#5a3a1e';
+            c.beginPath(); c.ellipse(x, G + 6, ow * 0.55, 9, 0, 0, TAU); c.fill();
+            c.fillStyle = 'rgba(140, 100, 60, 0.6)';
+            c.beginPath(); c.ellipse(x - ow * 0.12, G + 4, ow * 0.3, 3.5, 0, 0, TAU); c.fill();
+            c.fillStyle = 'rgba(255, 240, 210, 0.35)';
+            c.beginPath(); c.ellipse(x + ow * 0.18, G + 5, ow * 0.12, 1.6, 0, 0, TAU); c.fill();
+            return;
+        }
+        if (o.kind === 'crow') {
+            // corbeau qui plane à hauteur de saut : on passe dessous en restant au sol
+            const cy = G - H * 0.3 + Math.sin(T * 5 + o.m) * H * 0.012;
+            const flap = Math.sin(T * 16 + o.m) * H * 0.03;
+            const s = H * 0.05;
+            c.fillStyle = o.hit ? '#555' : '#1b1622';
+            c.beginPath();
+            c.moveTo(x - s * 1.6, cy - flap); c.quadraticCurveTo(x - s * 0.6, cy - s * 0.5, x, cy);
+            c.quadraticCurveTo(x + s * 0.6, cy - s * 0.5, x + s * 1.6, cy - flap);
+            c.quadraticCurveTo(x + s * 0.6, cy + s * 0.15, x, cy + s * 0.35);
+            c.quadraticCurveTo(x - s * 0.6, cy + s * 0.15, x - s * 1.6, cy - flap);
+            c.fill();
+            c.beginPath(); c.ellipse(x - s * 0.15, cy + s * 0.05, s * 0.55, s * 0.3, 0, 0, TAU); c.fill();
+            c.fillStyle = '#f2b13b';
+            c.beginPath(); c.moveTo(x - s * 0.7, cy); c.lineTo(x - s * 1.05, cy + s * 0.08); c.lineTo(x - s * 0.7, cy + s * 0.16); c.fill();
+            c.fillStyle = '#ff5a4a';
+            c.beginPath(); c.arc(x - s * 0.45, cy - s * 0.02, s * 0.07, 0, TAU); c.fill();
+            return;
+        }
         const oh = H * OBS[o.kind].h, ow = H * OBS[o.kind].w;
         c.fillStyle = 'rgba(40, 20, 5, 0.35)';
         c.beginPath(); c.ellipse(x + 4, G + 3, ow * 0.62, 5, 0, 0, TAU); c.fill();
@@ -1040,6 +1195,7 @@ const chocoboRace = (() => {
             }
             for (let k = 0; k < 14; k++) { c.fillStyle = k % 2 ? '#fff' : '#111'; c.fillRect(fxp + 21, G - k * 8 - 8, 8, 8); }
         }
+        for (const r of rivals) drawRival(r, t2);
         for (const o of obstacles) {
             const x = P_X() + (o.m - dist) * PX_PER_M();
             if (x < -60 || x > W + 60) continue;
@@ -1108,7 +1264,7 @@ const chocoboRace = (() => {
 
     renderBest();
     showMenu();
-    return { reset() { store.del(KEY); best = 0; renderBest(); showMenu(); } };
+    return { reset() { [KEY, `${KEY}.v2`, `${KEY}.expert`, WINS_KEY].forEach(k => store.del(k)); mode = 'normal'; renderBest(); showMenu(); } };
 })();
 
 /* =====================================================================

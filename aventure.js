@@ -1069,7 +1069,7 @@ const photoAlbum = (() => {
     const MAX = 14;
     const LIB = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js';
     const PAGES = { home: 'Accueil', about: 'Présentation', skills: 'Compétences', softskills: 'Soft Skills', education: 'Parcours', work: 'Réalisations', experience: 'Expériences', games: 'Mini-jeux' };
-    const SHOTS = { fish1: 'Première prise !', fishBig: 'Le roi du lac', chef: 'Recette trois étoiles', ultimateChef: 'Chef légendaire', chocobo: 'Ligne d\'arrivée', battle: 'Golem vaincu', nightMonster: 'Le monstre de la nuit' };
+    const SHOTS = { fish1: 'Première prise !', fishBig: 'Le roi du lac', chef: 'Recette trois étoiles', ultimateChef: 'Chef légendaire', chocobo: 'Ligne d\'arrivée', chocoboLegend: 'Légende de la piste', battle: 'Golem vaincu', nightMonster: 'Le monstre de la nuit' };
 
     const list = () => { try { return JSON.parse(store.get(KEY) || '[]'); } catch { return []; } };
     const save = (all) => {
