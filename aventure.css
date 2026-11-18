@@ -3520,50 +3520,53 @@ html.is-paused body *:not(.pause, .pause *) {
     }
 }
 
-/* ---------- générique : l'album photo de la visite ---------- */
-.credits-album {
-    margin-top: 12rem;
+/* ---------- générique façon FF15 : un bloc de texte, une photo, on alterne ---------- */
+.credits-rows {
+    display: grid;
+    gap: 16rem;
+    width: min(110rem, 92vw);
+    position: relative;
+    left: 50%;
+    translate: -50% 0;
+    margin: 0;
 }
 
-.credits-album[hidden] {
-    display: none;
+.credits-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 6rem;
 }
 
-.credits-album .credits-k {
-    margin-bottom: 4rem;
+.credits-row.no-photo {
+    grid-template-columns: 1fr;
+}
+
+.credits-row.photo-left .credits-side {
+    order: -1;
+}
+
+.credits-block .credits-k {
+    margin-bottom: 2.4rem;
+}
+
+.credits-side {
+    display: grid;
+    gap: 3rem;
 }
 
 .credits-photo {
-    width: min(34rem, 80vw);
-    margin: 0 auto 5rem;
-    padding: 1rem 1rem 1.4rem;
-    background: #f4f1ea;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
-    transform: translateX(var(--x, 0)) rotate(var(--r, 0deg));
-}
-
-.credits-photo.is-left { --x: -42%; }
-.credits-photo.is-right { --x: 42%; }
-
-.credits-photo img {
     display: block;
     width: 100%;
     aspect-ratio: 16 / 10;
     object-fit: cover;
-    background: #111;
-}
-
-.credits-photo figcaption {
-    margin-top: 1rem;
-    font: 600 1.35rem var(--n-body);
-    color: #2a2a2a;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
 }
 
 @media (max-width: 760px) {
-    .credits-photo.is-left,
-    .credits-photo.is-right {
-        --x: 0;
-    }
+    .credits-rows { gap: 10rem; }
+    .credits-row { grid-template-columns: 1fr; gap: 3rem; }
+    .credits-row.photo-left .credits-side { order: 0; }
 }
 
 /* ---------- Chocobo Race : rivaux, position, endurance, sprint ---------- */
@@ -4054,3 +4057,6 @@ html.cat-in-battle #oneko {
 }
 .games-menu-vol { width: fit-content; }
 .games-menu-vol .game-vol { margin-left: 0; }
+.credits-block dt { margin-top: 2.2rem; }
+.credits-block dt:first-of-type { margin-top: 0; }
+.credits-row { padding: 0; min-height: 0; margin: 0; }

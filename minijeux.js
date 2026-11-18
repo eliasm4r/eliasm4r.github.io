@@ -3551,16 +3551,54 @@ const trueEnding = (() => {
     const credits = () => {
         if (document.querySelector('.credits')) return;
         const best = (() => { try { return JSON.parse(store.get('eliasPortfolio.fishing'))?.best; } catch { return null; } })();
-        const ROLES = [
-            [t('Développement'), 'Elias Maruca'],
-            [t('Design et direction artistique'), 'Elias Maruca'],
-            [t('Joueur'), getPlayer() || 'PLAYER 1'],
-            [t('Inspiration'), 'Final Fantasy XV — Square Enix'],
-            [t('Musique'), '« Stand By Me » — Florence + The Machine'],
-            [t('Polices'), 'Cinzel · Inter · JetBrains Mono'],
-            [t('Bibliothèques'), 'jQuery · Typed.js · VanillaTilt · Font Awesome'],
-            [t('Ton aventure'), `${getVisited().size} / ${TOTAL_ZONES} ${t('zones')} · ${getFound().size} / ${TOTAL_SECRETS} ${t('objets secrets')} · ${document.getElementById('trophyCount')?.textContent || 0} ${t('succès')}`],
-            [t('Plus gros poisson'), best ? `${best.name || ''} ${best.size} cm`.trim() : '—'],
+        const J = (k) => { try { return JSON.parse(store.get(k)); } catch { return null; } };
+        const arenaWon = Object.keys(J('eliasPortfolio.arena')?.won || {}).length + (achievements.has('battle') ? 1 : 0);
+        const roadBest = Number(store.get('eliasPortfolio.road.v2')) || 0;
+        const ME = 'Elias Maruca';
+        // le générique, section par section (façon FF15 : un bloc de texte, une photo, et on alterne)
+        const SECTIONS = [
+            [t('Réalisation'), [
+                [t('Développement'), ME], [t('Design et direction artistique'), ME], [t('Écriture'), ME],
+                [t('Intégration'), ME], [t('Tests et débogage'), ME], [t('Traduction anglaise'), ME]]],
+            [t('Avec'), [
+                [t('Le joueur'), getPlayer() || 'PLAYER 1'], [t('L\'esprit du cristal'), 'Lumi'], [t('Le chat'), 'Neko']]],
+            [t('Les zones'), [
+                ['Spawn', t('Accueil')], [t('Profil du joueur'), t('À propos')], [t('Statistiques'), t('Compétences')],
+                [t('Aptitudes'), t('Savoir-être')], [t('Origines'), t('Formation')], [t('Quêtes'), t('Projets')],
+                [t('Journal de quêtes'), t('Expériences')], ['Bonus', t('Mini-jeux')]]],
+            [t('Quêtes accomplies'), [
+                [t('Quête principale'), 'WondersBeyondRecomp'], [t('Quête annexe'), 'TOTK Recomp Mod Manager'],
+                [t('Quête annexe'), '3arbiChat'], [t('Quête annexe'), 'Intellib'], [t('Quête annexe'), 'Legend of War'],
+                [t('Quête annexe'), t('Site Internet pour Covoiturage')], [t('Quête annexe'), 'Question pour un p\'tit loup']]],
+            [t('Compagnons de route'), [
+                ['ADEO', 'Lille'], ['GEONATIVE', 'Lille'], ['E-SYSTEMS', 'Lille'], [t('IUT de Lille'), 'Villeneuve-d\'Ascq'],
+                [t('Centre de loisirs'), 'Roubaix'], [t('Lycée Saint Rémi'), 'Roubaix']]],
+            [t('Mini-jeux'), [
+                [t('Pêche'), t('Un lac de nuit et 17 poissons')], [t('Cuisine du campement'), t('Rythme et recettes')],
+                ['Chocobo Race', t('Trois rivaux, 1000 m')], [t('Route Royale'), t('La Regalia de nuit')], [t('Combat'), t('Une campagne de 5 combats')]]],
+            [t('Bestiaire'), [
+                [t('Gardien'), t('Golem de cristal')], [t('Meute'), t('Loup des cendres')], [t('Marais'), t('Crapaud colossal')],
+                [t('Marais'), t('Feu follet')], [t('Garnison'), t('Sentinelle de fer')], [t('Garnison'), t('Drone réparateur')],
+                [t('Boss final'), t('Dévoreur d\'étoiles')], [t('Ses enfants'), t('Éclat du néant')]]],
+            [t('Musique'), [
+                ['Somnus', 'Final Fantasy XV'], ['Valse di Fantastica', 'Final Fantasy XV'], ['Noctis', 'Final Fantasy XV'],
+                ['Stand Your Ground', 'Final Fantasy XV'], ['Crystalline Chill', 'Final Fantasy XV'], ['Reel Rumble', 'Final Fantasy XV'],
+                ['Flying R', 'Final Fantasy XV'], ['Calm Before the Storm', 'Final Fantasy X'], [t('Thème des Chocobos'), 'Final Fantasy VII'],
+                ['Sunset Waltz', '—'], [t('Générique de fin'), '« Stand By Me » — Florence + The Machine']]],
+            [t('Technique'), [
+                [t('Langages'), 'HTML · CSS · JavaScript'], [t('Mini-jeux'), 'Canvas 2D'], [t('Sauvegarde'), 'localStorage'],
+                [t('Polices'), 'Cinzel · Inter · JetBrains Mono'], [t('Bibliothèques'), 'jQuery · Typed.js · VanillaTilt'],
+                [t('Icônes'), 'Font Awesome'], [t('Photos de voyage'), 'html-to-image'], [t('Chat curseur'), 'oneko.js'],
+                [t('Hébergement'), 'GitHub Pages']]],
+            [t('Ton aventure'), [
+                [t('Zones visitées'), `${getVisited().size} / ${TOTAL_ZONES}`], [t('Objets secrets'), `${getFound().size} / ${TOTAL_SECRETS}`],
+                [t('Succès'), String(document.getElementById('trophyCount')?.textContent || 0)],
+                [t('Plus gros poisson'), best ? `${best.name || ''} ${best.size} cm`.trim() : '—'],
+                [t('Combats gagnés'), `${Math.min(5, arenaWon)} / 5`], [t('Route Royale'), roadBest ? `${(roadBest / 1000).toFixed(2)} km` : '—']]],
+            [t('Inspiration'), [
+                ['Final Fantasy XV', 'Square Enix'], [t('L\'équipe'), 'Noctis · Prompto · Gladiolus · Ignis'], [t('Les photos'), t('L\'appareil de Prompto')]]],
+            [t('Remerciements'), [
+                [t('Merci à'), t('toi, d\'être venu jusqu\'ici')], [t('Et à'), t('tous ceux qui liront ce portfolio')]]],
         ];
         const el = document.createElement('div');
         el.className = 'credits';
@@ -3571,38 +3609,49 @@ const trueEnding = (() => {
             <div class="credits-roll">
                 <p class="credits-k">${t('UN PORTFOLIO DE')}</p>
                 <h2>ELIAS MARUCA</h2>
-                <dl></dl>
-                <div class="credits-album" hidden>
-                    <p class="credits-k">${t('ALBUM DE VOYAGE')}</p>
-                </div>
+                <div class="credits-rows"></div>
                 <p class="credits-thanks">${t('Merci d\'avoir joué jusqu\'au bout.')}</p>
                 <p class="credits-fin">FIN</p>
             </div>`;
-        const dl = el.querySelector('dl');
-        ROLES.forEach(([k, v]) => {
-            const dt = document.createElement('dt'); dt.textContent = k;
-            const dd = document.createElement('dd'); dd.textContent = v;
-            dl.append(dt, dd);
-        });
-        // les photos prises pendant la visite (aventure.js), façon Prompto
+        // les photos prises pendant la visite (aventure.js), façon Prompto : juste l'image
         const photos = typeof photoAlbum !== 'undefined' ? photoAlbum.list() : [];
-        const album = el.querySelector('.credits-album');
-        if (photos.length) {
-            album.hidden = false;
-            photos.forEach((ph, i) => {
-                const fig = document.createElement('figure');
-                fig.className = `credits-photo ${i % 2 ? 'is-right' : 'is-left'}`;
-                fig.style.setProperty('--r', `${(i % 2 ? 1 : -1) * (1.5 + (i * 7) % 3)}deg`);
-                const img = document.createElement('img');
-                img.src = ph.src;
-                img.alt = '';
-                const cap = document.createElement('figcaption');
-                const d = new Date(ph.at);
-                cap.textContent = `${ph.caption} · ${d.toLocaleDateString(LANG === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short' })}`;
-                fig.append(img, cap);
-                album.appendChild(fig);
+        const photoEl = (ph) => {
+            const img = document.createElement('img');
+            img.className = 'credits-photo';
+            img.src = ph.src;
+            img.alt = ph.caption || '';
+            return img;
+        };
+        // une photo par section tant qu'il y en a ; s'il y en a plus que de sections, les premières en prennent deux
+        const rows = el.querySelector('.credits-rows');
+        let pi = 0;
+        SECTIONS.forEach(([title, list], i) => {
+            const row = document.createElement('section');
+            const block = document.createElement('div');
+            block.className = 'credits-block';
+            const h = document.createElement('p');
+            h.className = 'credits-k';
+            h.textContent = title.toUpperCase();
+            const dl = document.createElement('dl');
+            list.forEach(([k, v]) => {
+                const dt = document.createElement('dt'); dt.textContent = k;
+                const dd = document.createElement('dd'); dd.textContent = v;
+                dl.append(dt, dd);
             });
-        }
+            block.append(h, dl);
+            const take = photos.length - pi > SECTIONS.length - i ? 2 : 1;
+            const mine = photos.slice(pi, pi + take);
+            pi += mine.length;
+            row.className = `credits-row ${mine.length ? (i % 2 ? 'photo-left' : 'photo-right') : 'no-photo'}`;
+            row.appendChild(block);
+            if (mine.length) {
+                const side = document.createElement('div');
+                side.className = 'credits-side';
+                mine.forEach(ph => side.appendChild(photoEl(ph)));
+                row.appendChild(side);
+            }
+            rows.appendChild(row);
+        });
         document.body.appendChild(el);
         document.body.classList.add('credits-open');
 
@@ -3624,7 +3673,8 @@ const trueEnding = (() => {
         if (reduceMotion) timer = setTimeout(finish, 3000);
         else requestAnimationFrame(() => {
             const dist = Math.max(0, roll.offsetHeight - window.innerHeight * 0.55);
-            const dur = Math.max(30000, (dist / 75) * 1000);
+            // lent, comme un vrai générique
+            const dur = Math.max(90000, (dist / 50) * 1000);
             roll.style.transition = `transform ${dur}ms linear`;
             roll.style.transform = `translateY(${-dist}px)`;
             timer = setTimeout(() => { finish(); close(); }, dur + 3500);
