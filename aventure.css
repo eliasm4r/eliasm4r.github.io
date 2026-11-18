@@ -1726,6 +1726,11 @@ span.stat-use {
     animation: ostIn .35s cubic-bezier(.2, .8, .2, 1);
 }
 
+.ost:not(.is-mini) {
+    display: flex;
+    flex-direction: column;
+}
+
 .ost[hidden] {
     display: none;
 }
@@ -1995,12 +2000,13 @@ span.stat-use {
 }
 
 .ost-list {
-    max-height: 24rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
+    order: -1;
+    max-height: min(24rem, 40vh);
+    margin-bottom: 1.2rem;
+    padding-bottom: 1rem;
     overflow-y: auto;
     overscroll-behavior: contain;
-    border-top: 1px dashed var(--n-line);
+    border-bottom: 1px dashed var(--n-line);
 }
 
 .ost-list[hidden] {
@@ -2162,6 +2168,275 @@ span.stat-use {
     .ost-eq i,
     .ost.is-mini.is-playing .ost-cover img,
     .player-ost.is-playing i {
+        animation: none;
+    }
+}
+
+/* =====================================================================
+   CHASSE AUX CRISTAUX — petits éclats discrets, une lueur de temps en temps
+   ===================================================================== */
+.crystal-shard {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 2.1rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    vertical-align: middle;
+    opacity: 0.5;
+    cursor: pointer;
+    pointer-events: auto;
+    filter: drop-shadow(0 0 3px rgba(var(--t-crystal-rgb), 0.6));
+    animation: csGlint 6s ease-in-out infinite;
+    transition: opacity .2s, transform .2s, filter .2s;
+}
+
+.crystal-shard::before {
+    content: "";
+    position: absolute;
+    inset: -0.9rem;
+}
+
+.crystal-shard svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.crystal-shard .cs-a { fill: rgba(143, 184, 255, 0.55); stroke: rgba(225, 236, 255, 0.85); stroke-width: 0.8; }
+.crystal-shard .cs-b { fill: rgba(225, 236, 255, 0.55); }
+.crystal-shard .cs-c { fill: rgba(255, 255, 255, 0.75); }
+
+.crystal-shard:hover,
+.crystal-shard:focus-visible {
+    opacity: 1;
+    transform: scale(1.25) rotate(-6deg);
+    filter: drop-shadow(0 0 8px rgba(var(--t-crystal-rgb), 1));
+}
+
+.crystal-shard:focus-visible {
+    outline: 2px solid var(--n-gold);
+    outline-offset: 3px;
+}
+
+/* une brève lueur toutes les quelques secondes : visible pour qui regarde bien */
+@keyframes csGlint {
+    0%, 86%, 100% { filter: drop-shadow(0 0 3px rgba(var(--t-crystal-rgb), 0.6)); }
+    91% { opacity: 1; filter: drop-shadow(0 0 10px rgba(255, 255, 255, 1)); }
+}
+
+.crystal-shard.is-inline {
+    margin-left: 0.8rem;
+    width: 1.3rem;
+    height: 1.7rem;
+}
+
+.crystal-shard.is-corner {
+    position: absolute;
+    right: 1.2rem;
+    bottom: 1rem;
+    z-index: 2;
+}
+
+.crystal-shard.is-panel {
+    display: grid;
+    margin: 0.8rem 0 0 auto;
+}
+
+.crystal-shard.is-list {
+    display: grid;
+    margin: 0.8rem auto 0.2rem;
+    opacity: 0.35;
+}
+
+.quest-media {
+    position: relative;
+}
+
+/* ramassé : une gerbe d'éclats */
+.crystal-burst {
+    position: fixed;
+    z-index: 13500;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.crystal-burst i {
+    position: absolute;
+    left: -0.3rem;
+    top: -0.3rem;
+    width: 0.6rem;
+    height: 0.6rem;
+    background: #fff;
+    transform: rotate(45deg);
+    box-shadow: 0 0 8px var(--t-crystal);
+    animation: csBurst .8s cubic-bezier(.2, .8, .3, 1) forwards;
+}
+
+@keyframes csBurst {
+    to { opacity: 0; transform: rotate(var(--a)) translateY(-5rem) rotate(45deg) scale(0.3); }
+}
+
+/* ---------- les 7 réunis : le cristal se reforme ---------- */
+.crystal-finale {
+    position: fixed;
+    inset: 0;
+    z-index: 15000;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 38%, rgba(var(--t-deep-rgb), 0.94), rgba(4, 6, 12, 0.985) 70%);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    animation: cfIn .5s ease-out both;
+}
+
+.crystal-finale.is-leaving {
+    animation: cfOut .4s ease-in forwards;
+}
+
+@keyframes cfIn { from { opacity: 0; } }
+@keyframes cfOut { to { opacity: 0; } }
+
+.cf-ring,
+.cf-core {
+    position: absolute;
+    left: 50%;
+    top: 34%;
+    width: 0;
+    height: 0;
+}
+
+.cf-ring i {
+    position: absolute;
+    left: -1.4rem;
+    top: -1.8rem;
+    width: 2.8rem;
+    height: 3.6rem;
+    transform: rotate(calc(var(--i) * 51.43deg)) translateY(-14rem) rotate(calc(var(--i) * -51.43deg));
+    animation: cfGather 1.5s cubic-bezier(.6, 0, .3, 1) .3s forwards;
+}
+
+.cf-ring i svg,
+.cf-core svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 8px rgba(var(--t-crystal-rgb), 0.9));
+}
+
+.cf-ring .cs-a,
+.cf-core .cs-a { fill: rgba(143, 184, 255, 0.6); stroke: #fff; stroke-width: 0.6; }
+.cf-ring .cs-b,
+.cf-core .cs-b { fill: rgba(225, 236, 255, 0.6); }
+.cf-ring .cs-c,
+.cf-core .cs-c { fill: rgba(255, 255, 255, 0.85); }
+
+@keyframes cfGather {
+    80% { opacity: 1; }
+    to { opacity: 0; transform: rotate(calc(var(--i) * 51.43deg + 220deg)) translateY(0) scale(0.4); }
+}
+
+.cf-core {
+    width: 7rem;
+    height: 9rem;
+    margin: -4.5rem 0 0 -3.5rem;
+    opacity: 0;
+    animation: cfCore .9s cubic-bezier(.2, 1.4, .4, 1) 1.65s forwards;
+}
+
+@keyframes cfCore {
+    from { opacity: 0; transform: scale(0.2); }
+    to { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.8)); }
+}
+
+.cf-card {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 1.2rem;
+    width: min(46rem, calc(100vw - 3.2rem));
+    margin-top: 26vh;
+    text-align: center;
+    opacity: 0;
+    animation: nFadeUp .7s ease-out 2.1s forwards;
+}
+
+.cf-k {
+    font-family: var(--n-mono);
+    font-size: 1.2rem;
+    letter-spacing: 0.4em;
+    color: var(--n-crystal);
+}
+
+.cf-card h2 {
+    font-family: var(--n-title);
+    font-size: clamp(2.6rem, 4vw, 3.8rem);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #fff;
+}
+
+.cf-sub {
+    font-size: 1.5rem;
+    color: var(--n-muted);
+}
+
+.cf-loot {
+    display: grid;
+    gap: 0.8rem;
+    width: 100%;
+    margin: 0.4rem 0 0.8rem;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+}
+
+.cf-loot li {
+    display: grid;
+    grid-template-columns: 3.2rem minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 1.2rem;
+    align-items: center;
+    padding: 1rem 1.4rem;
+    border: 1px solid rgba(var(--t-gold-rgb), 0.35);
+    border-radius: 8px;
+    background: rgba(var(--t-gold-rgb), 0.06);
+}
+
+.cf-loot span {
+    grid-row: 1 / 3;
+    font-size: 2.2rem;
+    text-align: center;
+}
+
+.cf-loot b {
+    font-family: var(--n-title);
+    font-size: 1.6rem;
+    color: var(--n-gold);
+}
+
+.cf-loot small {
+    font-size: 1.2rem;
+    color: var(--n-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .crystal-shard,
+    .crystal-burst i {
+        animation: none;
+    }
+
+    .cf-ring {
+        display: none;
+    }
+
+    .cf-core,
+    .cf-card {
+        opacity: 1;
         animation: none;
     }
 }

@@ -272,3 +272,175 @@ window.pseudoEgg = (name, loader) => {
         });
     });
 };
+
+/* ---------------------------------------------------------------------
+   3. CHASSE AUX CRISTAUX — 7 éclats cachés dans le site, parfois dans
+   un sous-menu. Les 7 réunis : arme et technique pour les combats,
+   traînée « Cristal royal » et succès « Gardien des cristaux ».
+   --------------------------------------------------------------------- */
+const crystalHunt = (() => {
+    const KEY = 'eliasPortfolio.crystals';
+    // l'ordre sert aux indices de Lumi (plus bas)
+    const SPOTS = ['carousel', 'cv', 'maths', 'initiative', 'loup', 'esystems', 'ost'];
+    const TOTAL = SPOTS.length;
+    const get = () => { try { return new Set(JSON.parse(store.get(KEY) || '[]').filter(id => SPOTS.includes(id))); } catch { return new Set(); } };
+    const has = (id) => get().has(id);
+    const SVG = '<svg viewBox="0 0 20 26" aria-hidden="true"><path class="cs-a" d="M10 1 18 9 10 25 2 9z"/><path class="cs-b" d="M10 1 13.5 9 10 25 6.5 9z"/><path class="cs-c" d="M2 9h16L10 1z"/></svg>';
+
+    const chime = () => [1568, 2093, 2637, 3136].forEach((f, i) => { if (sfx.on) sfx.tone(f, 0.35, 'sine', 0.035, i * 0.07); });
+
+    const make = (id, cls) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = `crystal-shard ${cls || ''}`.trim();
+        b.dataset.crystal = id;
+        b.setAttribute('aria-label', tr('Un cristal brille ici'));
+        b.innerHTML = SVG;
+        // le carrousel capte le pointeur pour tourner : le cristal garde le sien
+        b.addEventListener('pointerdown', (e) => e.stopPropagation());
+        b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); collect(id, b); });
+        return b;
+    };
+
+    // pose le cristal dans `parent` (ou l'enlève s'il est déjà ramassé)
+    const place = (id, parent, cls) => {
+        if (!parent) return;
+        const cur = document.querySelector(`.crystal-shard[data-crystal="${id}"]`);
+        if (has(id)) { cur?.remove(); return; }
+        if (cur && cur.parentElement === parent) return;
+        cur?.remove();
+        parent.appendChild(make(id, cls));
+    };
+    const remove = (id) => document.querySelector(`.crystal-shard[data-crystal="${id}"]`)?.remove();
+
+    const collect = (id, btn) => {
+        const got = get();
+        if (got.has(id)) return;
+        got.add(id);
+        store.set(KEY, JSON.stringify([...got]));
+        chime();
+        // éclat qui s'envole, puis le cristal disparaît
+        const r = btn.getBoundingClientRect();
+        const burst = document.createElement('div');
+        burst.className = 'crystal-burst';
+        burst.style.left = `${r.left + r.width / 2}px`;
+        burst.style.top = `${r.top + r.height / 2}px`;
+        burst.innerHTML = Array.from({ length: 10 }, (_, i) => `<i style="--a:${i * 36}deg"></i>`).join('');
+        document.body.appendChild(burst);
+        setTimeout(() => burst.remove(), 900);
+        btn.remove();
+        if (typeof showToast === 'function') showToast(`◆ ${tr('CRISTAL')} ${got.size} / ${TOTAL}`);
+        document.dispatchEvent(new CustomEvent('crystal', { detail: { id, count: got.size, total: TOTAL } }));
+        if (got.size === TOTAL) setTimeout(finale, reduceMotion ? 300 : 900);
+    };
+
+    /* ---------- les cachettes ---------- */
+    // 1. Accueil : sur le titre de la jaquette de Final Fantasy XV, seulement quand elle passe devant.
+    //    Entre 917 et 1100 px le carrousel est masqué : le cristal se cache alors dans le badge du héros.
+    const carouselShown = () => {
+        const w = document.querySelector('.home .wrapper');
+        return !!w && getComputedStyle(w).display !== 'none';
+    };
+    let frontTitle = '';
+    const placeCarousel = () => {
+        if (has('carousel')) { remove('carousel'); return; }
+        if (!carouselShown()) { place('carousel', document.querySelector('.home .hero-status'), 'is-inline'); return; }
+        if (/final fantasy xv$/i.test(frontTitle)) place('carousel', document.querySelector('.cover-label b'), 'is-inline');
+        else remove('carousel');
+    };
+    document.addEventListener('coverfront', (e) => { frontTitle = e.detail || ''; placeCarousel(); });
+    window.addEventListener('resize', placeCarousel);
+
+    const placeStatic = () => {
+        // 2. dans la fenêtre du CV, à côté du bouton de téléchargement
+        place('cv', document.querySelector('#cvModal .cv-modal-actions'));
+        // 5. Réalisations : dans le coin de l'image de la quête « Question pour un p'tit loup »
+        place('loup', document.querySelector('#q-qppl .quest-media'), 'is-corner');
+        // 6. Expériences : dans la fiche du stage d'observation E-SYSTEMS
+        place('esystems', document.querySelector('#stage-esystems .stage-meta'), 'is-inline');
+        placeCarousel();
+    };
+
+    // 3. Compétences : dans la fiche de « Modélisation Mathématique », au bout du niveau
+    document.addEventListener('skillshow', (e) => {
+        if (e.detail === 'maths') place('maths', document.querySelector('#statDetail .sd-level p'), 'is-inline');
+    });
+
+    // 4. Soft Skills : dans le panneau, seulement quand la sphère « Initiative » est choisie
+    document.getElementById('sphereBoard')?.addEventListener('click', (e) => {
+        const node = e.target.closest('.sphere-node');
+        if (!node) return;
+        if (node.dataset.node === 's10') place('initiative', document.querySelector('.sphere-panel'), 'is-panel');
+        else remove('initiative');
+    });
+
+    // 7. dans la file d'attente du lecteur de musique
+    document.addEventListener('ostlist', () => place('ost', document.getElementById('ostList'), 'is-list'));
+
+    /* ---------- les 7 réunis ---------- */
+    function finale() {
+        const el = document.createElement('div');
+        el.className = 'crystal-finale';
+        el.setAttribute('role', 'dialog');
+        el.setAttribute('aria-modal', 'true');
+        el.setAttribute('aria-labelledby', 'crystalFinaleTitle');
+        el.innerHTML = `
+            <div class="cf-ring" aria-hidden="true">${Array.from({ length: TOTAL }, (_, i) => `<i style="--i:${i}">${SVG}</i>`).join('')}</div>
+            <div class="cf-core" aria-hidden="true">${SVG}</div>
+            <div class="cf-card">
+                <p class="cf-k"></p>
+                <h2 id="crystalFinaleTitle"></h2>
+                <p class="cf-sub"></p>
+                <ul class="cf-loot"></ul>
+                <button class="btn cf-ok" type="button"></button>
+            </div>`;
+        el.querySelector('.cf-k').textContent = `◆ ${TOTAL} / ${TOTAL} ◆`;
+        el.querySelector('h2').textContent = tr('Les cristaux sont réunis');
+        el.querySelector('.cf-sub').textContent = tr('Le cristal te confie ses trésors :');
+        [
+            ['⚔️', tr('Épée des Rois'), tr('arme · à équiper dans 🎒 pour les combats')],
+            ['✦', tr('Lames fantômes'), tr('technique · frappe tous les ennemis')],
+            ['💠', tr('Cristal royal'), tr('traînée du curseur · 🎒 Apparence')],
+        ].forEach(([icon, name, what]) => {
+            const li = document.createElement('li');
+            li.innerHTML = '<span></span><b></b><small></small>';
+            li.querySelector('span').textContent = icon;
+            li.querySelector('b').textContent = name;
+            li.querySelector('small').textContent = what;
+            el.querySelector('.cf-loot').appendChild(li);
+        });
+        const ok = el.querySelector('.cf-ok');
+        ok.textContent = tr('Continuer');
+        document.body.appendChild(el);
+        sfx.fanfare();
+        const close = () => {
+            el.classList.add('is-leaving');
+            document.removeEventListener('keydown', onKey);
+            setTimeout(() => {
+                el.remove();
+                // le succès arrive une fois l'écran fermé, pour que sa notification se voie
+                achievements.unlock('crystals');
+            }, reduceMotion ? 0 : 400);
+        };
+        const onKey = (e) => { if (e.key === 'Escape') close(); };
+        ok.addEventListener('click', close);
+        document.addEventListener('keydown', onKey);
+        setTimeout(() => ok.focus(), reduceMotion ? 50 : 2200);
+    }
+
+    document.addEventListener('game', (e) => {
+        if (e.detail.type !== 'reset') return;
+        store.del(KEY);
+        placeStatic();
+    });
+    placeStatic();
+    // les 7 déjà réunis mais la page fermée pendant la cinématique : le succès est quand même donné
+    if (get().size === TOTAL && !achievements.has('crystals')) achievements.unlock('crystals');
+
+    return {
+        get count() { return get().size; },
+        total: TOTAL,
+        has,
+        missing: () => SPOTS.filter(id => !has(id)),
+    };
+})();

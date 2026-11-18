@@ -161,6 +161,7 @@ const achievements = (() => {
         { id: 'nightMonster', icon: '🌙', name: tr('Monstre de la nuit'), desc: tr('Pêcher le Mummy Bass.'), hidden: true },
         { id: 'trueEnd', icon: '🎬', name: tr('La vraie fin'), desc: tr('Voir la fin cachée du portfolio.'), hidden: true },
         { id: 'alias', icon: '🎭', name: tr('Identité secrète'), desc: tr('Jouer sous un nom très spécial.'), hidden: true },
+        { id: 'crystals', icon: '💠', name: tr('Gardien des cristaux'), desc: tr('Réunir les 7 cristaux cachés dans le site.') },
     ];
     const get = () => { try { return new Set(JSON.parse(store.get(KEY) || '[]')); } catch { return new Set(); } };
     const save = (set) => store.set(KEY, JSON.stringify([...set]));

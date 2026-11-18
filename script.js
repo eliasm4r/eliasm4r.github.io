@@ -49,7 +49,12 @@ function trailFrame() {
         trailCtx.moveTo(a.x, a.y);
         trailCtx.lineTo(b.x, b.y);
         trailCtx.lineWidth = 0.5 + 2.8 * k;
-        if (tint.rainbow) {
+        if (tint.rainbow === 'royal') {
+            const m = (1 + Math.sin(now / 240 + i * 0.4)) / 2;
+            const rgb = `${Math.round(160 + 95 * m)}, ${Math.round(200 + 12 * m)}, ${Math.round(255 - 140 * m)}`;
+            trailCtx.strokeStyle = `rgba(${rgb}, ${k})`;
+            trailCtx.shadowColor = `rgba(${rgb}, 0.9)`;
+        } else if (tint.rainbow) {
             const hue = tint.rainbow === 'aurora'
                 ? 140 + 90 * (1 + Math.sin(now / 260 + i * 0.35)) // aurore boréale : vert, bleu, violet, rose
                 : (now / 6 + i * 9) % 360;
@@ -1867,6 +1872,7 @@ const HOME_COVERS = [
             lastFront = f;
             cards.forEach((c, i) => c.classList.toggle('is-front', i === f));
             if (cards[f].dataset.title) labelTitle.textContent = cards[f].dataset.title;
+            document.dispatchEvent(new CustomEvent('coverfront', { detail: cards[f].dataset.title || '' }));
         }
         const homeOn = document.getElementById('home')?.classList.contains('is-active')
             && !document.body.classList.contains('games-modal-open');

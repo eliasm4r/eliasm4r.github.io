@@ -1606,6 +1606,7 @@ const equipment = (() => {
         { id: 'sakura', look: t('Traînée rose'), icon: '🌸', name: t('Pétale de cerisier'), how: t('Coffre caché'), glow: '255, 130, 190', core: '255, 225, 240', chest: 'sakura' },
         { id: 'aurora', look: t('Traînée aurore multicolore'), icon: '🌌', name: t('Aurore légendaire'), how: t('Succès « Chef légendaire »'), glow: '160, 120, 255', core: '255, 255, 255', req: 'ultimateChef', rainbow: 'aurora' },
         { id: 'prism', look: t('Traînée arc-en-ciel'), icon: '🌈', name: t('Prisme'), how: t('Coffre caché'), glow: '255, 255, 255', core: '255, 255, 255', chest: 'prism', rainbow: true },
+        { id: 'royal', look: t('Traînée cristal et or'), icon: '💠', name: t('Cristal royal'), how: t('Succès « Gardien des cristaux »'), glow: '120, 180, 255', core: '255, 255, 255', req: 'crystals', rainbow: 'royal' },
     ];
     const box = document.getElementById('equip');
     const list = document.getElementById('equipList');

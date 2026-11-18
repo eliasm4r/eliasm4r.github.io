@@ -51,7 +51,7 @@ const ost = (() => {
         <div class="ost-seek">
             <span class="ost-t ost-cur">0:00</span>
             <input class="ost-range ost-progress" type="range" min="0" max="1000" step="1" value="0">
-            <span class="ost-t ost-dur">0:00</span>
+            <span class="ost-t ost-dur">–:––</span>
         </div>
         <div class="ost-controls">
             <button class="ost-btn ost-shuffle" type="button" aria-pressed="false"><i class="fas fa-random" aria-hidden="true"></i></button>
@@ -143,6 +143,12 @@ const ost = (() => {
         if (loadedIndex !== i) {
             audio.src = encodeURI(t.src);
             loadedIndex = i;
+            // durée inconnue tant que le fichier n'est pas chargé
+            durEl.textContent = '–:––';
+            curEl.textContent = '0:00';
+            progress.value = 0;
+            progress.style.setProperty('--p', '0%');
+            el.style.setProperty('--p', '0%');
         }
         msg.textContent = '';
         save();
