@@ -1153,24 +1153,52 @@ const photoAlbum = (() => {
     const canSnapPages = matchMedia('(pointer: fine) and (min-width: 917px)').matches && !navigator.connection?.saveData;
     const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 4000 }) : setTimeout(fn, 1200));
     let busy = false;
+    // la capture bloque la page un court instant : on attend que le joueur ne touche à rien
+    let lastInput = performance.now();
+    ['pointermove', 'pointerdown', 'keydown', 'wheel', 'scroll', 'touchstart'].forEach(ev => window.addEventListener(ev, () => { lastInput = performance.now(); }, { passive: true, capture: true }));
+    // seul ce qui est à l'écran est recopié (copier toute la page la figeait plus d'une seconde)
+    const SKIP = 'iframe, marquee, script, .secret-item, .chest, .crystal-shard, #oneko, body > section:not(.is-active), .toast, .achievement-toast, [hidden]';
+    const onScreen = (n) => {
+        if (!(n instanceof Element)) return true;
+        if (n.matches(SKIP)) return false;
+        const cs = getComputedStyle(n);
+        if (cs.display === 'none') return false;
+        if (cs.position === 'fixed' || cs.display === 'contents') return true;
+        const r = n.getBoundingClientRect();
+        return !(r.bottom < 0 || r.top > window.innerHeight || r.right < 0 || r.left > window.innerWidth);
+    };
+    let fontCSS = null; // les polices, préparées une seule fois
     const snapPage = (id) => {
         if (!canSnapPages || busy || has(`page-${id}`)) return;
-        setTimeout(() => idle(async () => {
+        busy = true;
+        const t0 = performance.now();
+        const attempt = () => {
             const sec = document.getElementById(id);
-            if (!sec?.classList.contains('is-active') || document.hidden || gamePaused || document.querySelector('.credits')) return;
-            busy = true;
-            try {
-                const htmlToImage = await loadLib();
-                // tout l'écran, tel que le joueur le voit (barre du haut comprise), en pleine résolution
-                const src = await htmlToImage.toJpeg(document.body, {
-                    quality: 0.86, pixelRatio: Math.min(1.5, window.devicePixelRatio || 1),
-                    width: window.innerWidth, height: window.innerHeight, backgroundColor: '#0a0d14',
-                    filter: (n) => !n.matches?.('iframe, marquee, script, .secret-item, .chest, .crystal-shard, #oneko, body > section:not(.is-active), .toast, .achievement-toast'),
-                });
-                add(src, tr(PAGES[id] || id), `page-${id}`);
-            } catch { /* image d'un autre site, réseau... : pas de photo, tant pis */ }
-            busy = false;
-        }), 2600);
+            if (!sec?.classList.contains('is-active') || document.querySelector('.credits') || performance.now() - t0 > 60000) {
+                busy = false;
+                // on a changé de page entre-temps : c'est elle qu'on photographiera
+                const now = document.querySelector('body > section.is-active')?.id;
+                if (now && now !== id && performance.now() - t0 <= 60000) snapPage(now);
+                return;
+            }
+            // pas avant 2,5 s sur la page, ni tant que le joueur bouge, joue ou met en pause
+            if (performance.now() - t0 < 2500 || performance.now() - lastInput < 2500 || document.hidden || gamePaused || openGame) { setTimeout(attempt, 700); return; }
+            idle(async () => {
+                try {
+                    const htmlToImage = await loadLib();
+                    if (fontCSS === null) fontCSS = await htmlToImage.getFontEmbedCSS(document.body).catch(() => '');
+                    // tout l'écran, tel que le joueur le voit (barre du haut comprise)
+                    const src = await htmlToImage.toJpeg(document.body, {
+                        quality: 0.86, pixelRatio: Math.min(1.25, window.devicePixelRatio || 1),
+                        width: window.innerWidth, height: window.innerHeight, backgroundColor: '#0a0d14',
+                        fontEmbedCSS: fontCSS, filter: onScreen,
+                    });
+                    add(src, tr(PAGES[id] || id), `page-${id}`);
+                } catch { /* image d'un autre site, réseau... : pas de photo, tant pis */ }
+                busy = false;
+            });
+        };
+        setTimeout(attempt, 700);
     };
 
     // la page affichée au moment d'une 1re visite
