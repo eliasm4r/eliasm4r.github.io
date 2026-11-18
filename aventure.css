@@ -20,6 +20,39 @@
     box-shadow: 0 0 0 1px rgba(26, 18, 4, 0.35), 0 0 18px rgba(var(--t-gold-rgb), 0.6);
 }
 
+/* ---------- Accueil : jaquettes nettes dans le carrousel 3D ----------
+   Le carrousel tourne en continu : le navigateur dessine alors chaque carte une seule fois,
+   à petite taille, puis l'agrandit en 3D -> jaquettes pixelisées (sauf celles déjà de face).
+   Les cartes sont donc dessinées 2× plus grandes, puis tout le carrousel est réduit de moitié
+   (propriété `scale`, qui s'ajoute à la rotation posée en JS) : même taille à l'écran,
+   deux fois plus de pixels. */
+.home .wrapper .inner {
+    --w: 240px;
+    --h: 360px;
+    --perspective: 2000px;
+    top: calc(25% - 90px); /* la carte 2× plus haute garde le même centre */
+    scale: 0.5;
+}
+
+.home .wrapper .inner:has(.has-cover) {
+    --h: 320px;
+    top: calc(25% - 80px);
+}
+
+.home .wrapper .card {
+    border-width: 4px;
+    border-radius: 24px;
+}
+
+.home .wrapper .card.has-cover {
+    border-width: 4px;
+    box-shadow: 0 0 44px rgba(var(--color-card), 0.35);
+}
+
+.home .wrapper .card.is-front {
+    box-shadow: 0 0 68px rgba(var(--color-card), 0.65) !important;
+}
+
 /* ---------- Boîte de confirmation (reset…) ---------- */
 .confirm {
     position: fixed;
