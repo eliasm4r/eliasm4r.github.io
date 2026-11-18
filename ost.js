@@ -9,7 +9,22 @@
 const ost = (() => {
     const KEY = 'eliasPortfolio.ost';
     const TRACKS = (Array.isArray(window.OST_PLAYLIST) ? window.OST_PLAYLIST : []).filter(x => x && x.src);
-    const DEFAULT_COVER = 'assets/covers/ff15.jpg';
+    // pas de jaquette : une pochette générée au nom du jeu (champ artist), jamais l'image d'un autre jeu
+    const coverCache = {};
+    const coverOf = (t) => {
+        if (!t) return '';
+        if (t.cover) return t.cover;
+        const name = String(t.artist || t.title || 'OST').trim();
+        if (coverCache[name]) return coverCache[name];
+        let h = 0;
+        for (const ch of name) h = (h * 31 + ch.codePointAt(0)) % 360;
+        const ff = name.match(/^final fantasy\s+(.+)$/i);
+        const big = (ff ? ff[1] : name).toUpperCase().replace(/[&<>"']/g, '');
+        const small = ff ? 'FINAL FANTASY' : 'ORIGINAL SOUNDTRACK';
+        const size = Math.max(9, Math.min(26, Math.floor(100 / (big.length * 0.62))));
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${h},45%,32%)"/><stop offset="1" stop-color="hsl(${(h + 40) % 360},50%,9%)"/></linearGradient></defs><rect width="120" height="120" fill="url(#g)"/><path d="M60 14 74 34 60 70 46 34z" fill="hsla(${h},80%,85%,.18)" stroke="hsla(${h},80%,88%,.7)" stroke-width="1.5"/><text x="60" y="92" text-anchor="middle" font-family="Georgia,serif" font-size="${size}" font-weight="700" fill="#fff">${big}</text><text x="60" y="108" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" letter-spacing="1.5" fill="hsla(${h},70%,85%,.85)">${small}</text></svg>`;
+        return (coverCache[name] = `data:image/svg+xml,${encodeURIComponent(svg)}`);
+    };
 
     const st = { on: false, i: 0, vol: 0.6, muted: false, shuffle: false, repeat: 'all', mini: false };
     try { Object.assign(st, JSON.parse(store.get(KEY) || '{}')); } catch { }
@@ -276,7 +291,7 @@ const ost = (() => {
         }
         nameEl.textContent = t ? t.title || t.src.split('/').pop() : tr('Aucun morceau');
         artistEl.textContent = t ? t.artist || '' : '';
-        const cover = (t && t.cover) || DEFAULT_COVER;
+        const cover = coverOf(t);
         if (coverImg.getAttribute('src') !== cover) coverImg.src = cover;
         // en attente pendant la cuisine, le générique... : on le dit plutôt que de laisser croire à une panne
         const heldText = tr("En pause le temps d'un autre son");
@@ -309,7 +324,7 @@ const ost = (() => {
         const ms = navigator.mediaSession;
         const t = track();
         if (!ms || !t || typeof MediaMetadata === 'undefined') return;
-        const cover = new URL((t.cover || DEFAULT_COVER), location.href).href;
+        const cover = new URL(coverOf(t), location.href).href;
         ms.metadata = new MediaMetadata({ title: t.title || '', artist: t.artist || '', album: 'Portfolio · Elias Maruca', artwork: [{ src: cover }] });
     };
     if (navigator.mediaSession) {

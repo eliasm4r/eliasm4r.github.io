@@ -894,6 +894,7 @@ const pauseMenu = (() => {
         if (el) return;
         lastFocus = document.activeElement;
         gamePaused = true;
+        document.dispatchEvent(new CustomEvent('pausechange', { detail: true }));
         sfx.freeze?.(true);
         window.ost?.duck(true);
         if (sfx.on) { sfx.tone(988, 0.12, 'square', 0.018); sfx.tone(740, 0.18, 'square', 0.016, 0.08); }
@@ -953,6 +954,7 @@ const pauseMenu = (() => {
         setTimeout(() => leaving.remove(), reduceMotion ? 0 : 220);
         document.documentElement.classList.remove('is-paused');
         gamePaused = false;
+        document.dispatchEvent(new CustomEvent('pausechange', { detail: false }));
         sfx.freeze?.(false);
         window.ost?.duck(false);
         if (sfx.on) { sfx.tone(740, 0.1, 'square', 0.016); sfx.tone(988, 0.16, 'square', 0.018, 0.07); }
@@ -972,4 +974,83 @@ const pauseMenu = (() => {
     }, true);
 
     return { open, close, get isOpen() { return !!el; } };
+})();
+
+/* ---------------------------------------------------------------------
+   7. MUSIQUE DES MINI-JEUX — chaque jeu peut avoir son morceau
+   (OST_GAMES dans assets/ost/playlist.js). Il ne joue que pendant ce
+   jeu : il s'arrête en quittant le jeu ou l'onglet, se tait pendant la
+   pause, et le lecteur de musique attend la fin de la partie.
+   Le bouton ♪ coupe aussi cette musique ; le volume est celui du lecteur.
+   --------------------------------------------------------------------- */
+const gameMusic = (() => {
+    const TRACKS = window.OST_GAMES || {};
+    if (!Object.keys(TRACKS).length) return null;
+    const audio = new Audio();
+    audio.loop = true;
+    audio.preload = 'none';
+    let current = null, fadeId = 0;
+
+    const level = () => (window.ost ? window.ost.volume : 0.6) * 0.55;
+    const fade = (to, ms, done) => {
+        const id = ++fadeId;
+        const from = audio.volume, t0 = performance.now();
+        const step = () => {
+            if (id !== fadeId) return; // un autre fondu a pris la main
+            const k = Math.min(1, (performance.now() - t0) / ms);
+            audio.volume = Math.max(0, Math.min(1, from + (to - from) * k));
+            if (k < 1) requestAnimationFrame(step); else done?.();
+        };
+        step();
+    };
+
+    // le jeu dont la musique doit jouer en ce moment (ou aucun)
+    const wanted = () => {
+        if (!sfx.on || document.hidden || document.body.classList.contains('games-modal-open')) return null;
+        if (!openGame || !TRACKS[openGame]) return null;
+        // en pause, gameOn() est faux : la musique du jeu continue, mais plus bas
+        const on = gamePaused ? !!document.getElementById('games')?.classList.contains('is-active') : gameOn(openGame);
+        return on ? openGame : null;
+    };
+
+    const stop = (rewind) => {
+        if (audio.paused) {
+            if (rewind) audio.currentTime = 0;
+            window.ost?.release('game');
+            return;
+        }
+        fade(0, 400, () => {
+            audio.pause();
+            if (rewind) audio.currentTime = 0;
+            window.ost?.release('game');
+        });
+    };
+
+    const sync = () => {
+        const id = wanted();
+        if (!id) { stop(false); return; }
+        if (current !== id) {
+            current = id;
+            audio.src = encodeURI(TRACKS[id]);
+        }
+        window.ost?.hold('game');
+        const target = level() * (gamePaused ? 0.3 : 1);
+        if (!audio.paused) { fade(target, 300); return; }
+        audio.volume = 0;
+        const p = audio.play();
+        if (p) p.then(() => fade(target, 700)).catch(() => window.ost?.release('game'));
+    };
+    const later = () => setTimeout(sync, 0); // après la mise à jour des onglets
+
+    document.addEventListener('gameopen', later);
+    document.addEventListener('gameresume', later);
+    document.addEventListener('pausechange', later);
+    document.addEventListener('tabshow', later);
+    document.addEventListener('visibilitychange', later);
+    // retour à la liste des jeux : le morceau repartira du début à la prochaine partie
+    document.addEventListener('gameclose', () => stop(true));
+    document.getElementById('soundToggle')?.addEventListener('click', later);
+    audio.addEventListener('error', () => window.ost?.release('game'));
+
+    return { sync, get playing() { return !audio.paused; }, get track() { return current; } };
 })();
