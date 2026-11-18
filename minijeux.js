@@ -1767,6 +1767,9 @@ const trueEnding = (() => {
                 <p class="credits-k">${t('UN PORTFOLIO DE')}</p>
                 <h2>ELIAS MARUCA</h2>
                 <dl></dl>
+                <div class="credits-album" hidden>
+                    <p class="credits-k">${t('ALBUM DE VOYAGE')}</p>
+                </div>
                 <p class="credits-thanks">${t('Merci d\'avoir joué jusqu\'au bout.')}</p>
                 <p class="credits-fin">FIN</p>
             </div>`;
@@ -1776,6 +1779,25 @@ const trueEnding = (() => {
             const dd = document.createElement('dd'); dd.textContent = v;
             dl.append(dt, dd);
         });
+        // les photos prises pendant la visite (aventure.js), façon Prompto
+        const photos = typeof photoAlbum !== 'undefined' ? photoAlbum.list() : [];
+        const album = el.querySelector('.credits-album');
+        if (photos.length) {
+            album.hidden = false;
+            photos.forEach((ph, i) => {
+                const fig = document.createElement('figure');
+                fig.className = `credits-photo ${i % 2 ? 'is-right' : 'is-left'}`;
+                fig.style.setProperty('--r', `${(i % 2 ? 1 : -1) * (1.5 + (i * 7) % 3)}deg`);
+                const img = document.createElement('img');
+                img.src = ph.src;
+                img.alt = '';
+                const cap = document.createElement('figcaption');
+                const d = new Date(ph.at);
+                cap.textContent = `${ph.caption} · ${d.toLocaleDateString(LANG === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short' })}`;
+                fig.append(img, cap);
+                album.appendChild(fig);
+            });
+        }
         document.body.appendChild(el);
         document.body.classList.add('credits-open');
 
@@ -1791,14 +1813,17 @@ const trueEnding = (() => {
             done = true;
             achievements.unlock('trueEnd');
         };
-        // le texte défile, puis "FIN" reste à l'écran tant que la musique joue
-        const dur = reduceMotion ? 3000 : 60000; // mouvement réduit : générique fixe, qu'on peut faire défiler
-        if (!reduceMotion) requestAnimationFrame(() => {
-            const dist = roll.offsetHeight - window.innerHeight * 0.5;
+        // le texte défile à vitesse constante ; une fois « FIN » arrivé, le générique se ferme
+        // (sans attendre la fin de la chanson). Mouvement réduit : générique fixe, qu'on ferme soi-même.
+        let timer = 0;
+        if (reduceMotion) timer = setTimeout(finish, 3000);
+        else requestAnimationFrame(() => {
+            const dist = Math.max(0, roll.offsetHeight - window.innerHeight * 0.55);
+            const dur = Math.max(30000, (dist / 75) * 1000);
             roll.style.transition = `transform ${dur}ms linear`;
-            roll.style.transform = `translateY(${-Math.max(0, dist)}px)`;
+            roll.style.transform = `translateY(${-dist}px)`;
+            timer = setTimeout(() => { finish(); close(); }, dur + 3500);
         });
-        const timer = setTimeout(finish, dur + 500);
 
         const close = () => {
             clearTimeout(timer);
@@ -1820,7 +1845,6 @@ const trueEnding = (() => {
         const onKey = (e) => { if (e.key === 'Escape') close(); };
         el.querySelector('.credits-skip').addEventListener('click', close);
         document.addEventListener('keydown', onKey);
-        audio.addEventListener('ended', close);
         el.querySelector('.credits-skip').focus();
     };
 

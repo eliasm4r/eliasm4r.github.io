@@ -1056,3 +1056,96 @@ const gameMusic = (() => {
 
     return { sync, get playing() { return !audio.paused; }, get track() { return current; } };
 })();
+
+/* ---------------------------------------------------------------------
+   8. ALBUM PHOTO — comme Prompto, le site prend des photos de ta visite :
+   la 1re fois qu'on découvre une page, et à chaque exploit dans un
+   mini-jeu. Elles défilent dans le générique de la vraie fin.
+   Capture des pages : html-to-image (chargé seulement quand il sert,
+   sur ordinateur). Les mini-jeux sont des <canvas> : copie directe.
+   --------------------------------------------------------------------- */
+const photoAlbum = (() => {
+    const KEY = 'eliasPortfolio.album';
+    const MAX = 14;
+    const LIB = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js';
+    const PAGES = { home: 'Accueil', about: 'Présentation', skills: 'Compétences', softskills: 'Soft Skills', education: 'Parcours', work: 'Réalisations', experience: 'Expériences', games: 'Mini-jeux' };
+    const SHOTS = { fish1: 'Première prise !', fishBig: 'Le roi du lac', chef: 'Recette trois étoiles', ultimateChef: 'Chef légendaire', chocobo: 'Ligne d\'arrivée', battle: 'Golem vaincu', nightMonster: 'Le monstre de la nuit' };
+
+    const list = () => { try { return JSON.parse(store.get(KEY) || '[]'); } catch { return []; } };
+    const save = (all) => {
+        // le stockage du navigateur est limité : si c'est plein, on retire les plus anciennes
+        while (all.length) {
+            try { localStorage.setItem(KEY, JSON.stringify(all)); return; } catch { all.shift(); }
+        }
+    };
+    const add = (src, caption, id) => {
+        const all = list().filter(p => !id || p.id !== id);
+        all.push({ id, src, caption, at: Date.now() });
+        while (all.length > MAX) {
+            // on garde la toute première photo, on enlève la plus ancienne après elle
+            all.splice(1, 1);
+        }
+        save(all);
+    };
+    const has = (id) => list().some(p => p.id === id);
+
+    // réduit une image (canvas) en petite photo JPEG
+    const shrink = (canvas, w = 360) => {
+        const k = w / canvas.width;
+        const out = document.createElement('canvas');
+        out.width = w;
+        out.height = Math.round(canvas.height * k);
+        out.getContext('2d').drawImage(canvas, 0, 0, out.width, out.height);
+        return out.toDataURL('image/jpeg', 0.72);
+    };
+
+    let lib = null;
+    const loadLib = () => lib || (lib = new Promise((res, rej) => {
+        if (window.htmlToImage) { res(window.htmlToImage); return; }
+        const s = document.createElement('script');
+        s.src = LIB;
+        s.onload = () => res(window.htmlToImage);
+        s.onerror = () => { lib = null; rej(); };
+        document.head.appendChild(s);
+    }));
+    // capture des pages : seulement sur ordinateur (lourd sur mobile), et quand le navigateur est libre
+    const canSnapPages = matchMedia('(pointer: fine) and (min-width: 917px)').matches && !navigator.connection?.saveData;
+    const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 4000 }) : setTimeout(fn, 1200));
+    let busy = false;
+    const snapPage = (id) => {
+        if (!canSnapPages || busy || has(`page-${id}`)) return;
+        setTimeout(() => idle(async () => {
+            const sec = document.getElementById(id);
+            if (!sec?.classList.contains('is-active') || document.hidden || gamePaused) return;
+            busy = true;
+            try {
+                const htmlToImage = await loadLib();
+                const src = await htmlToImage.toJpeg(sec, {
+                    quality: 0.72, pixelRatio: 0.35, height: window.innerHeight, backgroundColor: '#0a0d14',
+                    filter: (n) => !n.matches?.('iframe, marquee, .secret-item, .chest, .crystal-shard'),
+                });
+                add(src, tr(PAGES[id] || id), `page-${id}`);
+            } catch { /* image d'un autre site, réseau... : pas de photo, tant pis */ }
+            busy = false;
+        }), 2600);
+    };
+
+    // la page affichée au moment d'une 1re visite
+    document.addEventListener('tabshow', (e) => snapPage(e.detail));
+    document.addEventListener('game', (e) => { if (e.detail.type === 'visit') snapPage(document.querySelector('body > section.is-active')?.id); });
+
+    // un exploit dans un mini-jeu : on photographie le jeu
+    document.addEventListener('trophy', (e) => {
+        const caption = SHOTS[e.detail];
+        if (!caption) return;
+        setTimeout(() => {
+            const cv = document.querySelector('.game-panel.is-active canvas');
+            if (!cv || !cv.width) return;
+            try { add(shrink(cv), tr(caption), `game-${e.detail}`); } catch { }
+        }, 350);
+    });
+
+    document.addEventListener('game', (e) => { if (e.detail.type === 'reset') store.del(KEY); });
+
+    return { list, add };
+})();
