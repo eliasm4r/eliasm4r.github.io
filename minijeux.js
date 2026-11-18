@@ -2957,7 +2957,7 @@ const roadTrip = (() => {
         const roadW = Math.min(W * 0.56, Math.max(240, H * 0.62));
         const laneW = roadW / 3;
         const carW = laneW * 0.42, carL = carW * 2;
-        G = { roadW, laneW, x0: W / 2 - roadW / 2, carW, carL, carY: H * 0.8, ppm: H / 60 };
+        G = { roadW, laneW, x0: W / 2 - roadW / 2, carW, carL, carY: H * 0.8, ppm: H / 78 };
     };
     const laneCenter = (l) => G.x0 + G.laneW * (l + 0.5);
     const yOf = (m) => G.carY - (m - dist) * G.ppm;
@@ -3030,9 +3030,58 @@ const roadTrip = (() => {
 
     /* --- logique --- */
     const CAR_COLORS = [205, 0, 45, 130, 280, 30, 190, 340];
+    const isSolid = (o) => o.kind !== 'can' && !o.hit;
+    const hitLen = (o) => o.kind === 'truck' ? G.carL * 1.7 : o.kind === 'oil' ? G.carL * 0.6 : o.kind === 'can' ? G.carW * 0.6 : o.kind === 'barrier' ? G.carW * 0.5 : G.carL;
+    // Simule les prochaines secondes : peut-on encore passer ? (voitures à vitesse constante,
+    // une voiture qui clignote occupe ses deux voies, un changement de voie prend ~0,25 s)
+    const passable = (list) => {
+        if (!G) return true;
+        const STEP = 0.05, MOVE = 5, v = Math.max(speed, 20);
+        const obs = list.filter(isSolid).map(o => {
+            const lanes = [Math.round(o.laneX)];
+            if (o.turn && o.turn.dir) lanes.push(o.lane, o.lane + o.turn.dir);
+            const reach = ((G.carL + hitLen(o)) * 0.4) / G.ppm * 1.25 + 1; // mètres, avec marge
+            // une voiture rattrape celle de devant puis la suit : on prend la plus lente des deux
+            const ahead = list.filter(q => q !== o && isSolid(q) && q.kind !== 'oil' && Math.round(q.laneX) === Math.round(o.laneX) && q.m > o.m && q.m - o.m < 40);
+            const ov = Math.min(o.v || 0, ...ahead.map(q => q.v || 0));
+            return { lanes, d: o.m - dist, rel: v - ov, reach };
+        });
+        const last = obs.reduce((m, o) => Math.max(m, (o.d + o.reach) / Math.max(1, o.rel)), 0);
+        const steps = Math.min(140, Math.ceil(last / STEP) + 2);
+        const busy = []; // busy[k][l] : voie l occupée au pas k
+        for (let k = 0; k <= steps; k++) {
+            const row = [false, false, false];
+            for (const o of obs) {
+                const d = o.d - o.rel * k * STEP;
+                if (Math.abs(d) < o.reach) for (const l of o.lanes) if (l >= 0 && l <= 2) row[l] = true;
+            }
+            busy.push(row);
+        }
+        // atteignable[k][l]
+        let cur = [false, false, false];
+        cur[lane] = !busy[0][lane];
+        const lockSteps = Math.ceil(lock / STEP);
+        const reach = [cur];
+        for (let k = 0; k < steps; k++) {
+            const nxt = reach[k + 1] || (reach[k + 1] = [false, false, false]);
+            for (let l = 0; l < 3; l++) {
+                if (!reach[k][l]) continue;
+                if (!busy[k + 1][l]) nxt[l] = true;
+                if (k < lockSteps) continue;
+                for (const n of [l - 1, l + 1]) {
+                    if (n < 0 || n > 2 || k + MOVE > steps) continue;
+                    let ok = true;
+                    for (let j = k + 1; j <= k + MOVE && ok; j++) if (busy[j][l] || busy[j][n]) ok = false;
+                    if (ok) (reach[k + MOVE] || (reach[k + MOVE] = [false, false, false]))[n] = true;
+                }
+            }
+        }
+        return (reach[steps] || []).some(Boolean);
+    };
     const free = (l, m, span) => !things.some(o => o.kind !== 'can' && Math.round(o.lane) === l && Math.abs(o.m - m) < span);
     const spawnRow = () => {
-        const far = dist + 66; // juste au-dessus de l'écran
+        const far = dist + 68; // juste au-dessus de l'écran
+        const before = things.length;
         const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
         const late = Math.min(1, dist / 6000);
         const blocked = dist > 600 && Math.random() < 0.15 + late * 0.3 ? 2 : 1;
@@ -3046,17 +3095,23 @@ const roadTrip = (() => {
             if (r < 0.12 + late * 0.1 && dist > 400) things.push({ kind: 'barrier', lane: l, laneX: l, m: far, v: 0 });
             else {
                 const truck = Math.random() < 0.22;
-                const v = rand(12, 24);
+                const v = speed * rand(0.38, 0.6);
                 // certains changent de voie en cours de route (avec clignotant)
                 const turner = dist > 300 && Math.random() < 0.18 + late * 0.25;
                 things.push({ kind: truck ? 'truck' : 'car', lane: l, laneX: l, m: far, v, hue: CAR_COLORS[Math.floor(Math.random() * CAR_COLORS.length)], turn: turner ? { at: rand(36, 54), dir: 0, t: 0 } : null });
             }
         }
+        // la rangée ne doit jamais fermer la route : on retire des obstacles tant qu'aucun chemin n'existe
+        while (things.length > before && !passable(things)) {
+            const mine = things.slice(before);
+            things.splice(things.indexOf(mine[Math.floor(Math.random() * mine.length)]), 1);
+        }
+        const tryAdd = (o) => { things.push(o); if (!passable(things)) things.pop(); };
         // flaque d'huile dans une voie libre, parfois
-        if (dist > 900 && blocked === 1 && Math.random() < 0.12 + late * 0.12 && free(lanes[1], far + 18, 20)) things.push({ kind: 'oil', lane: lanes[1], laneX: lanes[1], m: far + 18, v: 0 });
+        if (dist > 900 && blocked === 1 && Math.random() < 0.12 + late * 0.12 && free(lanes[1], far + 18, 20)) tryAdd({ kind: 'oil', lane: lanes[1], laneX: lanes[1], m: far + 18, v: 0 });
         // jerrican : plus rare qu'avant, et pas toujours dans la voie libre
         if (Math.random() < (fuel < 40 ? 0.42 : 0.2)) { const cl = lanes[Math.random() < 0.7 ? 2 : 1]; things.push({ kind: 'can', lane: cl, laneX: cl, m: far + 8, v: 0 }); }
-        nextRow = dist + Math.max(30, speed) * Math.max(0.7, 1.15 - dist / 12000) + rand(0, 10);
+        nextRow = dist + Math.max(30, speed) * Math.max(0.62, 1.05 - dist / 14000) + rand(0, 10);
     };
 
     const update = (dt) => {
@@ -3071,10 +3126,10 @@ const roadTrip = (() => {
         }
         if (state !== 'run') return;
         // vitesse : de 100 à ~270 km/h, ça monte vite ; à sec, la voiture s'arrête
-        const target = fuel > 0 ? 34 + Math.min(28, dist / 120) : 0;
+        const target = fuel > 0 ? 48 + Math.min(44, dist / 90) : 0;
         speed += (target - speed) * Math.min(1, dt * (fuel > 0 ? 0.7 : 0.9));
         dist += speed * dt;
-        fuel = Math.max(0, fuel - dt * (3.2 + speed / 30));
+        fuel = Math.max(0, fuel - dt * (2.2 + speed / 36));
         inv = Math.max(0, inv - dt);
         shake = Math.max(0, shake - dt);
         if (dist >= nextRow) spawnRow();
@@ -3088,8 +3143,10 @@ const roadTrip = (() => {
                 if (o.turn && o.turn.dir === 0 && o.m - dist < o.turn.at) {
                     const busy = things.some(q => q !== o && q.turn && q.turn.dir);
                     const opts = busy ? [] : [o.lane - 1, o.lane + 1].filter(l => l >= 0 && l <= 2 && free(l, o.m, 22));
-                    if (opts.length) { o.turn.dir = opts[Math.floor(Math.random() * opts.length)] - o.lane; o.turn.t = 0; }
-                    else o.turn = null;
+                    if (opts.length) {
+                        o.turn.dir = opts[Math.floor(Math.random() * opts.length)] - o.lane; o.turn.t = 0;
+                        if (!passable(things)) o.turn = null;
+                    } else o.turn = null;
                 }
                 if (o.turn && o.turn.dir) {
                     o.turn.t += dt;
@@ -3097,7 +3154,7 @@ const roadTrip = (() => {
                 }
             }
             const dy = Math.abs((o.m - dist) * G.ppm);
-            const len = o.kind === 'truck' ? G.carL * 1.7 : o.kind === 'oil' ? G.carL * 0.6 : o.kind === 'can' ? G.carW * 0.6 : o.kind === 'barrier' ? G.carW * 0.5 : G.carL;
+            const len = hitLen(o);
             if (o.hit || dy > (G.carL + len) * (o.kind === 'can' ? 0.5 : 0.4)) continue;
             if (Math.abs(laneX - o.laneX) > (o.kind === 'can' ? 0.5 : 0.55)) continue;
             o.hit = true;
@@ -3339,7 +3396,7 @@ const roadTrip = (() => {
 
     renderBest();
     showMenu();
-    return { reset() { store.del(KEY); store.del('eliasPortfolio.road'); best = 0; renderBest(); showMenu(); }, peek: () => ({ lane, dist, hp, fuel, speed, state, things }), steer };
+    return { reset() { store.del(KEY); store.del('eliasPortfolio.road'); best = 0; renderBest(); showMenu(); }, peek: () => ({ lane, dist, hp, fuel, speed, state, things }), steer, canPass: (l) => { const o = lane; lane = l; const r = passable(things); lane = o; return r; } };
 })();
 
 /* Menus de combat : ils gardent leur plus grande hauteur, sinon la page
