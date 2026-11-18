@@ -4075,3 +4075,25 @@ html.cat-in-battle #oneko {
     opacity: 0.45;
     transform: none;
 }
+
+/* menu pause : taille fixe, il ne bouge plus quand on change d'onglet
+   (le panneau de droite défile à l'intérieur s'il a plus de contenu) */
+.pz-panel {
+    height: min(46rem, calc(100vh - 24rem));
+    min-height: 0;
+}
+
+@keyframes pzPanel { from { opacity: 0; } }
+
+@media (min-width: 917px) and (max-height: 760px) {
+    .pz-panel { height: calc(100vh - 19rem); }
+}
+
+@media (max-width: 916px) {
+    /* sur téléphone : le cadre prend toute la hauteur et part du haut */
+    .pz-frame {
+        height: calc(100dvh - 2.4rem);
+        align-content: start;
+    }
+    .pz-panel { height: auto; }
+}
