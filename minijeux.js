@@ -559,7 +559,7 @@ const cooking = (() => {
         const dt = Math.min((ms - last) / 1000, 0.05);
         last = ms;
         now = ms / 1000;
-        if (!gameOn('cooking')) { if (state === 'play') showStart(); raf = 0; return; } // on quitte : la partie s'arrête
+        if (!gameOn('cooking')) { if (state === 'play' && !gamePaused) showStart(); raf = 0; return; } // on quitte : la partie s'arrête (la pause, elle, la fige)
         update();
         draw(dt);
         raf = requestAnimationFrame(loop);
@@ -571,6 +571,7 @@ const cooking = (() => {
         raf = requestAnimationFrame(loop);
     };
     document.addEventListener('gameopen', (e) => { if (e.detail === 'cooking') { run(); if (state !== 'play') showStart(); } });
+    document.addEventListener('gameresume', (e) => { if (e.detail === 'cooking') run(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') showStart(); });
     window.addEventListener('resize', () => { if (raf) ({ c, W, H } = fitCanvas(cv)); });
 
@@ -1102,6 +1103,7 @@ const chocoboRace = (() => {
         raf = requestAnimationFrame(loop);
     };
     document.addEventListener('gameopen', (e) => { if (e.detail === 'chocobo') { loadSprite(); deco = null; run(); if (state === 'run' || state === 'count') showMenu(); } });
+    document.addEventListener('gameresume', (e) => { if (e.detail === 'chocobo') run(); });
     window.addEventListener('resize', () => { deco = null; if (raf) ({ c, W, H } = fitCanvas(cv)); });
 
     renderBest();
@@ -1576,6 +1578,7 @@ const battle = (() => {
         raf = requestAnimationFrame(loop);
     };
     document.addEventListener('gameopen', (e) => { if (e.detail === 'battle') run(); });
+    document.addEventListener('gameresume', (e) => { if (e.detail === 'battle') run(); });
     window.addEventListener('resize', () => { if (raf) ({ c, W, H } = fitCanvas(cv)); });
 
     renderRecord();
@@ -1825,5 +1828,5 @@ const trueEnding = (() => {
     document.addEventListener('trophy', render);
     document.addEventListener('game', (e) => { if (e.detail.type === 'reset') { wasReady = null; setTimeout(render, 50); } });
     render();
-    return { play: credits };
+    return { play: credits, progress: () => [count(), NEEDS.length] };
 })();

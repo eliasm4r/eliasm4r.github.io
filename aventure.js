@@ -444,3 +444,532 @@ const crystalHunt = (() => {
         missing: () => SPOTS.filter(id => !has(id)),
     };
 })();
+
+/* ---------------------------------------------------------------------
+   4. TEMPS DE JEU — compté seulement quand la page est visible
+   --------------------------------------------------------------------- */
+const playTime = (() => {
+    const KEY = 'eliasPortfolio.playtime';
+    let total = Number(store.get(KEY)) || 0; // en secondes
+    let since = document.hidden ? 0 : performance.now();
+    const flush = () => {
+        if (!since) return;
+        const now = performance.now();
+        total += (now - since) / 1000;
+        since = now;
+        store.set(KEY, String(Math.floor(total)));
+    };
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { flush(); since = 0; } else since = performance.now();
+    });
+    window.addEventListener('pagehide', flush);
+    setInterval(flush, 20000);
+    document.addEventListener('game', (e) => {
+        if (e.detail.type !== 'reset') return;
+        total = 0;
+        since = document.hidden ? 0 : performance.now();
+        store.del(KEY);
+    });
+    const seconds = () => total + (since ? (performance.now() - since) / 1000 : 0);
+    const format = (s = seconds()) => {
+        s = Math.floor(s);
+        const p = (n) => String(n).padStart(2, '0');
+        return `${p(Math.floor(s / 3600))}:${p(Math.floor(s / 60) % 60)}:${p(s % 60)}`;
+    };
+    return { seconds, format };
+})();
+
+/* ---------------------------------------------------------------------
+   5. LUMI — un petit esprit de cristal qui vit dans le menu. Il donne
+   des indices en trois temps (énigme, page, endroit exact) et lève un
+   « ! » quand rien n'a avancé depuis quelques minutes.
+   Pour un nouvel indice : lumi.add(id, catégorie, déjàFait, énigme, page, exact).
+   --------------------------------------------------------------------- */
+let lumiSvgCount = 0;
+function lumiSvg() {
+    const id = `lumiGrad${++lumiSvgCount}`;
+    return `<svg class="lumi-svg" viewBox="0 0 40 46" aria-hidden="true" focusable="false">
+        <defs><linearGradient id="${id}" x1="0.2" y1="0" x2="0.6" y2="1"><stop class="lumi-stop-a" offset="0"/><stop class="lumi-stop-b" offset="1"/></linearGradient></defs>
+        <g class="lumi-orbit"><circle cx="36" cy="12" r="1.4"/></g>
+        <g class="lumi-float">
+            <path class="lumi-body" fill="url(#${id})" d="M20 3 33.5 19 20 43 6.5 19z"/>
+            <path class="lumi-facet" d="M20 3 6.5 19 20 24z"/>
+            <path class="lumi-shine" d="M16.5 9.5 12.5 15"/>
+            <g class="lumi-eyes"><ellipse cx="15.8" cy="21.5" rx="1.6" ry="2.1"/><ellipse cx="24.2" cy="21.5" rx="1.6" ry="2.1"/></g>
+            <ellipse class="lumi-cheek" cx="12.8" cy="25.4" rx="1.7" ry="0.9"/>
+            <ellipse class="lumi-cheek" cx="27.2" cy="25.4" rx="1.7" ry="0.9"/>
+        </g>
+    </svg>`;
+}
+
+const lumi = (() => {
+    const kicker = document.querySelector('.menu-kicker');
+    if (!kicker) return null;
+    const MET_KEY = 'eliasPortfolio.lumi';
+    const STUCK_MS = 3 * 60 * 1000;
+
+    const PAGES = { home: 'Accueil', about: 'Présentation', skills: 'Compétences', softskills: 'Soft Skills', education: 'Parcours', work: 'Réalisations', experience: 'Expériences', games: 'Mini-jeux' };
+    const lookIn = (id) => tr('Regarde du côté de la page « %s ».').replace('%s', tr(PAGES[id] || id));
+    const ach = (id) => achievements.has(id);
+    const chestOpen = (id) => { try { return JSON.parse(store.get('eliasPortfolio.chests') || '[]').includes(id); } catch { return false; } };
+    const secret = (id) => getFound().has(id);
+    const crystal = (id) => crystalHunt.has(id);
+
+    const CAT = { end: tr('FIN CACHÉE'), secret: tr('OBJET SECRET'), crystal: tr('CRISTAL'), chest: tr('COFFRE'), trophy: tr('SUCCÈS') };
+    const topics = [];
+    // un sujet = une catégorie, une condition « déjà fait », puis 3 phrases de plus en plus claires
+    const add = (id, cat, done, riddle, where, exact) => topics.push({ id, cat: CAT[cat] || cat, done, lines: [riddle, where, exact] });
+
+    /* --- d'abord le chemin vers la vraie fin --- */
+    add('explorer', 'end', () => ach('explorer'), tr('Un vrai héros visite chaque recoin du royaume.'), tr('La barre sous ton pseudo montre les zones déjà vues.'), tr('Ouvre chacune des 7 pages du menu pour atteindre le niveau MAX.'));
+    add('sonic', 'secret', () => secret('sonic'), tr('Quelque chose de très rapide traverse l\'accueil sans jamais s\'arrêter.'), lookIn('home'), tr('Clique sur le petit personnage qui court tout en bas de l\'accueil.'));
+    add('cuphead', 'secret', () => secret('cuphead'), tr('Une tasse attend dans un coin, là où les statistiques s\'arrêtent.'), lookIn('skills'), tr('Coin en bas à droite de la page Compétences.'));
+    add('pvz', 'secret', () => secret('pvz'), tr('Une plante a poussé au pied du sphérier.'), lookIn('softskills'), tr('En bas à gauche du sphérier, sous les sphères.'));
+    add('mario', 'secret', () => secret('mario'), tr('Un plombier s\'est caché dans la marge du parcours.'), lookIn('education'), tr('Sur le bord gauche de la page Parcours, à mi-hauteur.'));
+    add('fnf', 'secret', () => secret('fnf'), tr('Quelqu\'un attend au-dessus des quêtes, micro à la main.'), lookIn('work'), tr('Tout en haut à droite de la page Réalisations.'));
+    add('hk', 'secret', () => secret('hk'), tr('Un petit chevalier veille sur le journal.'), lookIn('experience'), tr('Sur le bord gauche de la page Expériences, vers le haut.'));
+    add('sphere', 'end', () => ach('sphere'), tr('Le sphérier n\'est pas encore entièrement illuminé.'), lookIn('softskills'), tr('Clique sur chacune des 11 sphères du sphérier.'));
+    add('recruit', 'end', () => ach('recruit'), tr('Elias attend une réponse à sa question.'), lookIn('experience'), tr('Tout en bas de la page Expériences, réponds « Oui » à Elias.'));
+    add('fish1', 'end', () => ach('fish1'), tr('Le lac attend un pêcheur patient.'), lookIn('games'), tr('Mini-jeux, Pêche : attrape un poisson.'));
+    add('chef', 'end', () => ach('chef'), tr('Un bon aventurier sait aussi cuisiner.'), lookIn('games'), tr('Mini-jeux, Cuisine : obtiens 3 étoiles sur une recette.'));
+    add('chocobo', 'end', () => ach('chocobo'), tr('Les chocobos t\'attendent sur la piste.'), lookIn('games'), tr('Mini-jeux, Chocobo Race : termine une course.'));
+    add('battle', 'end', () => ach('battle'), tr('Un golem de cristal garde le dernier passage.'), lookIn('games'), tr('Mini-jeux, Combat : bats le Golem de cristal.'));
+    add('trueEnd', 'end', () => ach('trueEnd'), tr('Quand tout est accompli, une dernière porte s\'ouvre…'), tr('Les 8 conditions de la fin cachée sont listées dans Mini-jeux.'), tr('Remplis les 8 conditions, puis lance la fin cachée depuis Mini-jeux.'));
+    /* --- les cristaux --- */
+    add('c-carousel', 'crystal', () => crystal('carousel'), tr('Un cristal suit le roi quand il passe au premier rang.'), lookIn('home'), tr('Fais tourner le carrousel jusqu\'à Final Fantasy XV : le cristal brille à côté du titre.'));
+    add('c-cv', 'crystal', () => crystal('cv'), tr('Un cristal dort entre les pages de mon histoire.'), lookIn('about'), tr('Ouvre le CV : il est à côté du bouton de téléchargement.'));
+    add('c-maths', 'crystal', () => crystal('maths'), tr('Un cristal adore les équations.'), lookIn('skills'), tr('Choisis « Modélisation Math. » : il brille au bout du niveau.'));
+    add('c-initiative', 'crystal', () => crystal('initiative'), tr('Un cristal récompense ceux qui prennent les devants.'), lookIn('softskills'), tr('Active la sphère « Initiative » : il apparaît dans le panneau.'));
+    add('c-loup', 'crystal', () => crystal('loup'), tr('Un cristal s\'est caché chez un petit loup.'), lookIn('work'), tr('Ouvre la quête « Question pour un p\'tit loup » : coin de l\'image.'));
+    add('c-esystems', 'crystal', () => crystal('esystems'), tr('Un cristal se souvient de mon tout premier stage.'), lookIn('experience'), tr('Ouvre la fiche du stage E-SYSTEMS : juste à côté de la date.'));
+    add('c-ost', 'crystal', () => crystal('ost'), tr('Un cristal fredonne au milieu de la musique.'), tr('Il n\'est sur aucune page : cherche dans la carte du joueur.'), tr('Allume la musique 🎧 puis ouvre la file d\'attente.'));
+    /* --- les coffres --- */
+    add('k-prism', 'chest', () => chestOpen('prism'), tr('Un coffre se cache dans la marge de ma présentation.'), lookIn('about'), tr('Sur le bord gauche de la page Présentation, à mi-hauteur.'));
+    add('k-emerald', 'chest', () => chestOpen('emerald'), tr('Un coffre vert attend près des diplômes.'), lookIn('education'), tr('En haut à droite de la page Parcours.'));
+    add('k-sakura', 'chest', () => chestOpen('sakura'), tr('Des pétales tombent quelque part dans le journal.'), lookIn('experience'), tr('Tout en haut à gauche de la page Expériences.'));
+    /* --- les succès les plus cachés --- */
+    add('alias', 'trophy', () => ach('alias'), tr('Certains noms réveillent des souvenirs : un prince, ses trois amis, ou un garçon qui revient de la mort.'), tr('Le pseudo se choisit au tout début… ou après un reset.'), tr('Reset ta progression et prends Noctis, Prompto, Gladio, Ignis, Subaru… ou Elias comme pseudo.'));
+    add('konami', 'trophy', () => ach('konami'), tr('Un vieux code de triche réveille quelqu\'un de très sombre.'), tr('Il se tape au clavier, sur n\'importe quelle page.'), tr('Tape ↑ ↑ ↓ ↓ ← → ← → B A.'));
+    add('campfire', 'trophy', () => ach('campfire'), tr('Même les héros ont besoin de repos.'), tr('Pose la souris et ne touche plus à rien…'), tr('Ne touche à rien pendant une minute.'));
+    add('stubborn', 'trophy', () => ach('stubborn'), tr('Et si tu disais non, pour voir ?'), lookIn('experience'), tr('Réponds « Non » à la question d\'Elias.'));
+    add('fishBig', 'trophy', () => ach('fishBig'), tr('Le roi du lac mesure plus d\'un mètre.'), lookIn('games'), tr('Pêche : attrape un poisson de plus de 100 cm (4 ou 5 étoiles).'));
+    add('nightMonster', 'trophy', () => ach('nightMonster'), tr('Un monstre ne mord qu\'à la nuit tombée.'), tr('Reviens pêcher tard le soir.'), tr('Pêche entre 22 h et 4 h pour croiser le Mummy Bass.'));
+    add('ultimateChef', 'trophy', () => ach('ultimateChef'), tr('Le dernier banquet est réservé aux chefs les plus rapides.'), lookIn('games'), tr('Cuisine : obtiens 2 étoiles au Banquet ultime.'));
+    add('nightOwl', 'trophy', () => ach('nightOwl'), tr('Les hiboux voient des choses que les autres ne voient pas.'), tr('Tout dépend de l\'heure de ta visite.'), tr('Reviens entre 3 h et 4 h du matin.'));
+
+    let cur = null;
+    const levels = {}; // niveau d'indice atteint pour chaque sujet (0, 1 ou 2)
+    const pending = () => topics.filter(t => !t.done());
+    const currentTopic = () => {
+        const t = topics.find(x => x.id === cur);
+        return t && !t.done() ? t : pending()[0] || null;
+    };
+    const nextTopic = () => {
+        const n = topics.length;
+        const start = Math.max(0, topics.findIndex(t => t.id === cur));
+        for (let k = 1; k <= n; k++) {
+            const t = topics[(start + k) % n];
+            if (!t.done()) return t;
+        }
+        return null;
+    };
+
+    /* ---------- Lumi dans le menu ---------- */
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'lumi';
+    btn.innerHTML = `${lumiSvg()}<span class="lumi-alert" aria-hidden="true">!</span>`;
+    kicker.insertBefore(btn, kicker.querySelector('.menu-clock'));
+    const menuBtn = document.getElementById('menu');
+
+    /* ---------- la boîte de dialogue ---------- */
+    const box = document.createElement('div');
+    box.className = 'lumi-dialog';
+    box.hidden = true;
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-labelledby', 'lumiName');
+    box.innerHTML = `
+        <div class="ld-portrait">${lumiSvg()}</div>
+        <div class="ld-body">
+            <p class="ld-head"><b id="lumiName">LUMI</b><span class="ld-cat"></span><span class="ld-steps" aria-hidden="true"><i></i><i></i><i></i></span></p>
+            <p class="ld-text"><span class="ld-typed" aria-hidden="true"></span><span class="sr-only ld-full" aria-live="polite"></span></p>
+            <div class="ld-actions">
+                <button type="button" class="ld-btn ld-more"></button>
+                <button type="button" class="ld-btn ld-next"></button>
+                <button type="button" class="ld-btn ld-close"></button>
+            </div>
+        </div>`;
+    document.body.appendChild(box);
+    const $ = (s) => box.querySelector(s);
+    const catEl = $('.ld-cat'), typed = $('.ld-typed'), full = $('.ld-full');
+    const dots = [...box.querySelectorAll('.ld-steps i')];
+    const more = $('.ld-more'), next = $('.ld-next'), closeBtn = $('.ld-close');
+    more.textContent = tr('Plus clair');
+    next.textContent = tr('Autre indice');
+    closeBtn.textContent = tr('Merci !');
+
+    // le texte s'écrit lettre par lettre (un clic l'affiche d'un coup)
+    let typing = 0;
+    const type = (text) => {
+        clearInterval(typing);
+        full.textContent = text;
+        if (reduceMotion) { typed.textContent = text; return; }
+        let i = 0;
+        typed.textContent = '';
+        typing = setInterval(() => {
+            i += 2;
+            typed.textContent = text.slice(0, i);
+            if (i >= text.length) clearInterval(typing);
+            else if (sfx.on && i % 8 === 0) sfx.tone(1400 + Math.random() * 400, 0.03, 'triangle', 0.01);
+        }, 24);
+    };
+    $('.ld-text').addEventListener('click', () => { clearInterval(typing); typed.textContent = full.textContent; });
+
+    const render = (greet = '') => {
+        const t = currentTopic();
+        if (!t) {
+            cur = null;
+            catEl.textContent = '';
+            dots.forEach(d => d.classList.add('is-on'));
+            more.hidden = next.hidden = true;
+            type(`${greet} ${tr('Tu as tout trouvé ! Je n\'ai plus rien à t\'apprendre… sauf peut-être que la touche Échap ouvre le menu pause.')}`.trim());
+            return;
+        }
+        cur = t.id;
+        const lv = levels[cur] || 0;
+        catEl.textContent = t.cat;
+        dots.forEach((d, i) => d.classList.toggle('is-on', i <= lv));
+        more.hidden = next.hidden = false;
+        more.disabled = lv >= 2;
+        next.disabled = pending().length < 2;
+        type(`${greet} ${t.lines[lv]}`.trim());
+    };
+
+    let lastFocus = null;
+    const open = () => {
+        // menu mobile ouvert : on le referme pour laisser la place au dialogue
+        if (menuBtn?.classList.contains('fa-times')) menuBtn.click();
+        lastFocus = document.activeElement;
+        const met = store.get(MET_KEY) === '1';
+        const greet = !met
+            ? tr('Moi, c\'est Lumi, l\'esprit du cristal de ce menu. Je connais tous les secrets du site !')
+            : calling ? tr('Rien n\'a bougé depuis un moment… Tiens, un indice :') : tr('Psst !');
+        store.set(MET_KEY, '1');
+        setCalling(false);
+        lastProgress = Date.now();
+        box.hidden = false;
+        render(greet);
+        setTimeout(() => (more.hidden || more.disabled ? closeBtn : more).focus(), 30);
+    };
+    const close = () => {
+        if (box.hidden) return;
+        clearInterval(typing);
+        box.hidden = true;
+        if (lastFocus && document.contains(lastFocus) && lastFocus.offsetParent !== null) lastFocus.focus();
+    };
+    more.addEventListener('click', () => { levels[cur] = Math.min(2, (levels[cur] || 0) + 1); render(); });
+    next.addEventListener('click', () => { const t = nextTopic(); if (t) cur = t.id; render(); });
+    closeBtn.addEventListener('click', close);
+    btn.addEventListener('click', () => (box.hidden ? open() : close()));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !box.hidden) close(); });
+
+    /* ---------- « ! » : le joueur est bloqué ---------- */
+    let lastProgress = Date.now(), calling = false, hiddenAt = 0;
+    function setCalling(on) {
+        if (calling === on) return;
+        calling = on;
+        btn.classList.toggle('is-calling', on);
+        menuBtn?.classList.toggle('has-lumi', on);
+        btn.setAttribute('aria-label', on ? tr('Lumi a un indice pour toi') : tr('Lumi : demander un indice'));
+        btn.title = on ? tr('Lumi a un indice pour toi') : tr('Lumi : besoin d\'un indice ?');
+        if (on && sfx.on) { sfx.tone(2093, 0.18, 'sine', 0.025); sfx.tone(2637, 0.24, 'sine', 0.02, 0.12); }
+    }
+    btn.setAttribute('aria-label', tr('Lumi : demander un indice'));
+    btn.title = tr('Lumi : besoin d\'un indice ?');
+    const progress = () => { lastProgress = Date.now(); setCalling(false); };
+    document.addEventListener('game', (e) => { if (e.detail.type !== 'reset') progress(); });
+    document.addEventListener('trophy', progress);
+    document.addEventListener('crystal', progress);
+    // le temps passé sur un autre onglet ne compte pas
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) hiddenAt = Date.now();
+        else if (hiddenAt) { lastProgress += Date.now() - hiddenAt; hiddenAt = 0; }
+    });
+    setInterval(() => {
+        if (document.hidden || calling || !box.hidden || !document.body.classList.contains('is-loaded')) return;
+        if (Date.now() - lastProgress > STUCK_MS && currentTopic()) setCalling(true);
+    }, 10000);
+
+    return {
+        add,
+        open,
+        close,
+        get isOpen() { return !box.hidden; },
+        // l'indice du moment, pour le menu pause
+        peek: () => { const t = currentTopic(); return t ? { cat: t.cat, text: t.lines[levels[t.id] || 0] } : null; },
+    };
+})();
+
+/* ---------------------------------------------------------------------
+   6. MENU PAUSE (Échap) — le site se fige derrière un voile flouté :
+   reprendre, statistiques, options, succès, retour au Spawn.
+   --------------------------------------------------------------------- */
+const pauseMenu = (() => {
+    const ITEMS = [
+        { id: 'resume', label: tr('Reprendre') },
+        { id: 'stats', label: tr('Statistiques') },
+        { id: 'options', label: tr('Options') },
+        { id: 'trophies', label: tr('Succès') },
+        { id: 'home', label: tr('Retour au Spawn') },
+    ];
+    const PAGES = { home: 'Accueil', about: 'Présentation', skills: 'Compétences', softskills: 'Soft Skills', education: 'Parcours', work: 'Réalisations', experience: 'Expériences', games: 'Mini-jeux' };
+    let el = null, sel = 0, lastFocus = null, ticker = 0, inerted = [];
+
+    // une autre fenêtre est ouverte : Échap la ferme elle, pas de pause
+    const blocked = () => {
+        if (!document.body.classList.contains('is-loaded')) return true;
+        if (document.body.classList.contains('games-modal-open')) return true;
+        if (document.getElementById('cvModal')?.getAttribute('aria-hidden') === 'false') return true;
+        if (['trophies', 'equip', 'gameOver'].some(id => { const b = document.getElementById(id); return b && !b.hidden; })) return true;
+        if (document.querySelector('.navbar.nav-toggle')) return true;
+        return !!document.querySelector('.confirm:not([hidden]), .credits, .crystal-finale, .rbd, .campfire, .stage-modal-overlay.active, .stat-detail.is-sheet:not([hidden]), .lumi-dialog:not([hidden])');
+    };
+
+    const count = (key) => { try { return JSON.parse(store.get(key) || '[]').length; } catch { return 0; } };
+    const progressRows = () => {
+        const end = trueEnding.progress?.() || [0, 8];
+        return [
+            [tr('Zones explorées'), getVisited().size, TOTAL_ZONES],
+            [tr('Objets secrets'), getFound().size, TOTAL_SECRETS],
+            [tr('Cristaux'), crystalHunt.count, crystalHunt.total],
+            [tr('Coffres'), count('eliasPortfolio.chests'), document.querySelectorAll('.chest').length],
+            [tr('Sphérier'), count('eliasPortfolio.sphere'), document.querySelectorAll('.sphere-skill').length],
+            [tr('Succès'), achievements.count(), achievements.total()],
+            [tr('Fin cachée'), end[0], end[1]],
+        ];
+    };
+    const completion = () => {
+        const rows = progressRows();
+        const got = rows.reduce((a, r) => a + Math.min(r[1], r[2]), 0);
+        const all = rows.reduce((a, r) => a + r[2], 0);
+        return all ? Math.round((got / all) * 100) : 0;
+    };
+    const where = () => tr(PAGES[document.querySelector('body > section.is-active')?.id] || 'Accueil');
+
+    /* ---------- les panneaux de droite ---------- */
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const panels = {
+        resume() {
+            const title = document.getElementById('playerTitle')?.textContent || '';
+            const lv = document.getElementById('playerLv')?.textContent || '1';
+            const hint = lumi?.peek();
+            const now = new Date();
+            const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            return `
+                <div class="pz-hero">
+                    <span class="pz-gem" aria-hidden="true"></span>
+                    <p class="pz-name">${esc(getPlayer() || 'PLAYER 1')}</p>
+                    <p class="pz-sub">${title ? `${esc(title)} · ` : ''}LV ${esc(lv)}</p>
+                </div>
+                <dl class="pz-facts">
+                    <div><dt>${tr('LIEU')}</dt><dd>${esc(where())}</dd></div>
+                    <div><dt>${tr('TEMPS DE JEU')}</dt><dd class="pz-time">${playTime.format()}</dd></div>
+                    <div><dt>${tr('HEURE')}</dt><dd>${hhmm} · ${esc(dayCycle.name(dayCycle.phase))}</dd></div>
+                    <div><dt>${tr('COMPLÉTION')}</dt><dd>${completion()} %</dd></div>
+                </dl>
+                ${hint ? `<div class="pz-lumi">
+                    <span class="pz-lumi-face">${lumiSvg()}</span>
+                    <p><b>LUMI · ${esc(hint.cat)}</b>« ${esc(hint.text)} »</p>
+                    <button type="button" class="pz-ask">${tr('Demander à Lumi')}</button>
+                </div>` : ''}`;
+        },
+        stats() {
+            const rows = progressRows().map(([label, got, all]) => {
+                const v = all ? Math.min(100, Math.round((got / all) * 100)) : 0;
+                return `<li class="${got >= all && all ? 'is-full' : ''}"><span>${esc(label)}</span><b>${got} / ${all}</b><i style="--v:${v}%"></i></li>`;
+            }).join('');
+            const records = [['Fishing', tr('Pêche')], ['Cooking', tr('Cuisine')], ['Chocobo', 'Chocobo Race'], ['Battle', tr('Combat')]]
+                .map(([id, label]) => [label, document.getElementById(`hub${id}`)?.textContent.trim() || '—'])
+                .map(([label, val]) => `<li><span>${esc(label)}</span><b>${esc(val)}</b></li>`).join('');
+            return `
+                <p class="pz-k">${tr('PROGRESSION')}<b>${completion()} %</b></p>
+                <ul class="pz-bars">${rows}</ul>
+                <p class="pz-k">${tr('RECORDS')}</p>
+                <ul class="pz-records">${records}</ul>`;
+        },
+        options() {
+            const sw = (id, on, label) => `<li><span id="pz-l-${id}">${label}</span><button type="button" class="pz-switch" role="switch" data-opt="${id}" aria-checked="${on}" aria-labelledby="pz-l-${id}"><i></i></button></li>`;
+            const vol = Math.round((window.ost?.volume ?? 0.6) * 100);
+            return `
+                <p class="pz-k">${tr('OPTIONS')}</p>
+                <ul class="pz-opts">
+                    ${sw('sound', sfx.on, tr('Sons du menu'))}
+                    ${sw('music', !!window.ost?.on, tr('Musique (OST)'))}
+                    <li><span id="pz-l-vol">${tr('Volume de la musique')}</span><input type="range" class="pz-range" data-opt="volume" min="0" max="100" step="5" value="${vol}" style="--v:${vol}%" aria-labelledby="pz-l-vol"></li>
+                    ${sw('daycycle', dayCycle.enabled(), tr('Ciel qui suit l\'heure'))}
+                    <li><span>${tr('Langue')}</span><span class="pz-seg"><button type="button" data-lang="fr" aria-pressed="${LANG !== 'en'}">FR</button><button type="button" data-lang="en" aria-pressed="${LANG === 'en'}">EN</button></span></li>
+                </ul>`;
+        },
+        trophies() {
+            const recent = achievements.recent(4).map(t => `<li><span>${esc(t.icon)}</span>${esc(t.name)}</li>`).join('');
+            return `
+                <p class="pz-k">${tr('SUCCÈS')}</p>
+                <p class="pz-big">${achievements.count()}<small> / ${achievements.total()}</small></p>
+                ${recent ? `<p class="pz-k">${tr('DERNIERS DÉBLOQUÉS')}</p><ul class="pz-recent">${recent}</ul>` : ''}
+                <p class="pz-hint">${tr('Valide pour ouvrir la liste complète.')}</p>`;
+        },
+        home() {
+            return `
+                <p class="pz-k">${tr('RETOUR AU SPAWN')}</p>
+                <p class="pz-text">${tr('Retourne à l\'accueil. Ta progression est sauvegardée à chaque pas : rien ne se perd.')}</p>`;
+        },
+    };
+
+    const renderPanel = () => {
+        const panel = el.querySelector('.pz-panel');
+        panel.innerHTML = panels[ITEMS[sel].id]();
+        panel.classList.remove('is-in');
+        void panel.offsetWidth;
+        panel.classList.add('is-in');
+    };
+    const select = (i, focus = true) => {
+        sel = (i + ITEMS.length) % ITEMS.length;
+        el.querySelectorAll('.pz-item').forEach((b, k) => {
+            b.classList.toggle('is-sel', k === sel);
+            b.tabIndex = k === sel ? 0 : -1;
+        });
+        if (focus) el.querySelectorAll('.pz-item')[sel].focus();
+        renderPanel();
+    };
+
+    const activate = (id) => {
+        if (id === 'resume') close();
+        else if (id === 'options') el.querySelector('.pz-panel .pz-switch')?.focus();
+        else if (id === 'trophies') { close(); document.getElementById('openTrophies')?.click(); }
+        else if (id === 'home') { close(); if (typeof showTab === 'function') showTab('home'); }
+    };
+
+    const onPanelClick = (e) => {
+        const ask = e.target.closest('.pz-ask');
+        if (ask) { close(); setTimeout(() => lumi?.open(), 60); return; }
+        const sw = e.target.closest('.pz-switch');
+        if (sw) {
+            const opt = sw.dataset.opt;
+            if (opt === 'sound') document.getElementById('soundToggle')?.click();
+            else if (opt === 'music') window.ost?.setOn(!window.ost.on, { focus: false });
+            else if (opt === 'daycycle') dayCycle.set(!dayCycle.enabled());
+            const on = opt === 'sound' ? sfx.on : opt === 'music' ? !!window.ost?.on : dayCycle.enabled();
+            sw.setAttribute('aria-checked', String(on));
+            sw.focus();
+            return;
+        }
+        const lang = e.target.closest('[data-lang]');
+        if (lang && lang.dataset.lang !== (LANG === 'en' ? 'en' : 'fr')) document.getElementById('langToggle')?.click();
+    };
+
+    const onKey = (e) => {
+        e.stopPropagation(); // rien n'arrive aux jeux ni aux autres raccourcis pendant la pause
+        const inMenu = e.target.closest?.('.pz-item');
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            if (!inMenu && el.contains(e.target) && e.target !== el) select(sel); // depuis le panneau : retour à la liste
+            else close();
+        } else if (inMenu && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+            e.preventDefault();
+            select(sel + (e.key === 'ArrowDown' ? 1 : -1));
+            sfx.hover();
+        } else if (inMenu && (e.key === 'Home' || e.key === 'End')) {
+            e.preventDefault();
+            select(e.key === 'Home' ? 0 : ITEMS.length - 1);
+        } else if (inMenu && e.key === 'ArrowRight') {
+            e.preventDefault();
+            el.querySelector('.pz-panel button, .pz-panel input')?.focus();
+        } else if (!inMenu && e.key === 'ArrowLeft' && !e.target.matches?.('input[type="range"]')) {
+            e.preventDefault();
+            select(sel);
+        }
+    };
+
+    function open() {
+        if (el) return;
+        lastFocus = document.activeElement;
+        gamePaused = true;
+        sfx.freeze?.(true);
+        window.ost?.duck(true);
+        if (sfx.on) { sfx.tone(988, 0.12, 'square', 0.018); sfx.tone(740, 0.18, 'square', 0.016, 0.08); }
+        document.documentElement.classList.add('is-paused');
+
+        el = document.createElement('div');
+        el.className = 'pause';
+        el.setAttribute('role', 'dialog');
+        el.setAttribute('aria-modal', 'true');
+        el.setAttribute('aria-labelledby', 'pauseTitle');
+        el.innerHTML = `
+            <div class="pz-veil"></div>
+            <div class="pz-frame">
+                <div class="pz-top">
+                    <h2 class="pz-title" id="pauseTitle">${tr('PAUSE')}</h2>
+                    <p class="pz-meta"><span>${esc(where())}</span><span class="pz-time">${playTime.format()}</span></p>
+                </div>
+                <ul class="pz-menu">${ITEMS.map((it, i) => `<li style="--i:${i}"><button type="button" class="pz-item" data-i="${i}">${esc(it.label)}</button></li>`).join('')}</ul>
+                <div class="pz-panel"></div>
+                <div class="pz-keys" aria-hidden="true">
+                    <span><kbd>↑</kbd><kbd>↓</kbd> ${tr('Choisir')}</span>
+                    <span><kbd>${tr('Entrée')}</kbd> ${tr('Valider')}</span>
+                    <span><kbd>${tr('Échap')}</kbd> ${tr('Reprendre')}</span>
+                </div>
+            </div>`;
+        document.body.appendChild(el);
+        // le reste de la page devient inerte (le focus reste dans la pause)
+        inerted = [...document.body.children].filter(c => c !== el && !c.inert);
+        inerted.forEach(c => { c.inert = true; });
+
+        el.querySelector('.pz-veil').addEventListener('click', close);
+        el.querySelectorAll('.pz-item').forEach((b, i) => {
+            b.addEventListener('click', () => { select(i); activate(ITEMS[i].id); });
+            b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse' && sel !== i) select(i, false); });
+        });
+        const panel = el.querySelector('.pz-panel');
+        panel.addEventListener('click', onPanelClick);
+        panel.addEventListener('input', (e) => {
+            const r = e.target.closest('.pz-range');
+            if (!r) return;
+            r.style.setProperty('--v', `${r.value}%`);
+            window.ost?.setVolume(Number(r.value) / 100);
+        });
+        select(0);
+        // le temps de jeu continue de tourner à l'écran
+        ticker = setInterval(() => el?.querySelectorAll('.pz-time').forEach(t => { t.textContent = playTime.format(); }), 1000);
+    }
+
+    function close() {
+        if (!el) return;
+        const leaving = el;
+        el = null;
+        clearInterval(ticker);
+        inerted.forEach(c => { c.inert = false; });
+        inerted = [];
+        leaving.classList.add('is-leaving');
+        setTimeout(() => leaving.remove(), reduceMotion ? 0 : 220);
+        document.documentElement.classList.remove('is-paused');
+        gamePaused = false;
+        sfx.freeze?.(false);
+        window.ost?.duck(false);
+        if (sfx.on) { sfx.tone(740, 0.1, 'square', 0.016); sfx.tone(988, 0.16, 'square', 0.018, 0.07); }
+        if (lastFocus && document.contains(lastFocus) && lastFocus.offsetParent !== null) lastFocus.focus({ preventScroll: true });
+        // le jeu ouvert reprend là où il s'était arrêté
+        if (openGame && gameOn(openGame)) document.dispatchEvent(new CustomEvent('gameresume', { detail: openGame }));
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (el) { onKey(e); return; }
+        if (e.key !== 'Escape' || e.repeat) return;
+        if (e.target.closest?.('input:not([type="range"]):not([type="checkbox"]), textarea, select, [contenteditable="true"]')) return;
+        if (blocked()) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        open();
+    }, true);
+
+    return { open, close, get isOpen() { return !!el; } };
+})();

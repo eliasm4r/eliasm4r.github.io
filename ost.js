@@ -323,19 +323,19 @@ const ost = (() => {
     }
 
     /* ---------- commandes ---------- */
-    const setOn = (on) => {
+    const setOn = (on, { focus = true } = {}) => {
         st.on = on;
         save();
         if (on) {
             render();
             play();
-            setTimeout(() => (st.mini ? miniPlay : playBtn).focus(), 50);
+            if (focus) setTimeout(() => (st.mini ? miniPlay : playBtn).focus(), 50);
         } else {
             pause();
             listBox.hidden = true;
             listBtn.setAttribute('aria-expanded', 'false');
             render();
-            openBtn?.focus();
+            if (focus) openBtn?.focus();
         }
     };
     openBtn?.addEventListener('click', () => setOn(!st.on));
@@ -398,6 +398,14 @@ const ost = (() => {
         get playing() { return playing(); },
         get track() { return track(); },
         setOn,
+        get volume() { return st.muted ? 0 : st.vol; },
+        setVolume(v) {
+            st.vol = Math.max(0, Math.min(1, v));
+            st.muted = false;
+            audio.volume = targetVolume();
+            save();
+            render();
+        },
         el,
     };
 })();

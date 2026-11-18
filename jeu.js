@@ -12,6 +12,7 @@ const sfx = (() => {
     let ctx = null;
     let on = store.get(SOUND_KEY) !== 'off';
     let lastHover = 0;
+    let frozen = false, uiCtx = null;
 
     const audio = () => {
         if (!ctx) {
@@ -19,13 +20,24 @@ const sfx = (() => {
             if (!AC) return null;
             ctx = new AC();
         }
-        if (ctx.state === 'suspended') ctx.resume();
+        if (ctx.state === 'suspended' && !frozen) ctx.resume();
         return ctx;
+    };
+    // menu pause : la musique des jeux est gelée, les sons du menu passent par un 2e contexte
+    const uiAudio = () => {
+        if (!frozen) return audio();
+        if (!uiCtx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return null;
+            uiCtx = new AC();
+        }
+        if (uiCtx.state === 'suspended') uiCtx.resume();
+        return uiCtx;
     };
 
     // une note courte : fréquence, durée, type d'onde, volume, décalage
     const note = (freq, dur, type = 'sine', vol = 0.05, delay = 0) => {
-        const a = audio();
+        const a = uiAudio();
         if (!a || !on) return;
         const t = a.currentTime + delay;
         const osc = a.createOscillator();
@@ -44,6 +56,10 @@ const sfx = (() => {
         get on() { return on; },
         ctx: audio, // partagé avec la musique des mini-jeux
         tone: note, // une note libre, pour les petits sons des autres fichiers
+        freeze(v) {
+            frozen = v;
+            if (ctx) (v ? ctx.suspend() : ctx.resume()).catch(() => { });
+        },
         toggle() {
             on = !on;
             store.set(SOUND_KEY, on ? 'on' : 'off');
@@ -83,7 +99,7 @@ const sfx = (() => {
 
 (function initMenuSounds() {
     const SEL = '.navbar a, .quest-tab, .sphere-node, .btn, .recruit-choice, .player-btn, .menu-reset, .lang-toggle, .game-card, .game-back, .reset-btn, '
-        + '.gameover button, .stat-row, .stat-domain, .stat-use, .ost-btn, .ost-track, .experience-stage, .trophies-close, .loader-gate button, .footer-secret-btn';
+        + '.gameover button, .stat-row, .stat-domain, .stat-use, .ost-btn, .ost-track, .pz-item, .pz-switch, .pz-seg button, .pz-ask, .ld-btn, .lumi, .experience-stage, .trophies-close, .loader-gate button, .footer-secret-btn';
     // survol : un petit "tic" (souris uniquement)
     document.addEventListener('pointerover', (e) => {
         if (e.pointerType !== 'mouse') return;
@@ -223,7 +239,15 @@ const achievements = (() => {
     box?.addEventListener('click', (e) => { if (e.target === box) close(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && box && !box.hidden) close(); });
 
-    return { unlock, render, has: (id) => get().has(id), clear: () => { store.del(KEY); render(); } };
+    return {
+        unlock, render,
+        has: (id) => get().has(id),
+        count: () => get().size,
+        total: () => LIST.length,
+        // les derniers succès débloqués, du plus récent au plus ancien
+        recent: (n = 3) => [...get()].reverse().map(id => LIST.find(t => t.id === id)).filter(Boolean).slice(0, n),
+        clear: () => { store.del(KEY); render(); },
+    };
 })();
 
 /* Les événements envoyés par script.js -> succès */
@@ -298,10 +322,12 @@ window.gameOver = (function initGameOver() {
    --------------------------------------------------------------------- */
 const GAMES = ['fishing', 'cooking', 'chocobo', 'battle'];
 let openGame = null;
+// menu pause (Échap, aventure.js) : les jeux se figent tant qu'il est ouvert, puis reçoivent « gameresume »
+let gamePaused = false;
 
-// Un jeu ne tourne que si son panneau est ouvert ET que l'onglet Mini-jeux est affiché
+// Un jeu ne tourne que si son panneau est ouvert ET que l'onglet Mini-jeux est affiché (et pas en pause)
 function gameOn(id) {
-    return openGame === id && !!document.getElementById('games')?.classList.contains('is-active');
+    return openGame === id && !gamePaused && !!document.getElementById('games')?.classList.contains('is-active');
 }
 
 function setHubRecord(id, text) {
@@ -1186,6 +1212,7 @@ const fishing = (() => {
 
     render();
     document.addEventListener('gameopen', (e) => { if (e.detail === 'fishing') start(); });
+    document.addEventListener('gameresume', (e) => { if (e.detail === 'fishing') start(); });
     window.addEventListener('resize', () => { if (raf) resize(); });
 
     return {
@@ -1234,6 +1261,7 @@ const fishing = (() => {
         || !document.getElementById('gameOver')?.hidden
         || document.querySelector('.rbd, .credits')
         || (openGame && gameOn(openGame))
+        || gamePaused
         // jeu secret (ou CV) ouvert : il tourne dans une iframe, ses touches et clics n'arrivent pas jusqu'ici
         || document.querySelector('.stage-modal-overlay.active');
 
