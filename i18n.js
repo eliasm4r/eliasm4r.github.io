@@ -8,6 +8,13 @@ const LANG_KEY = 'eliasPortfolio.lang';
 const LANG = (() => { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'fr'; } catch { return 'fr'; } })();
 
 const EN = {
+    // --- confirmation du reset, sphérier ---
+    "RETOUR PAR LA MORT": "RETURN BY DEATH",
+    "Effacer toute ta progression ?": "Erase all your progress?",
+    "Pseudo, zones explorées, objets secrets, cristaux, succès, records et inventaire seront perdus. Impossible de revenir en arrière.": "Name, explored zones, secret items, crystals, trophies, records and inventory will be lost. There's no going back.",
+    "Oui, tout effacer": "Yes, erase everything",
+    "Annuler": "Cancel",
+    "BRANCHE": "BRANCH",
     "INGRÉDIENT POURRI : PLAT RATÉ": "ROTTEN INGREDIENT: DISH RUINED",
     "Ingrédient pourri : le toucher = défaite": "Rotten ingredient: touching it = defeat",
     "PIÈGE !": "TRAP!",

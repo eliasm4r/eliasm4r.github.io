@@ -337,6 +337,68 @@ const store = {
 };
 const emit = (type, detail = {}) => document.dispatchEvent(new CustomEvent('game', { detail: { type, ...detail } }));
 
+/* Boîte de confirmation façon RPG (« Voulez-vous vraiment… ? »).
+   askConfirm({ kicker, title, text, yes, no, danger }) -> Promise<boolean> */
+const askConfirm = (() => {
+    let box = null, resolver = null, lastFocus = null;
+    const build = () => {
+        box = document.createElement('div');
+        box.className = 'confirm';
+        box.hidden = true;
+        box.setAttribute('role', 'alertdialog');
+        box.setAttribute('aria-modal', 'true');
+        box.setAttribute('aria-labelledby', 'confirmTitle');
+        box.setAttribute('aria-describedby', 'confirmText');
+        box.innerHTML = `
+            <div class="confirm-box">
+                <p class="confirm-k"></p>
+                <h3 id="confirmTitle"></h3>
+                <p class="confirm-text" id="confirmText"></p>
+                <div class="confirm-actions">
+                    <button class="confirm-no" type="button"></button>
+                    <button class="confirm-yes" type="button"></button>
+                </div>
+            </div>`;
+        document.body.appendChild(box);
+        const no = box.querySelector('.confirm-no');
+        const yes = box.querySelector('.confirm-yes');
+        no.addEventListener('click', () => close(false));
+        yes.addEventListener('click', () => close(true));
+        box.addEventListener('click', (e) => { if (e.target === box) close(false); });
+        box.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(false); }
+            // le focus reste dans la boîte (Tab / flèches passent d'un bouton à l'autre)
+            if (e.key === 'Tab' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                (document.activeElement === no ? yes : no).focus();
+            }
+        });
+    };
+    const close = (ok) => {
+        if (!box || box.hidden) return;
+        box.classList.add('is-leaving');
+        setTimeout(() => { box.hidden = true; box.classList.remove('is-leaving'); }, reduceMotion ? 0 : 220);
+        const r = resolver;
+        resolver = null;
+        lastFocus?.focus?.({ preventScroll: true });
+        if (r) r(ok);
+    };
+    return ({ kicker = '', title = '', text = '', yes = 'OK', no = 'Annuler', danger = false } = {}) => {
+        if (!box) build();
+        if (resolver) resolver(false);
+        lastFocus = document.activeElement;
+        box.querySelector('.confirm-k').textContent = kicker;
+        box.querySelector('h3').textContent = title;
+        box.querySelector('.confirm-text').textContent = text;
+        box.querySelector('.confirm-no').textContent = no;
+        box.querySelector('.confirm-yes').textContent = yes;
+        box.classList.toggle('is-danger', danger);
+        box.hidden = false;
+        setTimeout(() => box.querySelector('.confirm-no').focus(), 30);
+        return new Promise((res) => { resolver = res; });
+    };
+})();
+
 const PLAYER_KEY = 'eliasPortfolio.player';
 const VISITED_KEY = 'eliasPortfolio.visited';
 // La pêche est un bonus : elle ne compte pas dans les zones à explorer
@@ -850,6 +912,8 @@ skillModal.addEventListener('click', (e) => {
     if (e.target === skillModal) skillModal.classList.remove('open');
 });
 document.addEventListener('keydown', (e) => {
+    // « x » ferme aussi les fenêtres, comme le bouton retour d'une manette… sauf quand on écrit
+    if (e.key.toLowerCase() === 'x' && e.target.closest?.('input, textarea, [contenteditable]')) return;
     if (e.key === 'Escape' || e.key.toLowerCase() === 'x') {
         skillModal.classList.remove('open');
         document.querySelectorAll('.stage-modal-overlay').forEach(m => m.classList.remove('active'));
@@ -1267,16 +1331,15 @@ const showTab = (function initTabs() {
         }
     }
 
-    // Reset de la progression : la question revient
-    document.querySelectorAll('[data-reset]').forEach(btn => btn.addEventListener('click', () => {
-        setTimeout(() => {
-            dialog.hidden = false;
-            win.hidden = true;
-            box.classList.remove('is-won');
-            typed = false;
-            q.textContent = full;
-        }, 7000);
-    }));
+    // Reset de la progression (confirmé) : la question revient
+    document.addEventListener('game', (e) => {
+        if (e.detail.type !== 'reset') return;
+        dialog.hidden = false;
+        win.hidden = true;
+        box.classList.remove('is-won');
+        typed = false;
+        q.textContent = full;
+    });
 })();
 
 /* ===================================================
@@ -1294,9 +1357,33 @@ const showTab = (function initTabs() {
     const bar = document.getElementById('sphereBar');
     const panel = board.parentElement.querySelector('.sphere-panel');
     const intro = { cat: cat.textContent, title: title.textContent, text: text.innerHTML };
+    // les sphères débloquées sont sauvegardées : elles restent allumées après un rafraîchissement
+    const SPHERE_KEY = 'eliasPortfolio.sphere';
     const unlocked = new Set();
 
     const light = (key, on) => board.querySelectorAll(`[data-link="${key}"]`).forEach(l => l.classList.toggle('is-lit', on));
+
+    const unlock = (node) => {
+        unlocked.add(node.dataset.node);
+        node.classList.add('is-on');
+        light(node.dataset.node, true);
+        light(node.dataset.parent, true);
+        board.querySelector(`[data-node="${node.dataset.parent}"]`)?.classList.add('is-on');
+    };
+    const renderProgress = () => {
+        count.textContent = unlocked.size;
+        bar.style.width = `${(unlocked.size / skills.length) * 100}%`;
+        const full = unlocked.size === skills.length;
+        panel.classList.toggle('is-complete', full);
+        board.classList.toggle('is-complete', full);
+    };
+    try {
+        JSON.parse(store.get(SPHERE_KEY) || '[]').forEach(id => {
+            const n = skills.find(s => s.dataset.node === id);
+            if (n) unlock(n);
+        });
+    } catch { }
+    renderProgress();
 
     const select = (node) => {
         nodes.forEach(n => n.classList.toggle('is-selected', n === node));
@@ -1304,17 +1391,15 @@ const showTab = (function initTabs() {
         void panel.offsetWidth;
         panel.classList.add('flash');
         if (node.classList.contains('sphere-skill')) {
-            unlocked.add(node.dataset.node);
-            node.classList.add('is-on');
-            light(node.dataset.node, true);
-            light(node.dataset.parent, true);
-            board.querySelector(`[data-node="${node.dataset.parent}"]`).classList.add('is-on');
+            const isNew = !unlocked.has(node.dataset.node);
+            unlock(node);
+            if (isNew) store.set(SPHERE_KEY, JSON.stringify([...unlocked]));
             cat.textContent = node.dataset.cat.toUpperCase();
             title.textContent = node.dataset.title;
             text.textContent = node.querySelector('.node-text').textContent;
         } else if (node.classList.contains('sphere-cat')) {
             const kids = skills.filter(s => s.dataset.parent === node.dataset.node);
-            cat.textContent = 'BRANCHE';
+            cat.textContent = tr('BRANCHE');
             title.textContent = node.dataset.cat;
             text.textContent = kids.map(k => k.dataset.title).join(' · ');
         } else {
@@ -1322,12 +1407,26 @@ const showTab = (function initTabs() {
             title.textContent = intro.title;
             text.innerHTML = intro.text;
         }
-        count.textContent = unlocked.size;
-        bar.style.width = `${(unlocked.size / skills.length) * 100}%`;
-        panel.classList.toggle('is-complete', unlocked.size === skills.length);
+        renderProgress();
         if (unlocked.size === skills.length) emit('sphere');
     };
     nodes.forEach(n => n.addEventListener('click', () => select(n)));
+
+    // Reset de la progression : le sphérier redevient vierge
+    document.addEventListener('game', (e) => {
+        if (e.detail.type !== 'reset') return;
+        store.del(SPHERE_KEY);
+        unlocked.clear();
+        nodes.forEach(n => {
+            n.classList.remove('is-selected');
+            if (!n.classList.contains('sphere-core')) n.classList.remove('is-on');
+        });
+        board.querySelectorAll('[data-link]').forEach(l => l.classList.remove('is-lit'));
+        cat.textContent = intro.cat;
+        title.textContent = intro.title;
+        text.innerHTML = intro.text;
+        renderProgress();
+    });
 })();
 
 /* ===================================================
@@ -1719,10 +1818,24 @@ if (resetButtons.length) {
         if (replayIntro) replayIntro();
     }
 
+    // Une vraie confirmation avant de tout effacer (un clic par erreur coûtait toute la partie)
+    const confirmReset = () => {
+        if (rbdRunning) return Promise.resolve(false);
+        return askConfirm({
+            kicker: tr('RETOUR PAR LA MORT'),
+            title: tr('Effacer toute ta progression ?'),
+            text: tr('Pseudo, zones explorées, objets secrets, cristaux, succès, records et inventaire seront perdus. Impossible de revenir en arrière.'),
+            yes: tr('Oui, tout effacer'),
+            no: tr('Annuler'),
+            danger: true,
+        }).then((ok) => { if (ok) runReset(); return ok; });
+    };
+    window.requestReset = confirmReset;
+
     resetButtons.forEach(btn => btn.addEventListener('click', () => {
         document.querySelector('.navbar')?.classList.remove('nav-toggle');
         document.getElementById('menu')?.classList.remove('fa-times');
-        runReset();
+        confirmReset();
     }));
 }
 
