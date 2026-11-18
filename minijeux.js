@@ -596,9 +596,9 @@ const chocoboRace = (() => {
     const DIST = 1000; // mètres
     // les rivaux : couleur (filtre sur l'image du chocobo) et vitesse de base selon le mode
     const RIVALS = [
-        { name: 'Ébène', filter: 'brightness(0.42) saturate(0.6)', dot: '#3a3a48', speed: { normal: 11.7, expert: 13.3 } },
-        { name: 'Carmin', filter: 'hue-rotate(-45deg) saturate(1.5)', dot: '#e0524a', speed: { normal: 12.3, expert: 13.8 } },
-        { name: 'Azur', filter: 'hue-rotate(170deg) saturate(1.2)', dot: '#5aa0ff', speed: { normal: 12.8, expert: 14.25 } },
+        { name: 'Émeraude', filter: 'hue-rotate(70deg) saturate(1.4)', dot: '#4cc96a', speed: { normal: 12.9, expert: 14.4 } },
+        { name: 'Carmin', filter: 'hue-rotate(-45deg) saturate(1.5)', dot: '#e0524a', speed: { normal: 13.5, expert: 15.0 } },
+        { name: 'Azur', filter: 'hue-rotate(170deg) saturate(1.2)', dot: '#5aa0ff', speed: { normal: 14.1, expert: 15.5 } },
     ];
 
     panel.innerHTML = `
@@ -782,7 +782,7 @@ const chocoboRace = (() => {
         time += dt;
         // sprint : vide la jauge ; elle se recharge doucement quand on relâche
         const sprinting = (sprintKey || sprintBtn) && stamina > 0 && stun <= 0;
-        stamina = Math.max(0, Math.min(100, stamina + (sprinting ? -34 : 13) * dt));
+        stamina = Math.max(0, Math.min(100, stamina + (sprinting ? -36 : 10) * dt));
         // vitesse : 13 m/s, plus en sprint ou avec une herbe, freinée par les chocs et la boue
         const target = stun > 0 ? 4 : mud > 0 ? 7 : (boost > 0 ? 18 : sprinting ? 16 : 13);
         speed += (target - speed) * Math.min(1, dt * (stun > 0 || mud > 0 ? 6 : 1.4));
@@ -794,8 +794,8 @@ const chocoboRace = (() => {
         for (const r of rivals) {
             if (r.time) { r.m += r.v * dt; continue; }
             const gap = r.m - dist;
-            let tv = r.speed[mode] + Math.sin(time * 0.7 + r.phase) * 0.9 + (gap < -45 ? 0.9 : gap > 45 ? -0.7 : 0);
-            if (r.trip > 0) { r.trip -= dt; tv = 5; } else if (Math.random() < dt * (mode === 'expert' ? 0.025 : 0.05)) r.trip = 0.7;
+            let tv = r.speed[mode] + Math.sin(time * 0.7 + r.phase) * 0.7 + (gap < -30 ? 1.2 : gap > 60 ? -0.4 : 0);
+            if (r.trip > 0) { r.trip -= dt; tv = 5; } else if (Math.random() < dt * (mode === 'expert' ? 0.012 : 0.025)) r.trip = 0.6;
             r.v += (tv - r.v) * Math.min(1, dt * 1.5);
             r.m += r.v * dt;
             if (r.m >= DIST) r.time = time - (r.m - DIST) / Math.max(1, r.v);
@@ -824,7 +824,7 @@ const chocoboRace = (() => {
                     nextSpawn += 2.4;
                 } else obstacles.push({ m: nextSpawn, kind: 'rock', hit: false });
             } else herbs.push({ m: nextSpawn, got: false, alt: Math.random() < 0.5 ? 0 : 1 });
-            nextSpawn += mode === 'expert' ? rand(11, 22) - Math.min(5, dist / 160) : rand(14, 28) - Math.min(7, dist / 130);
+            nextSpawn += mode === 'expert' ? rand(9, 17) - Math.min(4, dist / 200) : rand(12, 22) - Math.min(5, dist / 160);
         }
         // collisions
         const px = dist; // position du joueur, en mètres
@@ -840,7 +840,7 @@ const chocoboRace = (() => {
             }
             if (o.kind === 'crow' ? (near && -y > H * 0.06) : (near && -y < H * OBS[o.kind].h * 0.8)) {
                 o.hit = true;
-                stun = 0.7;
+                stun = 0.95;
                 sfx.back();
                 center.textContent = t('Aïe !');
                 setTimeout(() => { if (state === 'run') center.textContent = ''; }, 500);
@@ -875,12 +875,12 @@ const chocoboRace = (() => {
     const drawRival = (r, t2) => {
         const x = P_X() + (r.m - dist) * PX_PER_M();
         if (x < -80 || x > W + 80) return;
-        const G = GROUND() - H * 0.035;
+        const G = GROUND();
         c.fillStyle = 'rgba(40, 20, 5, 0.22)';
         c.beginPath(); c.ellipse(x, G + 3, H * 0.05, 4, 0, 0, TAU); c.fill();
         if (spriteOk) {
             const fw = sprite.naturalWidth / FRAMES, fh = sprite.naturalHeight;
-            const h = H * 0.21, w = h * (fw / fh);
+            const h = H * 0.24, w = h * (fw / fh);
             const frame = state === 'run' && r.v > 1 ? Math.floor(r.m * 1.1 + r.i * 3) % FRAMES : 0;
             c.save();
             c.filter = r.filter;
@@ -893,9 +893,9 @@ const chocoboRace = (() => {
         c.font = `600 ${Math.max(10, H * 0.032)}px "JetBrains Mono", monospace`;
         c.textAlign = 'center';
         c.fillStyle = 'rgba(20, 10, 20, 0.55)';
-        c.fillText(r.name, x + 1, G - H * 0.225 + 1);
-        c.fillStyle = r.dot === '#3a3a48' ? '#d9d9e6' : r.dot;
-        c.fillText(r.name, x, G - H * 0.225);
+        c.fillText(r.name, x + 1, G - H * 0.255 + 1);
+        c.fillStyle = r.dot;
+        c.fillText(r.name, x, G - H * 0.255);
         c.textAlign = 'start';
     };
 
