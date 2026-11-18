@@ -4019,3 +4019,24 @@ html.is-paused body *:not(.pause, .pause *) {
         padding: 0.4rem 0.6rem;
     }
 }
+
+/* le chat se bat dans le combat : il ne suit plus la souris pendant ce temps */
+html.cat-in-battle #oneko {
+    visibility: hidden !important;
+}
+
+/* attaque chargée : le bouton Défense appelle à l'aide */
+.bt-menu button.is-urge:not(:disabled) {
+    color: #fff;
+    background: rgba(220, 40, 60, 0.35);
+    box-shadow: 0 0 0 1px #ff4a5a, 0 0 18px rgba(255, 60, 80, 0.6);
+    animation: btUrge 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes btUrge {
+    to { background: rgba(220, 40, 60, 0.6); box-shadow: 0 0 0 2px #ff7a8a, 0 0 28px rgba(255, 60, 80, 0.9); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bt-menu button.is-urge { animation: none; }
+}

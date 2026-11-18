@@ -214,6 +214,7 @@ const EN = {
     "Moi, c'est Lumi, l'esprit du cristal de ce menu. Je connais tous les secrets du site !": "I'm Lumi, the crystal spirit of this menu. I know every secret on this site!",
     "Rien n'a bougé depuis un moment… Tiens, un indice :": "Nothing has moved in a while… Here, a hint:",
     "Psst !": "Psst!",
+    "⚠ ATTAQUE CHARGÉE · DÉFENDS-TOI !": "⚠ CHARGED ATTACK · DEFEND NOW!",
     "Une campagne de 5 combats, du Golem au boss final": "A 5-fight campaign, from the Golem to the final boss",
     "Loup des cendres": "Ash wolf",
     "Crapaud colossal": "Colossal toad",

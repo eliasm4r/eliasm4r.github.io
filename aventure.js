@@ -1014,7 +1014,9 @@ const gameMusic = (() => {
         if (!openGame || !TRACKS[openGame]) return null;
         // en pause, gameOn() est faux : la musique du jeu continue, mais plus bas
         const on = gamePaused ? !!document.getElementById('games')?.classList.contains('is-active') : gameOn(openGame);
-        return on ? openGame : null;
+        // seulement pendant une partie (course lancée, combat en cours), pas dans le menu du jeu
+        const playing = window.gamePlaying?.[openGame];
+        return on && (!playing || playing()) ? openGame : null;
     };
 
     const stop = (rewind) => {
@@ -1056,6 +1058,15 @@ const gameMusic = (() => {
     document.getElementById('soundToggle')?.addEventListener('click', later);
     document.addEventListener('gamevolume', (e) => { if (e.detail.id === current && !audio.paused) fade(level() * (gamePaused ? 0.3 : 1), 150); });
     audio.addEventListener('error', () => window.ost?.release('game'));
+    // une partie commence ou se termine : on relance ou on coupe (et la prochaine repart du début)
+    let was = null;
+    setInterval(() => {
+        const now = wanted();
+        if (now === was) return;
+        const ended = was && !now && !gamePaused && openGame === was;
+        was = now;
+        if (ended) stop(true); else sync();
+    }, 300);
 
     return { sync, get playing() { return !audio.paused; }, get track() { return current; } };
 })();
