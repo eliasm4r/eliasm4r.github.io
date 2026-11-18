@@ -799,7 +799,7 @@ const pauseMenu = (() => {
         },
         options() {
             const sw = (id, on, label) => `<li><span id="pz-l-${id}">${label}</span><button type="button" class="pz-switch" role="switch" data-opt="${id}" aria-checked="${on}" aria-labelledby="pz-l-${id}"><i></i></button></li>`;
-            const vol = Math.round((window.ost?.volume ?? 0.6) * 100);
+            const vol = Math.round((window.ost?.volume ?? 0.3) * 100);
             return `
                 <p class="pz-k">${tr('OPTIONS')}</p>
                 <ul class="pz-opts">
@@ -991,7 +991,8 @@ const gameMusic = (() => {
     audio.preload = 'none';
     let current = null, fadeId = 0;
 
-    const level = () => (window.ost ? window.ost.volume : 0.6) * 0.55;
+    // le curseur du jeu règle sa musique (0.5 par défaut -> assez bas)
+    const level = () => (current ? gameVolume(current) : 0.5) * 0.5;
     const fade = (to, ms, done) => {
         const id = ++fadeId;
         const from = audio.volume, t0 = performance.now();
@@ -1050,6 +1051,7 @@ const gameMusic = (() => {
     // retour à la liste des jeux : le morceau repartira du début à la prochaine partie
     document.addEventListener('gameclose', () => stop(true));
     document.getElementById('soundToggle')?.addEventListener('click', later);
+    document.addEventListener('gamevolume', (e) => { if (e.detail.id === current && !audio.paused) fade(level() * (gamePaused ? 0.3 : 1), 150); });
     audio.addEventListener('error', () => window.ost?.release('game'));
 
     return { sync, get playing() { return !audio.paused; }, get track() { return current; } };

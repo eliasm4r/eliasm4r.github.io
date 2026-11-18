@@ -359,6 +359,7 @@ const askConfirm = (() => {
                 <p class="confirm-k"></p>
                 <h3 id="confirmTitle"></h3>
                 <p class="confirm-text" id="confirmText"></p>
+                <label class="confirm-check" hidden><input type="checkbox"><span></span></label>
                 <div class="confirm-actions">
                     <button class="confirm-no" type="button"></button>
                     <button class="confirm-yes" type="button"></button>
@@ -375,7 +376,11 @@ const askConfirm = (() => {
             // le focus reste dans la boîte (Tab / flèches passent d'un bouton à l'autre)
             if (e.key === 'Tab' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                 e.preventDefault();
-                (document.activeElement === no ? yes : no).focus();
+                const chk = box.querySelector('.confirm-check');
+                const order = [chk.hidden ? null : chk.querySelector('input'), no, yes].filter(Boolean);
+                const back = e.shiftKey || e.key === 'ArrowLeft' || e.key === 'ArrowUp';
+                const i = order.indexOf(document.activeElement);
+                order[(i + (back ? -1 : 1) + order.length) % order.length].focus();
             }
         });
     };
@@ -388,8 +393,13 @@ const askConfirm = (() => {
         lastFocus?.focus?.({ preventScroll: true });
         if (r) r(ok);
     };
-    return ({ kicker = '', title = '', text = '', yes = 'OK', no = 'Annuler', danger = false } = {}) => {
+    const ask = ({ kicker = '', title = '', text = '', yes = 'OK', no = 'Annuler', danger = false, check = '' } = {}) => {
         if (!box) build();
+        // case à cocher facultative : son état se lit ensuite dans askConfirm.checked
+        const chk = box.querySelector('.confirm-check');
+        chk.hidden = !check;
+        chk.querySelector('input').checked = false;
+        chk.querySelector('span').textContent = check;
         if (resolver) resolver(false);
         lastFocus = document.activeElement;
         box.querySelector('.confirm-k').textContent = kicker;
@@ -402,6 +412,8 @@ const askConfirm = (() => {
         setTimeout(() => box.querySelector('.confirm-no').focus(), 30);
         return new Promise((res) => { resolver = res; });
     };
+    Object.defineProperty(ask, 'checked', { get: () => !!box?.querySelector('.confirm-check input').checked });
+    return ask;
 })();
 
 const PLAYER_KEY = 'eliasPortfolio.player';
@@ -2168,11 +2180,16 @@ if (resetButtons.length) {
         return askConfirm({
             kicker: tr('RETOUR PAR LA MORT'),
             title: tr('Effacer toute ta progression ?'),
-            text: tr('Pseudo, zones explorées, objets secrets, cristaux, succès, records et inventaire seront perdus. Impossible de revenir en arrière.'),
+            text: tr('Pseudo, zones explorées, objets secrets, cristaux, records et inventaire seront perdus. Tes succès, eux, sont conservés.'),
             yes: tr('Oui, tout effacer'),
             no: tr('Annuler'),
             danger: true,
-        }).then((ok) => { if (ok) runReset(); return ok; });
+            check: tr('Effacer aussi mes succès'),
+        }).then((ok) => {
+            window.resetWipesTrophies = ok && askConfirm.checked;
+            if (ok) runReset();
+            return ok;
+        });
     };
     window.requestReset = confirmReset;
 

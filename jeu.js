@@ -39,6 +39,9 @@ const sfx = (() => {
     const note = (freq, dur, type = 'sine', vol = 0.05, delay = 0) => {
         const a = uiAudio();
         if (!a || !on) return;
+        // dans un mini-jeu, son curseur de volume s'applique
+        if (typeof openGame !== 'undefined' && openGame && typeof gameOn === 'function' && gameOn(openGame)) vol *= gameVolume(openGame) * 2;
+        if (vol <= 0.0001) return;
         const t = a.currentTime + delay;
         const osc = a.createOscillator();
         const g = a.createGain();
@@ -267,7 +270,9 @@ document.addEventListener('game', (e) => {
         case 'recruit': achievements.unlock('recruit'); break;
         case 'stubborn': achievements.unlock('stubborn'); break;
         case 'reset':
-            achievements.clear();
+            // les succès appartiennent au joueur : ils survivent au reset, sauf si on a coché « effacer aussi »
+            if (window.resetWipesTrophies) achievements.clear();
+            window.resetWipesTrophies = false;
             fishing.reset();
             achievements.unlock('reset');
             break;
@@ -321,6 +326,45 @@ window.gameOver = (function initGameOver() {
    MINI-JEUX : écran de sélection + un panneau par jeu
    --------------------------------------------------------------------- */
 const GAMES = ['fishing', 'cooking', 'chocobo', 'battle'];
+
+/* Volume de chaque mini-jeu (0 à 1, 0.5 par défaut), réglable dans sa barre du haut.
+   Il règle ses bruitages et sa musique. */
+const GAME_VOL_KEY = 'eliasPortfolio.gamevol';
+function gameVolume(id) {
+    try { const v = JSON.parse(store.get(GAME_VOL_KEY) || '{}')[id]; return typeof v === 'number' ? v : 0.5; } catch { return 0.5; }
+}
+function setGameVolume(id, v) {
+    let all = {};
+    try { all = JSON.parse(store.get(GAME_VOL_KEY) || '{}') || {}; } catch { }
+    all[id] = Math.max(0, Math.min(1, v));
+    store.set(GAME_VOL_KEY, JSON.stringify(all));
+    document.dispatchEvent(new CustomEvent('gamevolume', { detail: { id, v: all[id] } }));
+}
+(function initGameVolume() {
+    const add = (panel) => {
+        const id = panel.id.replace('game-', '');
+        const bar = panel.querySelector('.game-bar');
+        if (!bar || bar.querySelector('.game-vol')) return;
+        const label = document.createElement('label');
+        label.className = 'game-vol';
+        label.title = tr('Volume du jeu');
+        label.innerHTML = '<i class="fas fa-volume-down" aria-hidden="true"></i><input type="range" min="0" max="100" step="5">';
+        const input = label.querySelector('input');
+        input.setAttribute('aria-label', tr('Volume du jeu'));
+        const show = () => {
+            const v = Math.round(gameVolume(id) * 100);
+            input.value = v;
+            input.style.setProperty('--v', `${v}%`);
+            label.querySelector('i').className = `fas fa-volume-${v === 0 ? 'mute' : v < 50 ? 'down' : 'up'}`;
+        };
+        input.addEventListener('input', () => { setGameVolume(id, Number(input.value) / 100); show(); });
+        show();
+        bar.appendChild(label);
+    };
+    const scan = () => document.querySelectorAll('.game-panel[id^="game-"]').forEach(add);
+    scan();
+    document.addEventListener('gameopen', scan);
+})();
 let openGame = null;
 // menu pause (Échap, aventure.js) : les jeux se figent tant qu'il est ouvert, puis reçoivent « gameresume »
 let gamePaused = false;

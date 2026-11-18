@@ -154,7 +154,7 @@ const cooking = (() => {
     // compose et programme toute la chanson d'un coup (≤ 40 s)
     const playSong = (r, startAt, countBars) => {
         master = ac.createGain();
-        master.gain.value = sfx.on ? 0.55 : 0;
+        master.gain.value = sfx.on ? 0.55 * gameVolume('cooking') * 2 : 0;
         master.connect(ac.destination);
         const spb = 60 / r.bpm;
         const prog = PROG[r.prog];

@@ -3435,3 +3435,87 @@ html.is-paused body *:not(.pause, .pause *) {
         animation: none;
     }
 }
+
+/* ---------- reset : case « effacer aussi mes succès » ---------- */
+.confirm-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.2rem 0 1.8rem;
+    font-size: 1.35rem;
+    color: var(--n-muted);
+    cursor: pointer;
+}
+
+.confirm-check[hidden] {
+    display: none;
+}
+
+.confirm-check input {
+    width: 1.8rem;
+    height: 1.8rem;
+    accent-color: #e05a5a;
+    cursor: pointer;
+}
+
+/* ---------- volume de chaque mini-jeu ---------- */
+.game-vol {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-left: auto;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--n-line);
+    border-radius: 8px;
+    background: rgba(var(--t-panel-rgb), 0.8);
+    color: var(--n-crystal);
+    font-size: 1.3rem;
+}
+
+.game-vol i {
+    width: 1.8rem;
+    text-align: center;
+}
+
+.game-vol input {
+    --v: 50%;
+    width: 11rem;
+    height: 1.6rem;
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.game-vol input::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--t-light) var(--v), rgba(var(--t-crystal-rgb), 0.18) var(--v));
+}
+
+.game-vol input::-webkit-slider-thumb {
+    width: 1.3rem;
+    height: 1.3rem;
+    margin-top: -4.5px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 8px rgba(var(--t-crystal-rgb), 0.85);
+    -webkit-appearance: none;
+}
+
+.game-vol input::-moz-range-track { height: 4px; border-radius: 2px; background: rgba(var(--t-crystal-rgb), 0.18); }
+.game-vol input::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--t-light); }
+.game-vol input::-moz-range-thumb { width: 1.3rem; height: 1.3rem; border: none; border-radius: 50%; background: #fff; }
+
+.game-vol input:focus-visible {
+    outline: 2px solid var(--n-gold);
+    outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+    .game-vol input {
+        width: 7rem;
+    }
+}

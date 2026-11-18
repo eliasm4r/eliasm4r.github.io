@@ -26,8 +26,10 @@ const ost = (() => {
         return (coverCache[name] = `data:image/svg+xml,${encodeURIComponent(svg)}`);
     };
 
-    const st = { on: false, i: 0, vol: 0.6, muted: false, shuffle: false, repeat: 'all', mini: false };
+    const st = { on: false, i: 0, vol: 0.3, muted: false, shuffle: false, repeat: 'all', mini: false };
     try { Object.assign(st, JSON.parse(store.get(KEY) || '{}')); } catch { }
+    // ancien réglage par défaut (60 %) jugé trop fort : on le ramène au nouveau (30 %)
+    if (!st.v2) { if (st.vol === 0.6) st.vol = 0.3; st.v2 = true; }
     if (!(st.i >= 0 && st.i < TRACKS.length)) st.i = 0;
     const save = () => store.set(KEY, JSON.stringify(st));
 
