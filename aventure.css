@@ -160,3 +160,394 @@
 @media (prefers-reduced-motion: reduce) {
     .confirm, .confirm-box, .confirm.is-leaving { animation: none; }
 }
+
+/* =====================================================================
+   RÉALISATIONS : la quête principale (WondersBeyondRecomp)
+   Repère doré, comme les quêtes principales d'un RPG ; les projets
+   plus petits restent des quêtes annexes, en bleu.
+   ===================================================================== */
+.quest-group {
+    padding: 0.6rem 1.2rem 0.2rem;
+    font-family: var(--n-mono);
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    color: var(--n-muted);
+}
+
+.quest-group:not(:first-child) {
+    margin-top: 0.6rem;
+    padding-top: 1.4rem;
+    border-top: 1px dashed var(--n-line);
+}
+
+.quest-tab-main {
+    border-color: rgba(var(--t-gold-rgb), 0.22);
+    background: linear-gradient(90deg, rgba(var(--t-gold-rgb), 0.09), transparent 80%);
+}
+
+.quest-tab-main:hover {
+    background: linear-gradient(90deg, rgba(var(--t-gold-rgb), 0.16), transparent 80%);
+}
+
+.quest-tab-main .quest-n {
+    font-size: 1.4rem;
+    color: rgb(var(--t-gold-rgb));
+}
+
+.quest-tab-main .quest-t {
+    font-family: var(--n-title);
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #f4e9cc;
+}
+
+.quest-tab-main .quest-tag,
+.quest-tab-main.is-active .quest-n,
+.quest-tab-main.is-active .quest-tag {
+    color: rgb(var(--t-gold-rgb));
+    border-color: rgba(var(--t-gold-rgb), 0.45);
+}
+
+.quest-tab-main.is-active {
+    border-color: rgba(var(--t-gold-rgb), 0.6);
+    background: linear-gradient(90deg, rgba(var(--t-gold-rgb), 0.22), rgba(var(--t-gold-rgb), 0.03));
+    box-shadow: inset 3px 0 0 rgb(var(--t-gold-rgb)), 0 0 26px rgba(var(--t-gold-rgb), 0.12);
+}
+
+.quest-main {
+    border-color: rgba(var(--t-gold-rgb), 0.45);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 0 60px rgba(var(--t-gold-rgb), 0.07);
+}
+
+/* bandeau : la jaquette du jeu en fond flou, l'icône du projet devant */
+.qm-hero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: 24rem;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(var(--t-gold-rgb), 0.3);
+    background: #0d0b12;
+}
+
+.qm-bg {
+    position: absolute;
+    inset: -12%;
+    width: 124%;
+    height: 124%;
+    object-fit: cover;
+    object-position: 50% 28%;
+    filter: blur(14px) saturate(1.2) brightness(0.55);
+}
+
+.qm-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(var(--t-panel-rgb), 0.05) 0%, rgba(var(--t-panel-rgb), 0.5) 55%, rgba(var(--t-panel2-rgb), 0.97) 100%);
+}
+
+.qm-hero-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 2.4rem;
+    width: 100%;
+    padding: 3.2rem 2.8rem 2.4rem;
+}
+
+.qm-icon {
+    flex: none;
+    width: 10.4rem;
+    height: 10.4rem;
+    border-radius: 22%;
+    box-shadow: 0 0 0 2px rgba(var(--t-gold-rgb), 0.75), 0 14px 30px rgba(0, 0, 0, 0.55), 0 0 36px rgba(var(--t-gold-rgb), 0.25);
+}
+
+.qm-head {
+    min-width: 0;
+}
+
+.qm-head h3 {
+    margin: 0.7rem 0 0.8rem;
+    font-family: var(--n-title);
+    font-size: clamp(2.6rem, 3vw, 3.8rem);
+    font-weight: 700;
+    line-height: 1.05;
+    color: #fff;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+}
+
+.qm-pitch {
+    max-width: 48ch;
+    font-size: 1.65rem;
+    line-height: 1.5;
+    color: #ece5d3;
+}
+
+/* l'itinéraire : du disque Wii au programme Windows */
+.qm-route {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0.2rem 0 2.6rem;
+    padding: 0;
+    list-style: none;
+}
+
+.qm-route li {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 2.8rem 0.6rem 0;
+    text-align: center;
+}
+
+.qm-route li::before {
+    content: "";
+    position: absolute;
+    top: 0.4rem;
+    left: 50%;
+    z-index: 1;
+    width: 1.3rem;
+    height: 1.3rem;
+    transform: translateX(-50%) rotate(45deg);
+    border: 2px solid rgba(var(--t-gold-rgb), 0.85);
+    background: var(--n-panel);
+    box-shadow: 0 0 12px rgba(var(--t-gold-rgb), 0.3);
+}
+
+.qm-route li:last-child::before {
+    background: rgb(var(--t-gold-rgb));
+}
+
+.qm-route li::after {
+    content: "";
+    position: absolute;
+    top: 1.05rem;
+    left: 50%;
+    width: 100%;
+    border-top: 2px dashed rgba(var(--t-gold-rgb), 0.38);
+}
+
+.qm-route li:last-child::after {
+    display: none;
+}
+
+.qm-route b {
+    font-family: var(--n-mono);
+    font-size: 1.25rem;
+    color: var(--n-text);
+}
+
+.qm-route small {
+    font-size: 1.15rem;
+    line-height: 1.4;
+    color: var(--n-muted);
+}
+
+/* une lueur parcourt l'itinéraire quand on ouvre la quête */
+.quest-main.is-active .qm-route::before {
+    content: "";
+    position: absolute;
+    top: 0.7rem;
+    left: 12.5%;
+    z-index: 2;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin-left: -0.4rem;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 12px 4px rgba(var(--t-gold-rgb), 0.9);
+    opacity: 0;
+    animation: qmTravel 2.6s ease-in-out 0.5s both;
+}
+
+@keyframes qmTravel {
+    0% { left: 12.5%; opacity: 0; }
+    10% { opacity: 1; }
+    88% { opacity: 1; }
+    100% { left: 87.5%; opacity: 0; }
+}
+
+.qm-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 2.4rem;
+    margin-top: 2.2rem;
+    align-items: start;
+}
+
+/* fiche de stats façon RPG, avec points de conduite */
+.qm-stats {
+    margin: 0;
+    padding: 1.2rem 1.6rem;
+    border: 1px solid rgba(var(--t-gold-rgb), 0.25);
+    border-radius: 8px;
+    background: rgba(var(--t-bg-rgb), 0.45);
+}
+
+.qm-stats div {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    padding: 0.5rem 0;
+}
+
+.qm-stats div + div {
+    border-top: 1px solid rgba(var(--t-gold-rgb), 0.1);
+}
+
+.qm-stats dt {
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    min-width: 0;
+    font-size: 1.3rem;
+    color: var(--n-muted);
+}
+
+.qm-stats dt::after {
+    content: "";
+    flex: 1;
+    min-width: 1rem;
+    border-bottom: 1px dotted rgba(var(--t-gold-rgb), 0.35);
+}
+
+.qm-stats dd {
+    margin: 0;
+    font-family: var(--n-title);
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #f4e9cc;
+}
+
+.qm-feats {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.qm-feats li {
+    position: relative;
+    padding-left: 2rem;
+    font-size: 1.45rem;
+    line-height: 1.6;
+    color: #c4ccda;
+}
+
+.qm-feats li::before {
+    content: "◆";
+    position: absolute;
+    left: 0;
+    top: 0.15em;
+    font-size: 1rem;
+    color: rgb(var(--t-gold-rgb));
+}
+
+.qm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.2rem;
+    margin-top: 2.4rem;
+}
+
+.qm-actions .quest-link {
+    margin-top: 0;
+}
+
+.qm-actions .qm-dl {
+    border-color: rgba(var(--t-gold-rgb), 0.6) !important;
+    background: linear-gradient(180deg, rgba(var(--t-gold-rgb), 0.2), rgba(var(--t-gold-rgb), 0.06)) !important;
+}
+
+.qm-actions .qm-dl:hover {
+    border-color: rgb(var(--t-gold-rgb)) !important;
+    box-shadow: 0 0 22px rgba(var(--t-gold-rgb), 0.35) !important;
+}
+
+.qm-live {
+    flex-basis: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.8rem;
+    font-family: var(--n-mono);
+    font-size: 1.15rem;
+    letter-spacing: 0.06em;
+    color: var(--n-muted);
+}
+
+.qm-live b {
+    color: #f4e9cc;
+}
+
+@media (max-width: 1100px) {
+    .qm-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .qm-hero {
+        min-height: 0;
+    }
+
+    .qm-hero-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.4rem;
+        padding: 2.6rem 1.8rem 1.8rem;
+    }
+
+    .qm-icon {
+        width: 7.2rem;
+        height: 7.2rem;
+    }
+
+    /* itinéraire vertical sur téléphone */
+    .qm-route {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .qm-route li {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.2rem 1rem;
+        padding: 0 0 0 3.2rem;
+        text-align: left;
+    }
+
+    .qm-route li::before {
+        top: 0.25rem;
+        left: 0.75rem;
+    }
+
+    .qm-route li::after {
+        top: 1.9rem;
+        left: 0.65rem;
+        width: 0;
+        height: calc(100% + 0.6rem);
+        border-top: none;
+        border-left: 2px dashed rgba(var(--t-gold-rgb), 0.38);
+    }
+
+    .quest-main.is-active .qm-route::before {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .quest-main.is-active .qm-route::before {
+        display: none;
+    }
+}

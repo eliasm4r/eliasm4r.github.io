@@ -88,7 +88,7 @@
                 <li><a href="#skills" data-rpg="STATISTIQUES">Compétences</a></li>
                 <li><a href="#softskills" data-rpg="APTITUDES">Soft Skills</a></li>
                 <li><a href="#education" data-rpg="ORIGINES">Parcours</a></li>
-                <li><a href="#work" data-rpg="QUÊTES ANNEXES">Réalisations</a></li>
+                <li><a href="#work" data-rpg="QUÊTES">Réalisations</a></li>
                 <li><a href="#experience" data-rpg="JOURNAL">Expériences</a></li>
                 <li class="menu-bonus"><a href="#games" data-rpg="BONUS">Mini-jeux</a></li>
             </ul>
@@ -565,12 +565,17 @@
 
     <!-- work project section starts -->
     <section class="work" id="work">
-        <h2 class="heading" data-rpg="QUÊTES ANNEXES">
+        <h2 class="heading" data-rpg="QUÊTES">
             <i class="fas fa-laptop-code"></i><span> Réalisations</span>
         </h2>
         <div class="quests">
             <ul class="quest-list" role="tablist" aria-label="Projets">
-                <li><button class="quest-tab is-active" type="button" role="tab" aria-selected="true"
+                <li class="quest-group" aria-hidden="true">QUÊTE PRINCIPALE</li>
+                <li><button class="quest-tab quest-tab-main is-active" type="button" role="tab" aria-selected="true"
+                        aria-controls="q-wonders"><span class="quest-n" aria-hidden="true">◆</span><span class="quest-t">Wonders<wbr>Beyond<wbr>Recomp</span><span
+                            class="quest-tag">C++</span></button></li>
+                <li class="quest-group" aria-hidden="true">QUÊTES ANNEXES</li>
+                <li><button class="quest-tab" type="button" role="tab" aria-selected="false"
                         aria-controls="q-totk"><span class="quest-n">01</span><span class="quest-t">TOTK Recomp Mod Manager</span><span
                             class="quest-tag">Python</span></button></li>
                 <li><button class="quest-tab" type="button" role="tab" aria-selected="false"
@@ -590,7 +595,50 @@
                             class="quest-tag">Java</span></button></li>
             </ul>
             <div class="quest-panels">
-            <article class="quest-detail is-active" id="q-totk" role="tabpanel">
+            <!-- Quête principale : le plus gros projet -->
+            <article class="quest-detail quest-main is-active" id="q-wonders" role="tabpanel" aria-labelledby="qmTitle">
+                <div class="qm-hero">
+                    <img class="qm-bg" src="assets/covers/pokepark2.jpg" alt="" aria-hidden="true" loading="lazy" draggable="false" />
+                    <div class="qm-hero-inner">
+                        <img class="qm-icon" src="assets/projets/wondersbeyond-icon.png" alt="Icône de WondersBeyondRecomp" width="104" height="104" loading="lazy" draggable="false" />
+                        <div class="qm-head">
+                            <p class="quest-kicker">QUÊTE PRINCIPALE <span>·</span> PROJET PERSO <span>·</span> ALPHA</p>
+                            <h3 id="qmTitle">Wonders<wbr>Beyond<wbr>Recomp</h3>
+                            <p class="qm-pitch">PokéPark 2 : Wonders Beyond, un jeu Wii, tourne nativement sur PC. Sans émulateur.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="quest-info qm-info">
+                    <ol class="qm-route" aria-label="Comment le jeu arrive sur PC">
+                        <li><b>Disque Wii</b><small>ta propre copie du jeu</small></li>
+                        <li><b>Code PowerPC</b><small>extrait du disque</small></li>
+                        <li><b>C++</b><small>traduit une fois pour toutes</small></li>
+                        <li><b>Programme Windows</b><small>compilé sur ton PC</small></li>
+                    </ol>
+                    <p class="quest-desc">Une recompilation statique : au lieu d'émuler la console instruction par instruction, le code du jeu est traduit en C++ à l'avance puis compilé en vrai programme PC. Autour, je recrée le matériel de la Wii : graphismes en Direct3D 11, son, manettes et sauvegardes. Le jeu complet se lance, se joue et se sauvegarde.</p>
+                    <div class="qm-grid">
+                        <dl class="qm-stats" aria-label="Ce que le portage apporte">
+                            <div><dt>Images par seconde</dt><dd>240</dd></div>
+                            <div><dt>Écran le plus large</dt><dd>32:9</dd></div>
+                            <div><dt>Résolution interne</dt><dd>×6</dd></div>
+                            <div><dt>Installation</dt><dd>~5 min</dd></div>
+                        </dl>
+                        <ul class="qm-feats">
+                            <li>Clavier et souris (touches modifiables), manettes Xbox, PlayStation, Switch et vraies Wiimotes.</li>
+                            <li>Textures HD en un clic, agrandies en local par Real-ESRGAN à partir des images du jeu.</li>
+                            <li>Un installeur construit le jeu à partir de ton disque : aucun fichier du jeu n'est distribué.</li>
+                            <li>Menu d'options en jeu, caméra libre, textes accélérés, sauvegardes de secours, Discord.</li>
+                        </ul>
+                    </div>
+                    <div class="quest-loot"><span class="loot-label">LOOT</span><span>C++</span><span>Python</span><span>CMake</span><span>PowerPC</span><span>Direct3D 11</span><span>SDL</span><span>Rétro-ingénierie</span><span>Real-ESRGAN</span></div>
+                    <div class="qm-actions">
+                        <a class="btn quest-link" href="https://github.com/eliasm4r/WondersBeyondRecomp" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> Voir sur GitHub</a>
+                        <a class="btn quest-link qm-dl" href="https://github.com/eliasm4r/WondersBeyondRecomp/releases/latest" target="_blank" rel="noopener noreferrer"><i class="fas fa-download"></i> Télécharger la dernière version</a>
+                        <p class="qm-live" id="qmLive" hidden></p>
+                    </div>
+                </div>
+            </article>
+            <article class="quest-detail" id="q-totk" role="tabpanel" hidden>
                 <div class="quest-media"><img loading="lazy" draggable="false" src="assets/projets/totk-mod-manager.webp" alt="TOTK Recomp Mod Manager" /></div>
                 <div class="quest-info">
                     <p class="quest-kicker">QUÊTE ANNEXE 01 <span>·</span> PROJET PERSO</p>

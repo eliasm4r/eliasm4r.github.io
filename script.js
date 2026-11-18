@@ -1265,6 +1265,52 @@ const showTab = (function initTabs() {
     }));
 })();
 
+/* Quête principale : étoiles, téléchargements et dernière version, lus en direct sur GitHub.
+   Demandé seulement quand on ouvre Réalisations, gardé 1 h ; en cas d'échec la ligne reste cachée. */
+(function initMainQuestStats() {
+    const el = document.getElementById('qmLive');
+    if (!el || !window.fetch) return;
+    const REPO = 'eliasm4r/WondersBeyondRecomp';
+    const CACHE = 'eliasPortfolio.wbStats';
+    const fmt = (n) => Number(n).toLocaleString(document.documentElement.lang === 'en' ? 'en-US' : 'fr-FR');
+    const show = (d) => {
+        if (!d || (!d.stars && !d.downloads)) return;
+        el.innerHTML = '';
+        [[d.stars, tr('étoiles sur GitHub')], [d.downloads, tr('téléchargements')], [d.tag, tr('dernière version')]].forEach(([v, label]) => {
+            if (!v && v !== 0) return;
+            const s = document.createElement('span');
+            const b = document.createElement('b');
+            b.textContent = typeof v === 'number' ? fmt(v) : v;
+            s.append(b, ` ${label}`);
+            el.appendChild(s);
+        });
+        el.hidden = false;
+    };
+    let cached = null;
+    try { cached = JSON.parse(sessionStorage.getItem(CACHE)); } catch { }
+    if (cached && Date.now() - cached.at < 3600e3) { show(cached); return; }
+    let asked = false;
+    const load = () => {
+        if (asked) return;
+        asked = true;
+        const get = (url) => fetch(url, { headers: { Accept: 'application/vnd.github+json' } }).then(r => (r.ok ? r.json() : Promise.reject(r.status)));
+        Promise.all([get(`https://api.github.com/repos/${REPO}`), get(`https://api.github.com/repos/${REPO}/releases?per_page=100`)])
+            .then(([repo, rels]) => {
+                const d = {
+                    at: Date.now(),
+                    stars: repo.stargazers_count || 0,
+                    downloads: (Array.isArray(rels) ? rels : []).reduce((sum, r) => sum + (r.assets || []).reduce((a, x) => a + (x.download_count || 0), 0), 0),
+                    tag: Array.isArray(rels) && rels[0] ? rels[0].tag_name : '',
+                };
+                try { sessionStorage.setItem(CACHE, JSON.stringify(d)); } catch { }
+                show(d);
+            })
+            .catch(() => { });
+    };
+    document.addEventListener('tabshow', (e) => { if (e.detail === 'work') load(); });
+    if (document.getElementById('work')?.classList.contains('is-active')) load();
+})();
+
 /* ===================================================
    "VOULEZ-VOUS RECRUTER ELIAS ?"
    =================================================== */
