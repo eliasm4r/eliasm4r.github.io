@@ -18,57 +18,38 @@ function fitCanvas(cv) {
 const cssVar = (v, d) => getComputedStyle(document.documentElement).getPropertyValue(v).trim() || d;
 
 /* =====================================================================
-   1. CUISINE DU CAMPEMENT — jeu de rythme en musique
-   La musique est composée en direct (WebAudio) : batterie, basse, accords.
-   Chaque ingrédient tombe sur un temps de la musique, et le frapper joue
-   la mélodie. L'horloge du jeu est celle de l'audio : image et son restent calés.
+   1. CUISINE DU CAMPEMENT — jeu de rythme sur de vrais morceaux
+   Chaque recette joue un extrait (~45 s) d'un morceau de la file d'attente
+   du lecteur. Les ingrédients tombent sur les attaques de la musique,
+   repérées à l'avance (flux spectral) : la partition est écrite ci-dessous.
+   L'horloge du jeu est celle de l'audio : image et son restent calés.
    ===================================================================== */
 const cooking = (() => {
     const panel = document.getElementById('game-cooking');
     if (!panel) return { reset() { } };
-    const KEY = 'eliasPortfolio.cooking';
+    const KEY = 'eliasPortfolio.cooking.v2'; // nouvelles recettes, nouveaux scores
 
-    // accords (notes MIDI) : une mesure par accord, en boucle
-    const PROG = {
-        pop: [[60, 64, 67], [67, 71, 74], [69, 72, 76], [65, 69, 72]],    // I V vi IV
-        folk: [[69, 72, 76], [65, 69, 72], [60, 64, 67], [67, 71, 74]],   // vi IV I V
-        epic: [[57, 60, 64], [65, 69, 72], [60, 64, 67], [67, 71, 74]],   // i VI III VII
-        dark: [[57, 60, 64], [62, 65, 69], [55, 59, 62], [64, 68, 71]],   // i iv VII V
-        boss: [[57, 60, 64], [53, 57, 60], [55, 59, 62], [52, 56, 59]],   // Am F G E : thème de boss
-    };
-    // motifs rythmiques : position des ingrédients dans la mesure (en temps)
+    // du plus calme au plus dense. notes : nombre = taper ; [t, durée] = maintenir ; [t, 0] = piège
+    // (temps en secondes depuis le début de l'extrait ; from = début de l'extrait dans le morceau)
     const RECIPES = [
-        { id: 'skewers', dish: '🍢', name: t('Brochettes du campement'), bpm: 90, bars: 8, prog: 'pop', key: 0,
-            pat: [[0, 1, 2, 3]], items: ['🥩', '🧅', '🫑'] },
-        { id: 'stew', dish: '🍲', name: t('Ragoût de la forêt'), bpm: 100, bars: 8, prog: 'folk', key: 2,
-            pat: [[0, 1, 2, 3], [0, 1, 2, 2.5, 3]], items: ['🥕', '🥔', '🍖', '🧄'] },
-        { id: 'fish', dish: '🐟', name: t('Poisson grillé aux herbes'), bpm: 110, bars: 10, prog: 'pop', key: 5,
-            pat: [[0, 1, 1.5, 2, 3], [0, 0.5, 1, 2, 3]], items: ['🐟', '🌿', '🍋'] },
-        { id: 'curry', dish: '🍛', name: t('Curry du campement'), bpm: 118, bars: 10, prog: 'epic', key: 0,
-            pat: [[0, 1, 1.5, 2, 3, 3.5], [0, 0.75, 1.5, 2, 3]], items: ['🍛', '🥕', '🌶️', '🍚'] },
-        { id: 'omelette', dish: '🍳', name: t('Omelette du chasseur'), bpm: 126, bars: 12, prog: 'folk', key: -3,
-            pat: [[0, 0.5, 1, 1.5, 2, 3], [0, 1, 1.5, 2, 2.5, 3, 3.5]], items: ['🥚', '🧀', '🍄', '🥓'] },
-        { id: 'soup', dish: '🥣', name: t('Soupe aux champignons'), bpm: 132, bars: 12, prog: 'dark', key: 2,
-            pat: [[0, 0.5, 1, 2, 2.25, 2.5, 3], [0, 0.75, 1.5, 2, 2.5, 3, 3.5]], items: ['🍄', '🧅', '🥛', '🌿'] },
-        { id: 'spicy', dish: '🌶️', name: t('Brochettes épicées'), bpm: 140, bars: 12, prog: 'epic', key: 3,
-            pat: [[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5], [0, 0.25, 0.5, 1.5, 2, 2.75, 3.5]], items: ['🌶️', '🍖', '🧄', '🫑'] },
-        { id: 'feast', dish: '🍱', name: t('Festin du roi'), bpm: 150, bars: 14, prog: 'dark', key: 5,
-            pat: [[0, 0.25, 0.5, 1, 1.5, 2, 2.25, 2.5, 3, 3.5], [0, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 3.25, 3.5]], items: ['🍤', '🍄', '🌶️', '🥚', '🍚'] },
-        // NIVEAU ULTIME : rythmes variés + 2 mécaniques
-        //   { b, h }  = ingrédient à maintenir pendant h temps (barre de cuisson)
-        //   { b, x }  = ingrédient piégé : surtout ne pas taper
-        // (aucun piège juste après la fin d'une barre de cuisson : au moins 1 temps d'écart)
-        { id: 'ultimate', dish: '👑', name: t('Banquet ultime'), bpm: 156, bars: 16, prog: 'boss', key: 0, ultimate: true,
-            // mélodie écrite (une ligne par accord) : chaque ingrédient touché joue la note suivante
-            melody: [[69, 72, 76, 74, 72, 71, 69, 72], [65, 69, 72, 71, 69, 67, 65, 69], [67, 71, 74, 72, 71, 69, 67, 71], [68, 71, 76, 74, 71, 68, 64, 71]],
-            pat: [
-                [0, 0.5, 0.75, { b: 1, h: 1 }, 2.5, 3, 3.25, { b: 3.75, x: 1 }],
-                [0, { b: 0.25, x: 1 }, 0.5, 1, 1.25, 1.5, 2, { b: 2.5, h: 1 }],
-                [{ b: 0.5, h: 1 }, 2, 2.25, 2.5, { b: 2.75, x: 1 }, 3, 3.5],
-                [0, 0.25, 0.5, { b: 0.75, x: 1 }, 1, { b: 1.5, x: 1 }, 2, { b: 2.5, h: 1 }],
-                [0.5, 0.75, 1, 1.25, { b: 1.5, h: 1.5 }, 3.25, 3.5],
-                [{ b: 0, x: 1 }, 0.25, 0.5, 1, { b: 1.5, x: 1 }, { b: 2, h: 1 }, 3.5, 3.75],
-            ], items: ['🦞', '🥩', '🍣', '🧀', '🍄', '🍋'], traps: ['💀', '🦠'] },
+        { id: 'skewers', dish: '🍢', name: t('Brochettes du campement'), song: 'Sunset Waltz', src: 'assets/ost/Sunset Waltz.mp3', from: 5.333, len: 45,
+            items: ['🥩', '🧅', '🫑'],
+            notes: [2.55, 3.15, 4.38, 4.99, 5.61, 6.22, 6.83, 8.06, 8.98, 9.89, 10.5, 11.73, 12.34, 13.57, 14.18, 15.41, 16.01, 17.24, 17.85, 19.69, 20.3, 21.52, 22.08, 22.75, 23.36, 23.98, 25.2, 25.83, 26.42, 27.04, 27.96, 30.1, 30.72, 36.68, 39.28, 40.92, 42.82] },
+        { id: 'stew', dish: '🍲', name: t('Ragoût de la forêt'), song: 'Noctis', src: 'assets/ost/NOCTIS.mp3', from: 160.763, len: 45,
+            items: ['🥕', '🥔', '🍖', '🧄'],
+            notes: [3.32, 5.25, 6.32, 6.86, 7.39, 7.95, 9.31, 10.15, 10.73, 11.84, 12.86, 13.39, 14.5, 16.14, 17.21, 18.34, 18.86, 19.41, 19.94, 20.49, 21.06, 21.62, 22.42, 23.34, 24.28, 24.95, 29.04, 29.87, 32.05, 33.64, 35.58, 36.14, 36.66, 37.2, 38, 40.18, 42.13, 42.95] },
+        { id: 'fish', dish: '🐟', name: t('Poisson grillé aux herbes'), song: 'Somnus', src: 'assets/ost/Somnus (Instrumental Version).mp3', from: 5.793, len: 45,
+            items: ['🐟', '🌿', '🍋'],
+            notes: [2.33, 2.86, 3.73, 4.14, 4.7, 6.52, 7.32, 9.77, 13.56, 14.64, 15.72, 16.37, 17.09, 17.65, 18.31, 18.89, 19.56, 20.44, 20.83, 21.38, 22.02, 22.98, 23.5, 24.4, 25.34, 25.92, 26.88, 27.32, 28.12, 29.34, 30.34, 31.23, 31.79, 33.02, 33.47, 34.23, 35.1, 35.69, 36.92, 37.5, 38.4, 38.96, 39.73, 40.5, 41.28, 42.08, 42.53, 42.94] },
+        { id: 'curry', dish: '🍛', name: t('Curry du campement'), song: 'Valse di Fantastica', src: 'assets/ost/Valse di Fantastica (FINAL FANTASY XV Original Soundtrack) 【Audio】.mp3', from: 171.663, len: 45,
+            items: ['🍛', '🥕', '🌶️', '🍚'],
+            notes: [2.78, 3.09, 4.16, 4.9, 5.23, 6.09, 6.72, 7.32, 7.79, 8.54, 8.96, 10.04, 10.64, 10.96, 11.57, 12.48, 13.39, 14.01, 14.61, 14.92, 17.48, 17.81, 18.23, 18.86, 19.6, 20.07, 20.39, 21.42, 21.91, 23.1, 24.64, 25.81, 26.12, 26.73, 27.62, 28.54, 29.16, 30.65, 30.96, 31.87, 32.76, 33.24, 33.68, 34, 34.58, 34.91, 35.22, 35.81, 36.4, 37.34, 38.24, 39.15, 40.05, 40.52, 40.97, 41.28, 41.88, 42.8] },
+        { id: 'feast', dish: '🍱', name: t('Festin du roi'), song: 'Calm Before the Storm', src: 'assets/ost/Calm Before The Storm (FINAL FANTASY X Original Soundtrack) 【Audio】.mp3', from: 4.823, len: 45,
+            items: ['🍤', '🍄', '🌶️', '🥚', '🍚'],
+            notes: [2.52, 2.87, 3.22, 3.58, 3.93, 4.28, 4.64, 4.99, 5.34, 5.7, 6.05, 6.4, 6.75, 7.11, 7.46, 7.81, 8.17, 8.52, 8.87, 9.22, 9.58, 9.93, 10.28, 10.64, 10.99, 11.34, 11.69, 12.39, 12.75, 13.1, 13.45, 14.52, 14.87, 15.22, 15.92, 16.28, 16.63, 17.69, 19.81, 20.17, 20.52, 20.87, 21.22, 21.58, 21.92, 22.29, 22.99, 23.34, 23.69, 24.05, 24.75, 25.1, 25.81, 26.52, 27.23, 28.64, 29.34, 29.69, 30.05, 30.4, 31.1, 31.45, 32.52, 32.87, 33.22, 33.58, 34.28, 36.05, 37.46, 37.81, 38.16, 38.52, 38.87, 39.23, 39.57, 39.92, 40.99, 41.34, 41.69, 42.05, 42.75] },
+        { id: 'ultimate', dish: '👑', name: t('Banquet ultime'), song: 'Stand By Me', src: 'assets/ending ost/Florence + The Machine - Stand By Me.mp3', from: 15.453, len: 45, ultimate: true,
+            items: ['🦞', '🥩', '🍣', '🧀', '🍄', '🍋'], traps: ['💀', '🦠'],
+            notes: [2.27, 2.77, [3.39, 0], 3.95, 4.23, 4.5, 4.79, 5.06, 5.55, 5.85, 6.17, 6.44, 6.69, 6.97, [7.28, 0.66], 8.39, 9.07, 9.52, 10.05, 10.3, 10.61, 11.17, [11.65, 0], 12.01, 12.39, 12.66, 13.22, 13.61, 13.95, 14.24, 14.74, 14.99, 15.28, 15.59, 15.86, 16.17, 16.44, 16.72, 16.99, 17.28, 17.81, 18.09, 18.4, 18.67, 18.95, 19.5, 19.75, 20.07, [20.39, 0], 21.17, 21.45, 21.72, 21.99, 22.28, 22.57, 22.84, 23.13, 23.4, 24.18, 24.57, 24.83, 25.1, 25.88, 26.41, 26.71, 26.99, 27.26, 27.78, 28.08, 28.62, 28.89, 29.51, 29.79, 30.06, 30.31, 30.84, [31.34, 0], [31.71, 0.36], 32.52, 33.05, 33.36, 33.65, 33.95, 34.23, 34.5, 34.89, 35.28, 35.59, [35.97, 0], 36.4, 36.69, 36.93, 37.5, 38.07, [38.39, 0.37], 39.21, 39.5, 39.77, 40.03, 40.3, 40.67, 41.25, [41.71, 0], 42.26, 42.54, [42.84, 1.6]] },
     ];
     const PERFECT = 0.045, GOOD = 0.1; // fenêtres de frappe (secondes)
 
@@ -109,9 +90,9 @@ const cooking = (() => {
     // une recette s'ouvre avec 2 étoiles sur celle d'avant (y compris une recette ajoutée plus tard)
     const unlocked = (i) => i === 0 || (data[RECIPES[i - 1].id] || 0) >= 2;
 
-    /* ---------- musique ---------- */
-    let ac = null, master = null, noise = null;
-    const midi = (m) => 440 * Math.pow(2, (m - 69) / 12);
+    /* ---------- musique : l'extrait du vrai morceau ---------- */
+    let ac = null, master = null, noise = null, songSrc = null;
+    const buffers = {};
     const audio = () => {
         ac = ac || sfx.ctx();
         if (ac && !noise) {
@@ -121,104 +102,58 @@ const cooking = (() => {
         }
         return ac;
     };
-    const tone = (freq, at, dur, type, vol, dest = master) => {
-        const o = ac.createOscillator(), g = ac.createGain();
-        o.type = type;
-        o.frequency.setValueAtTime(freq, at);
-        g.gain.setValueAtTime(0.0001, at);
-        g.gain.exponentialRampToValueAtTime(vol, at + 0.01);
-        g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-        o.connect(g).connect(dest);
-        o.start(at); o.stop(at + dur + 0.05);
-    };
-    const kick = (at) => {
-        const o = ac.createOscillator(), g = ac.createGain();
-        o.frequency.setValueAtTime(150, at);
-        o.frequency.exponentialRampToValueAtTime(45, at + 0.12);
-        g.gain.setValueAtTime(0.5, at);
-        g.gain.exponentialRampToValueAtTime(0.0001, at + 0.25);
-        o.connect(g).connect(master);
-        o.start(at); o.stop(at + 0.3);
-    };
-    const hiss = (at, dur, cut, vol) => {
-        const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
-        s.buffer = noise;
-        f.type = 'highpass'; f.frequency.value = cut;
-        g.gain.setValueAtTime(vol, at);
-        g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-        s.connect(f).connect(g).connect(master);
-        s.start(at); s.stop(at + dur + 0.02);
-    };
-    const snare = (at) => { hiss(at, 0.16, 1200, 0.22); tone(190, at, 0.1, 'triangle', 0.12); };
-
-    // compose et programme toute la chanson d'un coup (≤ 40 s)
-    const playSong = (r, startAt, countBars) => {
+    // le morceau est téléchargé et décodé une fois, puis gardé en mémoire
+    const loadSong = (r) => buffers[r.src] || (buffers[r.src] = fetch(encodeURI(r.src))
+        .then(res => res.arrayBuffer())
+        .then(buf => new Promise((ok, ko) => ac.decodeAudioData(buf, ok, ko)))
+        .catch(() => { delete buffers[r.src]; return null; }));
+    const playSong = (r, buf, at) => {
         master = ac.createGain();
-        master.gain.value = sfx.on ? 0.55 * gameVolume('cooking') * 2 : 0;
+        master.gain.value = sfx.on ? gameVolume('cooking') * 1.2 : 0;
         master.connect(ac.destination);
-        const spb = 60 / r.bpm;
-        const prog = PROG[r.prog];
-        const total = countBars + r.bars + 1;
-        for (let bar = 0; bar < total; bar++) {
-            const b0 = startAt + bar * 4 * spb;
-            if (bar < countBars) { // décompte : 4 coups de baguettes
-                for (let k = 0; k < 4; k++) hiss(b0 + k * spb, 0.05, 4000, k === 0 ? 0.3 : 0.18);
-                continue;
-            }
-            const last = bar === total - 1;
-            const ch = prog[(bar - countBars) % prog.length].map(n => n + r.key);
-            kick(b0);
-            if (last) { ch.forEach(n => tone(midi(n), b0, 1.6, 'triangle', 0.05)); tone(midi(ch[0] - 24), b0, 1.6, 'sawtooth', 0.05); break; }
-            kick(b0 + 2 * spb);
-            if (bar % 2) kick(b0 + 2.5 * spb);
-            snare(b0 + spb); snare(b0 + 3 * spb);
-            const sub = r.bpm >= 126 ? 0.25 : 0.5; // charleston en croches ou doubles
-            for (let k = 0; k < 4; k += sub) hiss(b0 + k * spb, 0.035, 7000, k % 1 ? 0.04 : 0.07);
-            // basse
-            [0, 1.5, 2, 3.5].forEach((k, i) => tone(midi(ch[0] - 24 + (i === 3 ? 12 : 0)), b0 + k * spb, spb * 0.9, 'sawtooth', 0.045));
-            // nappe d'accords
-            ch.forEach(n => tone(midi(n - 12), b0, 4 * spb * 0.95, 'triangle', 0.018));
-            if (r.ultimate) for (let k = 0; k < 8; k++) tone(midi(ch[[0, 1, 2, 1][k % 4]] + (k >= 4 ? 12 : 0)), b0 + k * 0.5 * spb, spb * 0.4, 'triangle', 0.016);
-        }
+        const g = ac.createGain();
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(1, at + 0.25);
+        g.gain.setValueAtTime(1, at + r.len - 2.2);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + r.len);
+        songSrc = ac.createBufferSource();
+        songSrc.buffer = buf;
+        songSrc.connect(g).connect(master);
+        songSrc.start(at, r.from, r.len);
     };
-    // la mélodie : jouée seulement quand on touche l'ingrédient
-    const lead = (n) => {
+    // frapper un ingrédient : un petit grésillement de poêle (pas de note, pour ne pas jurer avec le morceau)
+    const lead = () => {
         if (!ac || !master) return;
         const at = ac.currentTime;
-        tone(midi(n.pitch), at, 0.22, 'square', 0.035);
-        tone(midi(n.pitch + 12), at, 0.16, 'triangle', 0.03);
+        const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+        s.buffer = noise;
+        f.type = 'bandpass'; f.frequency.value = 5200; f.Q.value = 0.8;
+        g.gain.setValueAtTime(0.09, at);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + 0.12);
+        s.connect(f).connect(g).connect(master);
+        s.start(at); s.stop(at + 0.14);
     };
-    // note tenue : le son dure tant qu'on maintient
-    const leadHold = (n) => {
+    // cuisson maintenue : la poêle grésille tant qu'on tient
+    const leadHold = () => {
         if (!ac || !master) return () => { };
         const at = ac.currentTime;
-        const lp = ac.createBiquadFilter(), g = ac.createGain();
-        lp.type = 'lowpass'; lp.frequency.value = 2200; lp.Q.value = 0.5;
-        // même instrument que les notes simples (carré + triangle à l'octave), juste tenu et un peu plus doux
-        const sq = ac.createOscillator(), tri = ac.createOscillator(), triG = ac.createGain();
-        sq.type = 'square'; sq.frequency.setValueAtTime(midi(n.pitch), at);
-        tri.type = 'triangle'; tri.frequency.setValueAtTime(midi(n.pitch + 12), at);
-        triG.gain.value = 0.8;
-        sq.connect(lp); tri.connect(triG).connect(lp);
+        const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+        s.buffer = noise; s.loop = true;
+        f.type = 'highpass'; f.frequency.value = 3500;
         g.gain.setValueAtTime(0.0001, at);
-        g.gain.exponentialRampToValueAtTime(0.03, at + 0.01);
-        g.gain.setTargetAtTime(0.018, at + 0.12, 0.2);
-        lp.connect(g).connect(master);
-        sq.start(at); tri.start(at);
-        return () => {
-            const t1 = ac.currentTime;
-            g.gain.cancelScheduledValues(t1);
-            g.gain.setTargetAtTime(0.0001, t1, 0.04);
-            sq.stop(t1 + 0.3); tri.stop(t1 + 0.3);
-        };
+        g.gain.exponentialRampToValueAtTime(0.05, at + 0.05);
+        s.connect(f).connect(g).connect(master);
+        s.start(at);
+        return () => { const t1 = ac.currentTime; g.gain.setTargetAtTime(0.0001, t1, 0.04); s.stop(t1 + 0.3); };
     };
 
     const stopSong = () => {
         if (!master) return;
-        const m = master;
-        master = null;
-        try { m.gain.setTargetAtTime(0, ac.currentTime, 0.05); setTimeout(() => m.disconnect(), 300); } catch { }
+        const m = master, src = songSrc;
+        master = null; songSrc = null;
+        try { m.gain.setTargetAtTime(0, ac.currentTime, 0.08); setTimeout(() => { try { src?.stop(); } catch { } m.disconnect(); }, 500); } catch { }
     };
+    document.addEventListener('gamevolume', (e) => { if (e.detail.id === 'cooking' && master) master.gain.value = sfx.on ? gameVolume('cooking') * 1.2 : 0; });
 
     // l'heure du jeu = l'heure de l'audio (moins la latence de sortie, pour coller à ce qu'on entend)
     const clock = () => ac ? ac.currentTime - (ac.outputLatency || ac.baseLatency || 0) : performance.now() / 1000;
@@ -234,8 +169,8 @@ const cooking = (() => {
             li.querySelector('.ck-dish').textContent = ok ? r.dish : '🔒';
             li.querySelector('b').textContent = ok ? `${i + 1}. ${r.name}` : `${i + 1}. ???`;
             const s = data[r.id] || 0;
-            li.querySelector('small').textContent = ok ? `${'★'.repeat(s)}${'☆'.repeat(3 - s)} · ${r.bpm} BPM` : t('2 étoiles sur la recette d\'avant');
-            li.querySelector('button').disabled = !ok || state === 'play';
+            li.querySelector('small').textContent = ok ? `${'★'.repeat(s)}${'☆'.repeat(3 - s)} · ♪ ${r.song}` : t('2 étoiles sur la recette d\'avant');
+            li.querySelector('button').disabled = !ok || state === 'play' || state === 'load';
             li.querySelector('button').addEventListener('click', () => { current = i; showStart(); });
             list.appendChild(li);
         });
@@ -244,7 +179,8 @@ const cooking = (() => {
     };
 
     /* --- état --- */
-    let state = 'menu'; // menu | play | end
+    let state = 'menu'; // menu | load | play | end
+    (window.gamePlaying ||= {}).cooking = () => state === 'play' || state === 'load';
     let notes = [], t0 = 0, now = 0, score = 0, combo = 0, maxCombo = 0, hits = 0, perfects = 0, bad = 0, spb = 0, endAt = 0;
     const particles = [];
     const pan = [];
@@ -261,7 +197,7 @@ const cooking = (() => {
             <p class="cook-k ${r.ultimate ? 'is-ultimate' : ''}">${r.ultimate ? t('☠ NIVEAU ULTIME ☠') : `${t('NIVEAU')} ${current + 1} / ${RECIPES.length}`}</p>
             <p class="cook-big">${r.dish}</p>
             <h3></h3>
-            <p class="cook-sub">${r.bpm} BPM · ${t('Meilleur')} : ${'★'.repeat(data[r.id] || 0) || '—'}</p>
+            <p class="cook-sub">♪ ${r.song} · ${t('Meilleur')} : ${'★'.repeat(data[r.id] || 0) || '—'}</p>
             ${r.ultimate ? `<p class="cook-rules"><span>🔥 ${t('Barre de cuisson : maintiens jusqu\'au bout')}</span><span>💀 ${t('Ingrédient pourri : le toucher = défaite')}</span></p>` : ''}
             <button class="btn cook-go" type="button">${t('▶ Cuisiner')}</button>`;
         overlay.querySelector('h3').textContent = r.name;
@@ -270,35 +206,37 @@ const cooking = (() => {
         renderBook();
     };
 
-    const start = () => {
+    let loadId = 0;
+    const start = async () => {
         const r = RECIPES[current];
-        audio();
-        spb = 60 / r.bpm;
-        const countBars = Math.max(1, Math.ceil(2.2 / (4 * spb))); // le temps que les 1ers ingrédients arrivent
-        const lead0 = countBars * 4 * spb;
-        notes = [];
-        for (let bar = 0; bar < r.bars; bar++) {
-            const ch = PROG[r.prog][bar % 4].map(n => n + r.key);
-            const beats = bar === r.bars - 1 ? [0, 1, 2] : r.pat[bar % r.pat.length];
-            beats.forEach((e, k) => {
-                const b = typeof e === 'number' ? e : e.b;
-                const mel = r.melody?.[bar % 4];
-                const pitch = mel ? mel[k % mel.length] : ch[(k + bar) % 3] + (k % 4 >= 2 ? 12 : 0);
-                const n = { t: lead0 + (bar * 4 + b) * spb, item: r.items[(bar + k) % r.items.length], pitch, done: false, res: null, kind: 'tap' };
-                if (e.h) { n.kind = 'hold'; n.len = e.h * spb; }
-                if (e.x) { n.kind = 'trap'; n.item = r.traps[(bar + k) % r.traps.length]; }
-                notes.push(n);
-            });
-        }
-        endAt = Math.max(...notes.map(n => n.t + (n.len || 0))) + 1.6;
+        if (!audio()) return;
+        const my = ++loadId;
+        state = 'load';
+        overlay.hidden = false;
+        overlay.innerHTML = `<p class="cook-k">${t('LA POÊLE CHAUFFE…')}</p><p class="cook-big">${r.dish}</p><p class="cook-sub">♪ ${r.song}</p>`;
+        renderBook();
+        if (ac.state === 'suspended') ac.resume().catch(() => { });
+        const buf = await loadSong(r);
+        if (my !== loadId || state !== 'load' || !gameOn('cooking')) return;
+        if (!buf) { showStart(); judge(t('Morceau introuvable'), 'is-miss'); return; }
+        spb = 0.5;
+        notes = r.notes.map((e, k) => {
+            const tt = typeof e === 'number' ? e : e[0];
+            const n = { t: tt, item: r.items[k % r.items.length], done: false, res: null, kind: 'tap' };
+            if (Array.isArray(e) && e[1] > 0) { n.kind = 'hold'; n.len = e[1]; }
+            if (Array.isArray(e) && e[1] === 0) { n.kind = 'trap'; n.item = r.traps[k % r.traps.length]; }
+            return n;
+        });
+        endAt = Math.min(r.len, Math.max(...notes.map(n => n.t + (n.len || 0))) + 2);
         score = combo = maxCombo = hits = perfects = bad = 0;
         holding = null;
         poisoned = false;
         pan.length = 0;
         overlay.hidden = true;
         state = 'play';
-        t0 = clock() + 0.15;
-        if (ac) playSong(r, ac.currentTime + 0.15, countBars);
+        const at = ac.currentTime + 0.2;
+        t0 = clock() + 0.2;
+        playSong(r, buf, at);
         renderBook();
     };
 
@@ -478,16 +416,9 @@ const cooking = (() => {
         const cr = cssVar('--t-crystal-rgb', '143, 184, 255');
         c.strokeStyle = `rgba(${cr}, 0.25)`;
         c.beginPath(); c.moveTo(0, ly - 34); c.lineTo(W, ly - 34); c.moveTo(0, ly + 34); c.lineTo(W, ly + 34); c.stroke();
-        if (state === 'play') {
-            const firstBeat = Math.ceil((tt - 1) / spb);
-            for (let b = firstBeat; ; b++) {
-                const x = hx + (b * spb - tt) * SPEED();
-                if (x > W) break;
-                c.strokeStyle = `rgba(${cr}, ${b % 4 === 0 ? 0.3 : 0.1})`;
-                c.beginPath(); c.moveTo(x, ly - 34); c.lineTo(x, ly + 34); c.stroke();
-            }
-        }
-        const beatPulse = state === 'play' ? Math.max(0, 1 - (((tt % spb) + spb) % spb) / spb * 3) : 0;
+        // le cercle bat au rythme des ingrédients qui passent
+        let beatPulse = 0;
+        if (state === 'play') for (const n of notes) { const d = tt - n.t; if (d >= 0 && d < 0.25) beatPulse = Math.max(beatPulse, 1 - d / 0.25); if (n.t > tt) break; }
         c.strokeStyle = cssVar('--t-crystal', '#8fb8ff');
         c.lineWidth = 3;
         c.beginPath(); c.arc(hx, ly, 26 + beatPulse * 4, 0, 6.283); c.stroke();
@@ -559,7 +490,7 @@ const cooking = (() => {
         const dt = Math.min((ms - last) / 1000, 0.05);
         last = ms;
         now = ms / 1000;
-        if (!gameOn('cooking')) { if (state === 'play' && !gamePaused) showStart(); raf = 0; return; } // on quitte : la partie s'arrête (la pause, elle, la fige)
+        if (!gameOn('cooking')) { if ((state === 'play' || state === 'load') && !gamePaused) showStart(); raf = 0; return; } // on quitte : la partie s'arrête (la pause, elle, la fige)
         update();
         draw(dt);
         raf = requestAnimationFrame(loop);
@@ -572,14 +503,16 @@ const cooking = (() => {
     };
     document.addEventListener('gameopen', (e) => { if (e.detail === 'cooking') { run(); if (state !== 'play') showStart(); } });
     document.addEventListener('gameresume', (e) => { if (e.detail === 'cooking') run(); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') showStart(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden && (state === 'play' || state === 'load')) showStart(); });
     window.addEventListener('resize', () => { if (raf) ({ c, W, H } = fitCanvas(cv)); });
 
     renderBook();
     showStart();
     return {
-        reset() { store.del(KEY); store.del('eliasPortfolio.cookingUnlocked'); data = {}; current = 0; showStart(); }, // + ancienne clé de test
+        reset() { store.del(KEY); store.del('eliasPortfolio.cooking'); store.del('eliasPortfolio.cookingUnlocked'); data = {}; current = 0; showStart(); }, // + ancienne clé de test
         stars: () => Object.values(load()).some(s => s === 3),
+        peek: () => ({ state, tt: clock() - t0, notes, current }),
+        recipes: RECIPES,
     };
 })();
 
