@@ -91,7 +91,7 @@ const cooking = (() => {
     const unlocked = (i) => i === 0 || (data[RECIPES[i - 1].id] || 0) >= 2;
 
     /* ---------- musique : l'extrait du vrai morceau ---------- */
-    let ac = null, master = null, noise = null, songSrc = null;
+    let ac = null, master = null, noise = null, songSrc = null, songEl = null, songFrom = 0;
     const buffers = {};
     const audio = () => {
         ac = ac || sfx.ctx();
@@ -102,15 +102,36 @@ const cooking = (() => {
         }
         return ac;
     };
+    // secours : site ouvert en fichier local (file://), où fetch est interdit → simple lecteur <audio>
+    const loadElement = (r) => new Promise((ok) => {
+        const el = new Audio();
+        el.preload = 'auto';
+        const done = (v) => { clearTimeout(timer); el.oncanplaythrough = el.onerror = null; ok(v); };
+        const timer = setTimeout(() => done(el.readyState >= 2 ? { el } : null), 10000);
+        el.oncanplaythrough = () => done({ el });
+        el.onerror = () => done(null);
+        el.src = encodeURI(r.src);
+        el.load();
+    });
     // le morceau est téléchargé et décodé une fois, puis gardé en mémoire
     const loadSong = (r) => buffers[r.src] || (buffers[r.src] = fetch(encodeURI(r.src))
-        .then(res => res.arrayBuffer())
+        .then(res => { if (!res.ok) throw new Error(res.status); return res.arrayBuffer(); })
         .then(buf => new Promise((ok, ko) => ac.decodeAudioData(buf, ok, ko)))
-        .catch(() => { delete buffers[r.src]; return null; }));
+        .catch(() => loadElement(r))
+        .then(v => { if (!v) delete buffers[r.src]; return v; }));
+    const songVolume = () => sfx.on ? gameVolume('cooking') * 1.2 : 0;
     const playSong = (r, buf, at) => {
         master = ac.createGain();
-        master.gain.value = sfx.on ? gameVolume('cooking') * 1.2 : 0;
+        master.gain.value = songVolume();
         master.connect(ac.destination);
+        if (buf.el) {
+            songEl = buf.el;
+            songFrom = r.from;
+            songEl.volume = Math.min(1, songVolume());
+            songEl.currentTime = r.from;
+            songEl.play().catch(() => { });
+            return;
+        }
         const g = ac.createGain();
         g.gain.setValueAtTime(0.0001, at);
         g.gain.exponentialRampToValueAtTime(1, at + 0.25);
@@ -148,15 +169,22 @@ const cooking = (() => {
     };
 
     const stopSong = () => {
+        if (songEl) { songEl.pause(); songEl = null; }
         if (!master) return;
         const m = master, src = songSrc;
         master = null; songSrc = null;
         try { m.gain.setTargetAtTime(0, ac.currentTime, 0.08); setTimeout(() => { try { src?.stop(); } catch { } m.disconnect(); }, 500); } catch { }
     };
-    document.addEventListener('gamevolume', (e) => { if (e.detail.id === 'cooking' && master) master.gain.value = sfx.on ? gameVolume('cooking') * 1.2 : 0; });
+    document.addEventListener('gamevolume', (e) => {
+        if (e.detail.id !== 'cooking') return;
+        if (master) master.gain.value = songVolume();
+        if (songEl) songEl.volume = Math.min(1, songVolume());
+    });
+    // menu pause : le lecteur de secours se fige avec le reste
+    document.addEventListener('pausechange', (e) => { if (songEl) e.detail ? songEl.pause() : songEl.play().catch(() => { }); });
 
     // l'heure du jeu = l'heure de l'audio (moins la latence de sortie, pour coller à ce qu'on entend)
-    const clock = () => ac ? ac.currentTime - (ac.outputLatency || ac.baseLatency || 0) : performance.now() / 1000;
+    const clock = () => songEl ? songEl.currentTime - songFrom : ac ? ac.currentTime - (ac.outputLatency || ac.baseLatency || 0) : performance.now() / 1000;
 
     const renderBook = () => {
         const list = $('.cook-list');
@@ -237,6 +265,7 @@ const cooking = (() => {
         const at = ac.currentTime + 0.2;
         t0 = clock() + 0.2;
         playSong(r, buf, at);
+        if (songEl) t0 = 0; // l'horloge est alors la position dans le morceau
         renderBook();
     };
 
