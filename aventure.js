@@ -1042,6 +1042,11 @@ const gameMusic = (() => {
             current = id;
             audio.src = encodeURI(TRACKS[id]);
         }
+        // le système (Windows, téléphone) affiche le bon morceau et la bonne jaquette
+        const info = window.OST_GAMES_INFO?.[id === 'arena' ? 'battle' : id];
+        if (info && 'mediaSession' in navigator && window.MediaMetadata) {
+            try { navigator.mediaSession.metadata = new MediaMetadata({ title: info.title, artist: info.artist, album: 'Portfolio · Elias Maruca', artwork: [{ src: new URL(info.cover, location.href).href }] }); } catch { }
+        }
         window.ost?.hold('game');
         const target = level() * (gamePaused ? 0.3 : 1);
         if (!audio.paused) { fade(target, 300); return; }

@@ -18,8 +18,8 @@ window.OST_PLAYLIST = [
     { title: 'Somnus', artist: 'Final Fantasy XV', src: 'assets/ost/Somnus (Instrumental Version).mp3', cover: 'assets/covers/ff15.jpg' },
     { title: 'Valse di Fantastica', artist: 'Final Fantasy XV', src: 'assets/ost/Valse di Fantastica (FINAL FANTASY XV Original Soundtrack) 【Audio】.mp3', cover: 'assets/covers/ff15.jpg' },
     { title: 'Noctis', artist: 'Final Fantasy XV', src: 'assets/ost/NOCTIS.mp3', cover: 'assets/covers/ff15.jpg' },
-    { title: 'Sunset Waltz', artist: 'OST', src: 'assets/ost/Sunset Waltz.mp3' },
-    { title: 'Calm Before the Storm', artist: 'Final Fantasy X', src: 'assets/ost/Calm Before The Storm (FINAL FANTASY X Original Soundtrack) 【Audio】.mp3' },
+    { title: 'Sunset Waltz', artist: 'Final Fantasy XV', src: 'assets/ost/Sunset Waltz.mp3', cover: 'assets/covers/ff15.jpg' },
+    { title: 'Calm Before the Storm', artist: 'Final Fantasy X', src: 'assets/ost/Calm Before The Storm (FINAL FANTASY X Original Soundtrack) 【Audio】.mp3', cover: 'assets/covers/ff10.jpg' },
     {
         title: 'Stand By Me',
         artist: 'Florence + The Machine',
@@ -38,4 +38,12 @@ window.OST_GAMES = {
     road: 'assets/ost/FINAL FANTASY XV OST Regalia-F Theme ( Flying R ).mp3',
     // menu des mini-jeux et écran d'accueil de chaque jeu (sauf la pêche, qui a son thème)
     menu: 'assets/ost/FINAL FANTASY XV OST Menu Theme ( Crystalline Chill ).mp3',
+};
+// titre, jeu et jaquette de ces morceaux (affichés par le système : Windows, téléphone...)
+window.OST_GAMES_INFO = {
+    battle: { title: 'Stand Your Ground', artist: 'Final Fantasy XV', cover: 'assets/covers/ff15.jpg' },
+    chocobo: { title: 'Chocobo Theme', artist: 'Final Fantasy VII', cover: 'assets/covers/ff7.jpg' },
+    fishing: { title: 'Reel Rumble', artist: 'Final Fantasy XV', cover: 'assets/covers/ff15.jpg' },
+    road: { title: 'Flying R', artist: 'Final Fantasy XV', cover: 'assets/covers/ff15.jpg' },
+    menu: { title: 'Crystalline Chill', artist: 'Final Fantasy XV', cover: 'assets/covers/ff15.jpg' },
 };

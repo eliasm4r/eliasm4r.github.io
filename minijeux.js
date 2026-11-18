@@ -3617,7 +3617,7 @@ const trueEnding = (() => {
                 ['Somnus', 'Final Fantasy XV'], ['Valse di Fantastica', 'Final Fantasy XV'], ['Noctis', 'Final Fantasy XV'],
                 ['Stand Your Ground', 'Final Fantasy XV'], ['Crystalline Chill', 'Final Fantasy XV'], ['Reel Rumble', 'Final Fantasy XV'],
                 ['Flying R', 'Final Fantasy XV'], ['Calm Before the Storm', 'Final Fantasy X'], [t('Thème des Chocobos'), 'Final Fantasy VII'],
-                ['Sunset Waltz', '—'], [t('Générique de fin'), '« Stand By Me » — Florence + The Machine']]],
+                ['Sunset Waltz', 'Final Fantasy XV'], [t('Générique de fin'), '« Stand By Me » — Florence + The Machine']]],
             [t('Technique'), [
                 [t('Langages'), 'HTML · CSS · JavaScript'], [t('Mini-jeux'), 'Canvas 2D'], [t('Sauvegarde'), 'localStorage'],
                 [t('Polices'), 'Cinzel · Inter · JetBrains Mono'], [t('Bibliothèques'), 'jQuery · Typed.js · VanillaTilt'],
