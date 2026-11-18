@@ -2110,7 +2110,9 @@ const arena = (() => {
     // gagnable avec un bon équipement, serré, et perdu si on joue mal
     const TUNE = {speed: 1.0, heal: 80, healChance: 0.45, wolves: {hp: 1.5, dmg: 1.35}, swamp: {hp: 1.4, dmg: 1.2}, iron: {hp: 1.05, dmg: 0.78}, boss: {hp: 1.4, dmg: 1.35}};
     const HARD = { speed: TUNE.speed };
-    const makeFoe = (kind) => { const d = FOES[kind], hp = Math.round(d.hp * (TUNE[fight?.id]?.hp || 1)); return { kind, ...d, hp, max: hp, speed: d.speed * HARD.speed, eatb: Math.random() * 0.4, charging: false, fury: false, known: {} }; };
+    // le Dévoreur a deux vies : une première plus courte (×0,75), puis une renaissance plus solide (×1,25)
+    const BOSS_PHASE = [0.75, 1.25];
+    const makeFoe = (kind) => { const d = FOES[kind], hp = Math.round(d.hp * (TUNE[fight?.id]?.hp || 1) * (kind === 'devourer' ? BOSS_PHASE[0] : 1)); return { kind, ...d, hp, max: hp, speed: d.speed * HARD.speed, eatb: Math.random() * 0.4, charging: false, fury: false, known: {} }; };
 
     const start = (i) => {
         const f = FIGHTS[i];
@@ -2390,6 +2392,7 @@ const arena = (() => {
         // et le héros récupère ses HP et MP pour ce second round
         if (f.kind === 'devourer' && s.phase === 1 && f.hp <= 0) {
             s.phase = 2;
+            f.max = Math.round(FOES.devourer.hp * (TUNE[fight?.id]?.hp || 1) * BOSS_PHASE[1]);
             f.hp = f.max;
             f.charging = false;
             f.weak = 'ice'; f.resist = 'fire'; f.known = {}; f.speed = 2.4 * HARD.speed; f.eatb = 0;
