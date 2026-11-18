@@ -295,7 +295,7 @@ window.gameOver = (function initGameOver() {
     const yes = el.querySelector('.gameover-yes');
     const no = el.querySelector('.gameover-no');
     const reply = el.querySelector('.gameover-reply');
-    let onContinue = null;
+    let onContinue = null, onQuit = null;
 
     const close = () => {
         el.classList.add('is-leaving');
@@ -303,21 +303,24 @@ window.gameOver = (function initGameOver() {
             el.hidden = true;
             el.classList.remove('is-leaving');
             const fn = onContinue;
-            onContinue = null;
+            onContinue = onQuit = null;
             if (fn) fn();
         }, reduceMotion ? 0 : 500);
     };
 
     yes.addEventListener('click', close);
     no.addEventListener('click', () => {
-        // "Non" n'est pas vraiment une option...
+        // un mini-jeu peut accepter le « non » : on retourne à son menu
+        if (onQuit) { onContinue = onQuit; close(); return; }
+        // ailleurs, "Non" n'est pas vraiment une option...
         reply.textContent = tr('Le destin en a décidé autrement.');
         no.disabled = true;
         setTimeout(close, 1300);
     });
 
-    return ({ sub: text = '', onContinue: fn = null } = {}) => {
+    return ({ sub: text = '', onContinue: fn = null, onQuit: quit = null } = {}) => {
         onContinue = fn;
+        onQuit = quit;
         sub.textContent = text;
         reply.textContent = '';
         no.disabled = false;

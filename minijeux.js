@@ -2346,7 +2346,7 @@ const arena = (() => {
         s.over = true;
         const again = FIGHTS.indexOf(fight);
         setTimeout(() => {
-            if (window.gameOver) window.gameOver({ sub: `${fight.name} : ${t('tu es tombé au combat.')}`, onContinue: () => start(again) });
+            if (window.gameOver) window.gameOver({ sub: `${fight.name} : ${t('tu es tombé au combat.')}`, onContinue: () => start(again), onQuit: backToCamp });
             else backToCamp();
         }, 600);
     };
