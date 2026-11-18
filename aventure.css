@@ -3968,7 +3968,10 @@ html.is-paused body *:not(.pause, .pause *) {
 }
 
 .ar-paw.is-taken {
-    display: none;
+    /* le chat recruté dort là où était la trace de patte */
+    opacity: 0.95;
+    filter: none;
+    font-size: 2.2rem;
 }
 
 .ar-foes {
@@ -4140,3 +4143,29 @@ html.cat-in-battle #oneko {
 .relic.is-taken { opacity: 0.3; filter: grayscale(1); cursor: default; text-shadow: none; }
 .relic.is-taken:hover { transform: translate(-50%, -50%); }
 .ar-relics { margin: 0.4rem 0 0; font-size: 1.25rem; color: #ffe2a0; opacity: 0.9; }
+
+/* menu pause : changer de pseudo */
+.pz-name { display: flex; gap: 0.6rem; }
+.pz-name input {
+    width: 14rem;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--n-line, rgba(255, 255, 255, 0.2));
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    font: inherit;
+    font-size: 1.4rem;
+}
+.pz-name input:focus-visible { outline: 2px solid var(--n-gold, #e3b341); outline-offset: 1px; }
+.pz-name button {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--n-gold, #e3b341);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--n-gold, #e3b341);
+    font: inherit;
+    font-size: 1.3rem;
+    cursor: pointer;
+}
+.pz-name button:hover, .pz-name button:focus-visible { background: rgba(227, 179, 65, 0.15); outline: none; }
+@media (max-width: 916px) { .pz-name input { width: 10rem; } }

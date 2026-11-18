@@ -550,7 +550,7 @@ const lumi = (() => {
     add('k-emerald', 'chest', () => chestOpen('emerald'), tr('Un coffre vert attend près des diplômes.'), lookIn('education'), tr('En haut à droite de la page Parcours.'));
     add('k-sakura', 'chest', () => chestOpen('sakura'), tr('Des pétales tombent quelque part dans le journal.'), lookIn('experience'), tr('Tout en haut à gauche de la page Expériences.'));
     /* --- les succès les plus cachés --- */
-    add('alias', 'trophy', () => ach('alias'), tr('Certains noms réveillent des souvenirs : un prince, ses trois amis, ou un garçon qui revient de la mort.'), tr('Le pseudo se choisit au tout début… ou après un reset.'), tr('Reset ta progression et prends Noctis, Prompto, Gladio, Ignis, Subaru… ou Elias comme pseudo.'));
+    add('alias', 'trophy', () => ach('alias'), tr('Certains noms réveillent des souvenirs : un prince, ses trois amis, ou un garçon qui revient de la mort.'), tr('Le pseudo se change à tout moment : Échap, puis Options.'), tr('Dans Options (Échap), prends Noctis, Prompto, Gladio, Ignis, Subaru… ou Elias comme pseudo.'));
     add('konami', 'trophy', () => ach('konami'), tr('Un vieux code de triche réveille quelqu\'un de très sombre.'), tr('Il se tape au clavier, sur n\'importe quelle page.'), tr('Tape ↑ ↑ ↓ ↓ ← → ← → B A.'));
     add('campfire', 'trophy', () => ach('campfire'), tr('Même les héros ont besoin de repos.'), tr('Pose la souris et ne touche plus à rien…'), tr('Ne touche à rien pendant une minute.'));
     add('stubborn', 'trophy', () => ach('stubborn'), tr('Et si tu disais non, pour voir ?'), lookIn('experience'), tr('Réponds « Non » à la question d\'Elias.'));
@@ -805,6 +805,7 @@ const pauseMenu = (() => {
             return `
                 <p class="pz-k">${tr('OPTIONS')}</p>
                 <ul class="pz-opts">
+                    <li><label for="pz-name">${tr('Pseudo')}</label><form class="pz-name"><input id="pz-name" type="text" maxlength="16" autocomplete="off" spellcheck="false" value="${esc(getPlayer() || '')}"><button type="submit">${tr('Changer')}</button></form></li>
                     ${sw('sound', sfx.on, tr('Sons du menu'))}
                     ${sw('music', !!window.ost?.on, tr('Musique (OST)'))}
                     <li><span id="pz-l-vol">${tr('Volume de la musique')}</span><input type="range" class="pz-range" data-opt="volume" min="0" max="100" step="5" value="${vol}" style="--v:${vol}%" aria-labelledby="pz-l-vol"></li>
@@ -849,6 +850,19 @@ const pauseMenu = (() => {
         else if (id === 'options') el.querySelector('.pz-panel .pz-switch')?.focus();
         else if (id === 'trophies') { close(); document.getElementById('openTrophies')?.click(); }
         else if (id === 'home') { close(); if (typeof showTab === 'function') showTab('home'); }
+    };
+
+    // changer de pseudo sans tout effacer (les pseudos spéciaux débloquent leur succès)
+    const onPanelSubmit = (e) => {
+        const form = e.target.closest('.pz-name');
+        if (!form) return;
+        e.preventDefault();
+        const input = form.querySelector('input');
+        const before = getPlayer();
+        setPlayer(input.value);
+        input.value = getPlayer();
+        if (getPlayer() !== before) { sfx.select(); showToast(`${tr('Pseudo')} : ${getPlayer()}`); }
+        renderPanel();
     };
 
     const onPanelClick = (e) => {
@@ -933,6 +947,7 @@ const pauseMenu = (() => {
         });
         const panel = el.querySelector('.pz-panel');
         panel.addEventListener('click', onPanelClick);
+        panel.addEventListener('submit', onPanelSubmit);
         panel.addEventListener('input', (e) => {
             const r = e.target.closest('.pz-range');
             if (!r) return;

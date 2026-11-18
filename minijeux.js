@@ -1736,13 +1736,13 @@ const battle = (() => {
 const relics = (() => {
     const KEY = 'eliasPortfolio.relics';
     const LIST = [
-        { id: 'vigor', icon: '❤', page: 'about', x: '96%', y: '90%', name: t('Relique de vigueur'), what: t('+60 HP') },
-        { id: 'aether', icon: '❖', page: 'softskills', x: '4%', y: '94%', name: t('Relique d\'éther'), what: t('+20 MP') },
-        { id: 'might', icon: '⚔', page: 'education', x: '95%', y: '62%', name: t('Relique de force'), what: t('+12 % de dégâts') },
-        { id: 'starbane', icon: '✶', page: 'work', x: '2.5%', y: '82%', name: t('Fléau des étoiles'), what: t('+30 % de dégâts contre le Dévoreur') },
-        { id: 'moonward', icon: '☾', page: 'experience', x: '97%', y: '42%', name: t('Égide lunaire'), what: t('-25 % de dégâts reçus du Dévoreur') },
-        { id: 'swift', icon: '➹', page: 'skills', x: '97%', y: '95%', name: t('Plume du vent'), what: t('jauge ATB 15 % plus rapide') },
-        { id: 'phoenix', icon: '♨', page: 'home', x: '3%', y: '93%', name: t('Plume de phénix'), what: t('une fois par combat, te relève avec 40 % des HP') },
+        { id: 'vigor', icon: '❤', page: 'about', x: '96%', y: '90%', name: t('Relique de vigueur'), what: t('+40 HP') },
+        { id: 'aether', icon: '❖', page: 'softskills', x: '4%', y: '94%', name: t('Relique d\'éther'), what: t('+15 MP') },
+        { id: 'might', icon: '⚔', page: 'education', x: '95%', y: '62%', name: t('Relique de force'), what: t('+8 % de dégâts') },
+        { id: 'starbane', icon: '✶', page: 'work', x: '2.5%', y: '82%', name: t('Fléau des étoiles'), what: t('+18 % de dégâts contre le Dévoreur') },
+        { id: 'moonward', icon: '☾', page: 'experience', x: '97%', y: '42%', name: t('Égide lunaire'), what: t('-15 % de dégâts reçus du Dévoreur') },
+        { id: 'swift', icon: '➹', page: 'skills', x: '97%', y: '95%', name: t('Plume du vent'), what: t('jauge ATB 10 % plus rapide') },
+        { id: 'phoenix', icon: '♨', page: 'home', x: '3%', y: '93%', name: t('Plume de phénix'), what: t('une fois par combat, te relève avec 25 % des HP') },
     ];
     const ON_KEY = 'eliasPortfolio.relicsOn';
     const load = () => { try { return new Set(JSON.parse(store.get(KEY) || '[]')); } catch { return new Set(); } };
@@ -1792,12 +1792,12 @@ const relics = (() => {
     });
     // bonus appliqués en combat
     const bonus = () => ({
-        hp: worn('vigor') ? 60 : 0,
-        mp: worn('aether') ? 20 : 0,
-        dmg: worn('might') ? 1.12 : 1,
-        bossDmg: worn('starbane') ? 1.3 : 1,
-        bossTaken: worn('moonward') ? 0.75 : 1,
-        haste: worn('swift') ? 1.15 : 1,
+        hp: worn('vigor') ? 40 : 0,
+        mp: worn('aether') ? 15 : 0,
+        dmg: worn('might') ? 1.08 : 1,
+        bossDmg: worn('starbane') ? 1.18 : 1,
+        bossTaken: worn('moonward') ? 0.85 : 1,
+        haste: worn('swift') ? 1.1 : 1,
         phoenix: worn('phoenix'),
     });
     return { LIST, has, worn, toggle, bonus, count: () => got.size };
@@ -1995,6 +1995,7 @@ const arena = (() => {
             rl.appendChild(li);
         });
         $('.ar-paw').classList.toggle('is-taken', !!rec.cat);
+        $('.ar-paw').textContent = rec.cat ? '🐈 💤' : '🐾';
         renderHub();
     };
     const items = () => {
@@ -2005,7 +2006,8 @@ const arena = (() => {
     /* ---------------- le chat : il faut qu'il s'endorme sur la trace de patte ---------------- */
     let catT = 0, catLast = {};
     setInterval(() => {
-        document.documentElement.classList.toggle('cat-in-battle', !!(s && s.cat && openGame === 'arena' && document.getElementById('games')?.classList.contains('is-active')));
+        // recruté, le chat quitte la souris dans l'arène : il dort dans le sac et se bat à tes côtés
+        document.documentElement.classList.toggle('cat-in-battle', !!(((s && s.cat) || rec.cat) && openGame === 'arena' && gameOn('arena') && document.getElementById('games')?.classList.contains('is-active')));
         if (rec.cat || openGame !== 'arena' || camp.hidden || !gameOn('arena')) { catT = 0; return; }
         const neko = document.getElementById('oneko');
         const paw = $('.ar-paw');
@@ -2053,7 +2055,7 @@ const arena = (() => {
 
     // réglage de chaque combat (vie des ennemis, force de leurs coups), calé avec un joueur automatique :
     // gagnable avec un bon équipement, serré, et perdu si on joue mal
-    const TUNE = {speed: 0.92, heal: 70, healChance: 0.4, wolves: {hp: 1.25, dmg: 1.15}, swamp: {hp: 1.15, dmg: 1.0}, iron: {hp: 0.85, dmg: 0.62}, boss: {hp: 0.8, dmg: 0.9}};
+    const TUNE = {speed: 0.92, heal: 70, healChance: 0.4, wolves: {hp: 1.25, dmg: 1.15}, swamp: {hp: 1.15, dmg: 1.0}, iron: {hp: 0.85, dmg: 0.62}, boss: {hp: 1.0, dmg: 1.0}};
     const HARD = { speed: TUNE.speed };
     const makeFoe = (kind) => { const d = FOES[kind], hp = Math.round(d.hp * (TUNE[fight?.id]?.hp || 1)); return { kind, ...d, hp, max: hp, speed: d.speed * HARD.speed, eatb: Math.random() * 0.4, charging: false, fury: false, known: {} }; };
 
@@ -2377,7 +2379,8 @@ const arena = (() => {
     /* --- tour des ennemis --- */
     const hit = (dmg, name, big) => {
         lunge = -1;
-        dmg *= (TUNE[fight.id]?.dmg || 1) * (fight.boss && s.rb ? s.rb.bossTaken : 1);
+        // la phase 2 du boss frappe plus fort : le héros vient d'être remis sur pied
+        dmg *= (TUNE[fight.id]?.dmg || 1) * (fight.boss && s.rb ? s.rb.bossTaken : 1) * (fight.boss && s.phase === 2 ? 1.2 : 1);
         say(name);
         setTimeout(() => {
             if (!s || s.over) return;
@@ -2392,7 +2395,7 @@ const arena = (() => {
             if (s.php <= 0 && s.rb?.phoenix && !s.phoenixUsed) {
                 // plume de phénix : on se relève une fois
                 s.phoenixUsed = true;
-                s.php = Math.round(s.pmax * 0.4);
+                s.php = Math.round(s.pmax * 0.25);
                 flash = 1;
                 popNum(`+${s.php}`, hp.x, hp.y - 70, '#ffb36b');
                 say(t('La plume de phénix s\'embrase : tu te relèves !'));
