@@ -745,7 +745,10 @@ const fishing = (() => {
         perfect = power > 0.86;
         // un lancer loin et parfait rend les gros poissons plus probables
         const boost = 1 + power * 0.8 + (perfect ? 0.8 : 0);
-        const pool = FISH.map(f => ({ f, w: f.night && !isNight() ? 0 : f.w * (f.stars >= 3 ? boost : 1) }));
+        // la nuit (22h → 3h59), les gros poissons remontent : 3★ et 4★ ×3,5, 5★ ×6
+        const night = isNight();
+        const nightK = (f) => !night ? 1 : f.stars >= 5 ? 6 : f.stars >= 3 ? 3.5 : 1;
+        const pool = FISH.map(f => ({ f, w: f.night && !night ? 0 : f.w * (f.stars >= 3 ? boost : 1) * nightK(f) }));
         let r = Math.random() * pool.reduce((s, p) => s + p.w, 0);
         fish = pool.find(p => (r -= p.w) <= 0).f;
         const hz = horizon();
