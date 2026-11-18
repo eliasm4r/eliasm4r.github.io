@@ -930,7 +930,6 @@ const pauseMenu = (() => {
         el.querySelector('.pz-veil').addEventListener('click', close);
         el.querySelectorAll('.pz-item').forEach((b, i) => {
             b.addEventListener('click', () => { select(i); activate(ITEMS[i].id); });
-            b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse' && sel !== i) select(i, false); });
         });
         const panel = el.querySelector('.pz-panel');
         panel.addEventListener('click', onPanelClick);
@@ -1089,13 +1088,32 @@ const photoAlbum = (() => {
     const PAGES = { home: 'Accueil', about: 'Présentation', skills: 'Compétences', softskills: 'Soft Skills', education: 'Parcours', work: 'Réalisations', experience: 'Expériences', games: 'Mini-jeux' };
     const SHOTS = { fish1: 'Première prise !', fishBig: 'Le roi du lac', chef: 'Recette trois étoiles', ultimateChef: 'Chef légendaire', chocobo: 'Ligne d\'arrivée', chocoboLegend: 'Légende de la piste', roadTrip: 'En route !', roadLegend: 'Roi de la route', arenaAll: 'Le Dévoreur vaincu', battle: 'Golem vaincu', nightMonster: 'Le monstre de la nuit' };
 
-    const list = () => { try { return JSON.parse(store.get(KEY) || '[]'); } catch { return []; } };
-    const save = (all) => {
-        // le stockage du navigateur est limité : si c'est plein, on retire les plus anciennes
-        while (all.length) {
-            try { localStorage.setItem(KEY, JSON.stringify(all)); return; } catch { all.shift(); }
-        }
+    // photos en pleine qualité : trop lourdes pour localStorage, elles vont dans IndexedDB.
+    // Une copie en mémoire sert de lecture immédiate (le générique lit list() sans attendre).
+    let cache = [];
+    const db = new Promise((res) => {
+        try {
+            const r = indexedDB.open('eliasPortfolio', 1);
+            r.onupgradeneeded = () => r.result.createObjectStore('kv');
+            r.onsuccess = () => res(r.result);
+            r.onerror = () => res(null);
+        } catch { res(null); }
+    });
+    const idb = async (mode, fn) => {
+        const d = await db;
+        if (!d) return null;
+        return new Promise((res) => {
+            const tx = d.transaction('kv', mode);
+            const req = fn(tx.objectStore('kv'));
+            tx.oncomplete = () => res(req?.result ?? null);
+            tx.onerror = tx.onabort = () => res(null);
+        });
     };
+    // les anciennes photos (petites et floues, dans localStorage) sont abandonnées : elles seront reprises
+    try { localStorage.removeItem(KEY); } catch { }
+    idb('readonly', (st) => st.get('album')).then((v) => { if (Array.isArray(v)) cache = v.concat(cache.filter(p => !v.some(q => q.id === p.id))); });
+    const list = () => cache.slice();
+    const save = (all) => { cache = all; idb('readwrite', (st) => st.put(all, 'album')); };
     const add = (src, caption, id) => {
         const all = list().filter(p => !id || p.id !== id);
         all.push({ id, src, caption, at: Date.now() });
@@ -1107,14 +1125,14 @@ const photoAlbum = (() => {
     };
     const has = (id) => list().some(p => p.id === id);
 
-    // réduit une image (canvas) en petite photo JPEG
-    const shrink = (canvas, w = 360) => {
+    // copie une image (canvas) en photo JPEG de bonne qualité
+    const shrink = (canvas, w = Math.min(1600, canvas.width)) => {
         const k = w / canvas.width;
         const out = document.createElement('canvas');
         out.width = w;
         out.height = Math.round(canvas.height * k);
         out.getContext('2d').drawImage(canvas, 0, 0, out.width, out.height);
-        return out.toDataURL('image/jpeg', 0.72);
+        return out.toDataURL('image/jpeg', 0.88);
     };
 
     let lib = null;
@@ -1134,13 +1152,15 @@ const photoAlbum = (() => {
         if (!canSnapPages || busy || has(`page-${id}`)) return;
         setTimeout(() => idle(async () => {
             const sec = document.getElementById(id);
-            if (!sec?.classList.contains('is-active') || document.hidden || gamePaused) return;
+            if (!sec?.classList.contains('is-active') || document.hidden || gamePaused || document.querySelector('.credits')) return;
             busy = true;
             try {
                 const htmlToImage = await loadLib();
-                const src = await htmlToImage.toJpeg(sec, {
-                    quality: 0.72, pixelRatio: 0.35, height: window.innerHeight, backgroundColor: '#0a0d14',
-                    filter: (n) => !n.matches?.('iframe, marquee, .secret-item, .chest, .crystal-shard'),
+                // tout l'écran, tel que le joueur le voit (barre du haut comprise), en pleine résolution
+                const src = await htmlToImage.toJpeg(document.body, {
+                    quality: 0.86, pixelRatio: Math.min(1.5, window.devicePixelRatio || 1),
+                    width: window.innerWidth, height: window.innerHeight, backgroundColor: '#0a0d14',
+                    filter: (n) => !n.matches?.('iframe, marquee, script, .secret-item, .chest, .crystal-shard, #oneko, body > section:not(.is-active), .toast, .achievement-toast'),
                 });
                 add(src, tr(PAGES[id] || id), `page-${id}`);
             } catch { /* image d'un autre site, réseau... : pas de photo, tant pis */ }
@@ -1163,7 +1183,7 @@ const photoAlbum = (() => {
         }, 350);
     });
 
-    document.addEventListener('game', (e) => { if (e.detail.type === 'reset') store.del(KEY); });
+    document.addEventListener('game', (e) => { if (e.detail.type === 'reset') save([]); });
 
     return { list, add };
 })();

@@ -3524,7 +3524,7 @@ html.is-paused body *:not(.pause, .pause *) {
 .credits-rows {
     display: grid;
     gap: 16rem;
-    width: min(110rem, 92vw);
+    width: min(150rem, 96vw);
     position: relative;
     left: 50%;
     translate: -50% 0;
@@ -3533,7 +3533,7 @@ html.is-paused body *:not(.pause, .pause *) {
 
 .credits-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1.6fr;
     align-items: center;
     gap: 6rem;
 }
@@ -3544,6 +3544,10 @@ html.is-paused body *:not(.pause, .pause *) {
 
 .credits-row.photo-left .credits-side {
     order: -1;
+}
+
+.credits-row.photo-left {
+    grid-template-columns: 1.6fr 1fr;
 }
 
 .credits-block .credits-k {
@@ -3565,7 +3569,7 @@ html.is-paused body *:not(.pause, .pause *) {
 
 @media (max-width: 760px) {
     .credits-rows { gap: 10rem; }
-    .credits-row { grid-template-columns: 1fr; gap: 3rem; }
+    .credits-row, .credits-row.photo-left { grid-template-columns: 1fr; gap: 3rem; }
     .credits-row.photo-left .credits-side { order: 0; }
 }
 
@@ -4060,3 +4064,14 @@ html.cat-in-battle #oneko {
 .credits-block dt { margin-top: 2.2rem; }
 .credits-block dt:first-of-type { margin-top: 0; }
 .credits-row { padding: 0; min-height: 0; margin: 0; }
+
+/* menu pause : le survol surligne seulement (sélectionner au survol changeait le panneau,
+   la taille du menu bougeait et la sélection s'emballait) */
+.pz-item:not(.is-sel):hover {
+    color: #fff;
+}
+
+.pz-item:not(.is-sel):hover::before {
+    opacity: 0.45;
+    transform: none;
+}
