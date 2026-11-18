@@ -788,7 +788,7 @@ const pauseMenu = (() => {
                 const v = all ? Math.min(100, Math.round((got / all) * 100)) : 0;
                 return `<li class="${got >= all && all ? 'is-full' : ''}"><span>${esc(label)}</span><b>${got} / ${all}</b><i style="--v:${v}%"></i></li>`;
             }).join('');
-            const records = [['Fishing', tr('Pêche')], ['Cooking', tr('Cuisine')], ['Chocobo', 'Chocobo Race'], ['Battle', tr('Combat')]]
+            const records = [['Fishing', tr('Pêche')], ['Cooking', tr('Cuisine')], ['Chocobo', 'Chocobo Race'], ['Road', 'Route Royale'], ['Battle', tr('Combat')]]
                 .map(([id, label]) => [label, document.getElementById(`hub${id}`)?.textContent.trim() || '—'])
                 .map(([label, val]) => `<li><span>${esc(label)}</span><b>${esc(val)}</b></li>`).join('');
             return `
@@ -1069,7 +1069,7 @@ const photoAlbum = (() => {
     const MAX = 14;
     const LIB = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js';
     const PAGES = { home: 'Accueil', about: 'Présentation', skills: 'Compétences', softskills: 'Soft Skills', education: 'Parcours', work: 'Réalisations', experience: 'Expériences', games: 'Mini-jeux' };
-    const SHOTS = { fish1: 'Première prise !', fishBig: 'Le roi du lac', chef: 'Recette trois étoiles', ultimateChef: 'Chef légendaire', chocobo: 'Ligne d\'arrivée', chocoboLegend: 'Légende de la piste', battle: 'Golem vaincu', nightMonster: 'Le monstre de la nuit' };
+    const SHOTS = { fish1: 'Première prise !', fishBig: 'Le roi du lac', chef: 'Recette trois étoiles', ultimateChef: 'Chef légendaire', chocobo: 'Ligne d\'arrivée', chocoboLegend: 'Légende de la piste', roadTrip: 'En route !', roadLegend: 'Roi de la route', battle: 'Golem vaincu', nightMonster: 'Le monstre de la nuit' };
 
     const list = () => { try { return JSON.parse(store.get(KEY) || '[]'); } catch { return []; } };
     const save = (all) => {

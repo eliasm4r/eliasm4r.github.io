@@ -1743,9 +1743,439 @@ const battle = (() => {
     return { reset() { store.del(KEY); rec = load(); renderRecord(); showStart(); } };
 })();
 
+/* =====================================================================
+   2 bis. ROUTE ROYALE — la Regalia de nuit sur une route à 3 voies.
+   Fausse 3D : chaque objet a une distance devant la voiture, projetée
+   vers l'horizon. On change de voie pour éviter la circulation et on
+   ramasse des jerricans pour ne pas tomber en panne sèche.
+   ===================================================================== */
+const roadTrip = (() => {
+    const panel = document.getElementById('game-road');
+    if (!panel) return { reset() { } };
+    const KEY = 'eliasPortfolio.road';
+
+    panel.innerHTML = `
+        <div class="game-bar">
+            <button class="game-back" type="button">${t('◂ Mini-jeux')}</button>
+            <p class="game-title">🚗 Route Royale</p>
+        </div>
+        <div class="race-stage road-stage">
+            <canvas class="race-canvas" aria-label="${t('Route de nuit')}"></canvas>
+            <div class="race-hud road-hud">
+                <p class="race-time road-dist">0.00 km</p>
+                <p class="road-speed">0 km/h</p>
+                <p class="race-best">${t('RECORD')} <b>—</b></p>
+                <p class="road-hp" aria-label="${t('Carrosserie')}"></p>
+                <div class="road-fuel"><i class="fas fa-gas-pump" aria-hidden="true"></i><span><b></b></span></div>
+            </div>
+            <p class="race-center"></p>
+            <div class="race-overlay"></div>
+        </div>
+        <p class="fish-tip race-tip">${t('Change de voie avec ← → (ou A / D), ou touche la moitié gauche ou droite de la route. Évite la circulation et ramasse les jerricans pour ne pas tomber en panne sèche.')}</p>`;
+
+    const $ = (sel) => panel.querySelector(sel);
+    const cv = $('canvas');
+    const stage = $('.road-stage');
+    const overlay = $('.race-overlay');
+    const center = $('.race-center');
+    let c, W, H;
+
+    const FAR = 170;  // mètres visibles devant
+    const CAM = 7;    // plus c'est petit, plus la perspective est forte
+    const TAU = Math.PI * 2;
+    const LANE_OFF = [-2 / 3, 0, 2 / 3];
+    const TRAFFIC_V = 15; // la circulation roule à 54 km/h
+
+    let best = Number(store.get(KEY)) || 0; // en mètres
+    const km = (m) => `${(m / 1000).toFixed(2)} km`;
+    const renderBest = () => {
+        $('.race-best b').textContent = best ? km(best) : '—';
+        setHubRecord('road', best ? km(best) : '—');
+    };
+
+    let state = 'menu'; // menu | count | run | end
+    let T = 0, dist = 0, speed = 0, fuel = 100, hp = 3, inv = 0, shake = 0, countT = 0;
+    let lane = 1, laneX = 1, things = [], nextRow = 0, cause = '';
+
+    const showMenu = () => {
+        state = 'menu';
+        stage.classList.remove('is-running');
+        overlay.hidden = false;
+        overlay.innerHTML = `
+            <p class="cook-k">${t('ROUTE ROYALE')}</p>
+            <h3>${t('Road trip de nuit')}</h3>
+            <p class="cook-sub">${t('Va le plus loin possible. La route accélère, l\'essence baisse.')}</p>
+            <p class="cook-sub">${t('Record')} : ${best ? km(best) : '—'}</p>
+            <button class="btn road-go" type="button">${t('▶ En voiture')}</button>`;
+        overlay.querySelector('.road-go').addEventListener('click', start);
+        center.textContent = '';
+    };
+
+    const start = () => {
+        overlay.hidden = true;
+        dist = 0; speed = 0; fuel = 100; hp = 3; inv = 0; shake = 0;
+        lane = 1; laneX = 1;
+        things = [];
+        nextRow = 60;
+        countT = 3;
+        state = 'count';
+        stage.classList.add('is-running');
+        renderHud();
+    };
+
+    const end = () => {
+        state = 'end';
+        stage.classList.remove('is-running');
+        const record = dist > best;
+        if (record) { best = dist; store.set(KEY, String(Math.round(best))); }
+        renderBest();
+        sfx.back();
+        overlay.hidden = false;
+        overlay.innerHTML = `
+            <p class="cook-k">${cause === 'fuel' ? t('PANNE SÈCHE') : t('LA REGALIA EST CABOSSÉE')}</p>
+            <h3>${km(dist)}</h3>
+            <p class="cook-sub">${cause === 'fuel' ? t('Plus une goutte d\'essence. Ignis va devoir pousser.') : t('Trois chocs, c\'est trop. Cid ne va pas être content.')}</p>
+            ${record ? `<p class="fish-catch-record">${t('★ NOUVEAU RECORD ★')}</p>` : ''}
+            <div class="cook-actions"><button class="btn" type="button">${t('↺ Reprendre la route')}</button></div>`;
+        overlay.querySelector('button').addEventListener('click', start);
+    };
+
+    const steer = (dir) => {
+        if (state !== 'run' && state !== 'count') return;
+        const n = Math.max(0, Math.min(2, lane + dir));
+        if (n !== lane) { lane = n; sfx.hover(); }
+    };
+
+    /* --- contrôles --- */
+    window.addEventListener('keydown', (e) => {
+        if (!gameOn('road') || e.target.closest?.('input, textarea')) return;
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA') { e.preventDefault(); steer(-1); }
+        else if (e.code === 'ArrowRight' || e.code === 'KeyD') { e.preventDefault(); steer(1); }
+        else if (e.code === 'Space' && !e.repeat) {
+            e.preventDefault();
+            if (state === 'menu' || state === 'end') start();
+        }
+    });
+    stage.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('button') || (state !== 'run' && state !== 'count')) return;
+        e.preventDefault();
+        const r = stage.getBoundingClientRect();
+        steer(e.clientX - r.left < r.width / 2 ? -1 : 1);
+    });
+
+    /* --- logique --- */
+    const spawnRow = () => {
+        const far = dist + FAR;
+        const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
+        // de plus en plus de voies bloquées en même temps (jamais les trois)
+        const blocked = dist > 1500 && Math.random() < Math.min(0.55, 0.2 + dist / 12000) ? 2 : 1;
+        for (let i = 0; i < blocked; i++) {
+            const truck = Math.random() < 0.25;
+            things.push({ m: far, lane: lanes[i], kind: truck ? 'truck' : 'car', hue: Math.floor(Math.random() * 360), hit: false });
+        }
+        // un jerrican dans une voie libre, plus rare quand le réservoir est plein
+        if (Math.random() < (fuel < 45 ? 0.55 : 0.28)) things.push({ m: far + 8, lane: lanes[2], kind: 'can', hit: false });
+        // les rangées se rapprochent avec la vitesse
+        nextRow = dist + Math.max(26, 70 - dist / 220) + rand(0, 25);
+    };
+
+    const update = (dt) => {
+        laneX += (lane - laneX) * Math.min(1, dt * 12);
+        if (state === 'count') {
+            countT -= dt;
+            center.textContent = countT > 0 ? String(Math.ceil(countT)) : t('GO !');
+            if (countT <= 0) { state = 'run'; setTimeout(() => { if (state === 'run') center.textContent = ''; }, 600); }
+            return;
+        }
+        if (state !== 'run') return;
+        // vitesse : de 90 à ~220 km/h au fil de la route ; à sec, la voiture ralentit puis s'arrête
+        const target = fuel > 0 ? 25 + Math.min(36, dist / 140) : 0;
+        speed += (target - speed) * Math.min(1, dt * (fuel > 0 ? 0.6 : 0.9));
+        dist += speed * dt;
+        fuel = Math.max(0, fuel - dt * (3.6 + speed / 40));
+        inv = Math.max(0, inv - dt);
+        shake = Math.max(0, shake - dt);
+        if (dist >= nextRow) spawnRow();
+        for (const o of things) {
+            if (o.kind !== 'can') o.m += TRAFFIC_V * dt;
+            const d = o.m - dist;
+            if (o.hit || d > 3 || d < -2) continue;
+            if (Math.abs(laneX - o.lane) > 0.45) continue;
+            o.hit = true;
+            if (o.kind === 'can') {
+                fuel = Math.min(100, fuel + 32);
+                sfx.select();
+            } else if (inv <= 0) {
+                hp -= 1;
+                inv = 1.6;
+                shake = 0.45;
+                speed *= 0.55;
+                sfx.back();
+                center.textContent = t('Bang !');
+                setTimeout(() => { if (state === 'run') center.textContent = ''; }, 600);
+            }
+        }
+        things = things.filter(o => o.m - dist > -12 && !(o.kind === 'can' && o.hit));
+        if (dist >= 2000) achievements.unlock('roadTrip');
+        if (dist >= 10000) achievements.unlock('roadLegend');
+        renderHud();
+        if (hp <= 0) { cause = 'crash'; end(); }
+        else if (fuel <= 0 && speed < 0.6) { cause = 'fuel'; end(); }
+    };
+
+    const renderHud = () => {
+        $('.road-dist').textContent = km(dist);
+        $('.road-speed').textContent = `${Math.round(speed * 3.6)} km/h`;
+        $('.road-hp').textContent = '◆'.repeat(Math.max(0, hp)) + '◇'.repeat(Math.max(0, 3 - hp));
+        const f = $('.road-fuel');
+        f.style.setProperty('--f', `${fuel}%`);
+        f.classList.toggle('is-low', fuel < 25);
+    };
+
+    /* --- dessin --- */
+    let deco = null;
+    const buildDeco = () => {
+        const hy = H * 0.42;
+        const sky = document.createElement('canvas');
+        sky.width = W; sky.height = Math.ceil(hy) + 2;
+        const g = sky.getContext('2d');
+        const grad = g.createLinearGradient(0, 0, 0, hy);
+        grad.addColorStop(0, '#070a1c'); grad.addColorStop(0.55, '#1c1838'); grad.addColorStop(0.85, '#4a2a4e'); grad.addColorStop(1, '#a8505a');
+        g.fillStyle = grad; g.fillRect(0, 0, W, hy + 2);
+        for (let i = 0; i < 120; i++) {
+            const sx = (i * 97.13) % W, sy = (i * 41.7) % (hy * 0.75);
+            g.fillStyle = `rgba(255, 255, 255, ${0.25 + ((i * 13) % 10) / 16})`;
+            g.fillRect(sx, sy, i % 9 ? 1.2 : 2, i % 9 ? 1.2 : 2);
+        }
+        // lune
+        const mx = W * 0.78, my = hy * 0.28, mr = Math.max(14, H * 0.045);
+        const halo = g.createRadialGradient(mx, my, mr, mx, my, mr * 5);
+        halo.addColorStop(0, 'rgba(200, 215, 255, 0.35)'); halo.addColorStop(1, 'rgba(200, 215, 255, 0)');
+        g.fillStyle = halo; g.fillRect(0, 0, W, hy);
+        g.fillStyle = '#eef1ff'; g.beginPath(); g.arc(mx, my, mr, 0, TAU); g.fill();
+        g.fillStyle = 'rgba(160, 170, 210, 0.35)'; g.beginPath(); g.arc(mx - mr * 0.3, my - mr * 0.2, mr * 0.25, 0, TAU); g.fill();
+        // montagnes (bande deux fois plus large, pour défiler dans les virages)
+        const mts = document.createElement('canvas');
+        mts.width = W * 2; mts.height = Math.ceil(hy * 0.5);
+        const m = mts.getContext('2d');
+        const layer = (base, amp, col, seed) => {
+            m.fillStyle = col; m.beginPath(); m.moveTo(0, mts.height);
+            for (let x = 0; x <= mts.width; x += 6) {
+                const k = (x / mts.width) * TAU;
+                m.lineTo(x, base - amp * (0.5 + 0.3 * Math.sin(k * 3 + seed) + 0.2 * Math.sin(k * 11 + seed * 2)));
+            }
+            m.lineTo(mts.width, mts.height); m.closePath(); m.fill();
+        };
+        layer(mts.height * 0.85, mts.height * 0.7, '#2a1f3d', 1);
+        layer(mts.height, mts.height * 0.45, '#191427', 4);
+        deco = { sky, mts, hy };
+    };
+
+    // projection : distance devant la voiture -> échelle (1 au pare-chocs, ~0 à l'horizon)
+    const scaleAt = (d) => CAM / (CAM + Math.max(0, d));
+    const bendAt = (d) => {
+        // virage doux : la route part sur le côté au loin
+        const b = Math.sin(dist / 520) * 0.9 + Math.sin(dist / 210) * 0.25;
+        const s = scaleAt(d);
+        return b * (1 - s) * (1 - s) * W * 0.32;
+    };
+    const proj = (d, off) => {
+        const s = scaleAt(d);
+        const hy = deco.hy;
+        const half = W * 0.5 * s;
+        return { x: W / 2 + bendAt(d) + off * half, y: hy + (H - hy) * s, s, half };
+    };
+
+    const drawCar = (x, y, w, o, s) => {
+        const h = w * (o.kind === 'truck' ? 0.95 : 0.55);
+        c.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        c.beginPath(); c.ellipse(x, y, w * 0.6, w * 0.08, 0, 0, TAU); c.fill();
+        if (o.kind === 'truck') {
+            c.fillStyle = `hsl(${o.hue}, 25%, 32%)`;
+            c.beginPath(); c.roundRect(x - w / 2, y - h, w, h * 0.92, w * 0.04); c.fill();
+            c.fillStyle = 'rgba(255, 255, 255, 0.08)'; c.fillRect(x - w / 2 + w * 0.06, y - h + w * 0.06, w * 0.88, h * 0.7);
+        } else {
+            c.fillStyle = `hsl(${o.hue}, 55%, 42%)`;
+            c.beginPath(); c.roundRect(x - w / 2, y - h * 0.62, w, h * 0.55, w * 0.1); c.fill();
+            c.fillStyle = `hsl(${o.hue}, 45%, 30%)`;
+            c.beginPath(); c.roundRect(x - w * 0.36, y - h, w * 0.72, h * 0.42, w * 0.12); c.fill();
+            c.fillStyle = 'rgba(160, 200, 255, 0.35)';
+            c.beginPath(); c.roundRect(x - w * 0.3, y - h * 0.94, w * 0.6, h * 0.3, w * 0.08); c.fill();
+        }
+        // feux arrière
+        c.fillStyle = '#ff3b3b';
+        c.shadowColor = '#ff3b3b'; c.shadowBlur = 12 * s + 4;
+        c.fillRect(x - w * 0.46, y - h * 0.4, w * 0.16, h * 0.1);
+        c.fillRect(x + w * 0.3, y - h * 0.4, w * 0.16, h * 0.1);
+        c.shadowBlur = 0;
+        c.fillStyle = '#111';
+        c.fillRect(x - w * 0.45, y - h * 0.1, w * 0.18, h * 0.12);
+        c.fillRect(x + w * 0.27, y - h * 0.1, w * 0.18, h * 0.12);
+    };
+
+    const drawCan = (x, y, w) => {
+        const h = w * 1.2;
+        c.save();
+        c.shadowColor = '#ffcf5a'; c.shadowBlur = 18;
+        c.fillStyle = '#c92a2a';
+        c.beginPath(); c.roundRect(x - w / 2, y - h, w, h, w * 0.12); c.fill();
+        c.restore();
+        c.strokeStyle = '#ffd36b'; c.lineWidth = Math.max(1, w * 0.08);
+        c.beginPath(); c.moveTo(x - w * 0.35, y - h * 0.8); c.lineTo(x + w * 0.35, y - h * 0.2); c.moveTo(x + w * 0.35, y - h * 0.8); c.lineTo(x - w * 0.35, y - h * 0.2); c.stroke();
+        c.fillStyle = '#7a1414'; c.fillRect(x - w * 0.15, y - h - w * 0.2, w * 0.3, w * 0.22);
+    };
+
+    // la Regalia vue de derrière : longue, noire, capote baissée, quatre amis à bord
+    const drawRegalia = (x, y, w) => {
+        const h = w * 0.42;
+        c.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        c.beginPath(); c.ellipse(x, y + h * 0.05, w * 0.58, h * 0.16, 0, 0, TAU); c.fill();
+        // phares qui éclairent la route
+        const beam = c.createLinearGradient(0, y - h, 0, y - H * 0.35);
+        beam.addColorStop(0, 'rgba(255, 240, 200, 0.16)'); beam.addColorStop(1, 'rgba(255, 240, 200, 0)');
+        c.fillStyle = beam;
+        c.beginPath(); c.moveTo(x - w * 0.42, y - h * 0.7); c.lineTo(x - w * 0.9, y - H * 0.35); c.lineTo(x + w * 0.9, y - H * 0.35); c.lineTo(x + w * 0.42, y - h * 0.7); c.closePath(); c.fill();
+        // passagers
+        c.fillStyle = '#0c0c12';
+        [-0.27, -0.09, 0.09, 0.27].forEach((k, i) => { c.beginPath(); c.arc(x + w * k, y - h * (0.9 + (i % 2) * 0.05), w * 0.048, 0, TAU); c.fill(); });
+        // carrosserie
+        const body = c.createLinearGradient(0, y - h, 0, y);
+        body.addColorStop(0, '#3a3d48'); body.addColorStop(0.35, '#15161c'); body.addColorStop(1, '#050507');
+        c.fillStyle = body;
+        c.beginPath(); c.roundRect(x - w / 2, y - h * 0.85, w, h * 0.78, [w * 0.12, w * 0.12, w * 0.05, w * 0.05]); c.fill();
+        c.strokeStyle = 'rgba(220, 225, 240, 0.55)'; c.lineWidth = Math.max(1, w * 0.012);
+        c.beginPath(); c.moveTo(x - w * 0.46, y - h * 0.62); c.lineTo(x + w * 0.46, y - h * 0.62); c.stroke();
+        // pare-chocs chromé, plaque, feux
+        c.fillStyle = '#b8bcc8'; c.fillRect(x - w * 0.48, y - h * 0.16, w * 0.96, h * 0.07);
+        c.fillStyle = '#e8e2c8'; c.fillRect(x - w * 0.09, y - h * 0.4, w * 0.18, h * 0.14);
+        c.fillStyle = '#ff3030'; c.shadowColor = '#ff3030'; c.shadowBlur = 14;
+        c.fillRect(x - w * 0.47, y - h * 0.5, w * 0.14, h * 0.13);
+        c.fillRect(x + w * 0.33, y - h * 0.5, w * 0.14, h * 0.13);
+        c.shadowBlur = 0;
+        c.fillStyle = '#060608';
+        c.fillRect(x - w * 0.47, y - h * 0.09, w * 0.16, h * 0.16);
+        c.fillRect(x + w * 0.31, y - h * 0.09, w * 0.16, h * 0.16);
+    };
+
+    const draw = () => {
+        if (!deco) buildDeco();
+        const hy = deco.hy;
+        const b = Math.sin(dist / 520) * 0.9 + Math.sin(dist / 210) * 0.25;
+        c.save();
+        if (shake > 0) c.translate(rand(-1, 1) * shake * 14, rand(-1, 1) * shake * 8);
+        c.drawImage(deco.sky, 0, 0);
+        // montagnes : glissent dans le sens du virage
+        const mo = ((-b * W * 0.25 - dist * 0.002) % W + W) % W;
+        c.drawImage(deco.mts, -mo, hy - deco.mts.height + 1);
+        c.drawImage(deco.mts, W * 2 - mo - 1, hy - deco.mts.height + 1);
+        // désert
+        const ground = c.createLinearGradient(0, hy, 0, H);
+        ground.addColorStop(0, '#2c1d2a'); ground.addColorStop(1, '#5a3a2e');
+        c.fillStyle = ground; c.fillRect(0, hy, W, H - hy);
+
+        // route : tranches du loin vers le près
+        const N = 70;
+        for (let i = N; i > 0; i--) {
+            const d1 = FAR * Math.pow(i / N, 2), d0 = FAR * Math.pow((i - 1) / N, 2);
+            const a = proj(d1, 0), z = proj(d0, 0);
+            const stripe = Math.floor((dist + d0) / 5) % 2;
+            // bas-côtés
+            c.fillStyle = stripe ? '#4c3226' : '#553a2c';
+            c.fillRect(0, a.y - 1, W, z.y - a.y + 2);
+            // bordure rouge/blanche
+            // 1 px de recouvrement entre tranches : pas de fines lignes sombres
+            const rb = (k) => { c.beginPath(); c.moveTo(a.x - a.half * k, a.y - 1); c.lineTo(a.x + a.half * k, a.y - 1); c.lineTo(z.x + z.half * k, z.y + 1); c.lineTo(z.x - z.half * k, z.y + 1); c.closePath(); c.fill(); };
+            c.fillStyle = stripe ? '#d8d2c8' : '#b33a3a'; rb(1.08);
+            c.fillStyle = stripe ? '#2b2b33' : '#303039'; rb(1);
+            // pointillés entre les voies
+            if (Math.floor((dist + d0) / 7) % 2 === 0) {
+                c.fillStyle = 'rgba(240, 230, 190, 0.85)';
+                [-1 / 3, 1 / 3].forEach(k => {
+                    const w0 = Math.max(1, z.half * 0.025), w1 = Math.max(0.5, a.half * 0.025);
+                    c.beginPath();
+                    c.moveTo(a.x + a.half * k * 2 - w1, a.y); c.lineTo(a.x + a.half * k * 2 + w1, a.y);
+                    c.lineTo(z.x + z.half * k * 2 + w0, z.y + 1); c.lineTo(z.x + z.half * k * 2 - w0, z.y + 1);
+                    c.closePath(); c.fill();
+                });
+            }
+        }
+        // brume à l'horizon
+        const fog = c.createLinearGradient(0, hy - 6, 0, hy + (H - hy) * 0.18);
+        fog.addColorStop(0, 'rgba(168, 80, 90, 0.55)'); fog.addColorStop(1, 'rgba(168, 80, 90, 0)');
+        c.fillStyle = fog; c.fillRect(0, hy - 6, W, (H - hy) * 0.2);
+
+        // lampadaires tous les 45 m, des deux côtés
+        const step = 45;
+        for (let k = Math.ceil(FAR / step); k >= 0; k--) {
+            const d = k * step - (dist % step);
+            if (d < 1) continue;
+            [-1.25, 1.25].forEach(side => {
+                const p = proj(d, side);
+                const ph = H * 0.55 * p.s;
+                c.strokeStyle = '#1a1620'; c.lineWidth = Math.max(1, 5 * p.s);
+                c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x, p.y - ph); c.lineTo(p.x - side * ph * 0.12, p.y - ph); c.stroke();
+                c.fillStyle = '#ffe6a8'; c.shadowColor = '#ffcf6a'; c.shadowBlur = 20 * p.s + 4;
+                c.beginPath(); c.arc(p.x - side * ph * 0.12, p.y - ph + 2, Math.max(1.5, 7 * p.s), 0, TAU); c.fill();
+                c.shadowBlur = 0;
+            });
+        }
+
+        // circulation et jerricans, du plus loin au plus près
+        const vis = things.filter(o => o.m - dist > -2 && o.m - dist < FAR).sort((p, q) => q.m - p.m);
+        for (const o of vis) {
+            const p = proj(o.m - dist, LANE_OFF[o.lane]);
+            const w = p.half * (o.kind === 'can' ? 0.16 : o.kind === 'truck' ? 0.55 : 0.48);
+            if (o.kind === 'can') { if (!o.hit) drawCan(p.x, p.y, w); }
+            else drawCar(p.x, p.y, w, o, p.s);
+        }
+
+        // la Regalia
+        const me = proj(1.5, (laneX - 1) * (2 / 3));
+        if (!(inv > 0 && Math.floor(T * 14) % 2)) drawRegalia(me.x, H - H * 0.02, me.half * (W < 600 ? 0.62 : 0.5));
+        // lignes de vitesse
+        if (speed > 40 && state === 'run') {
+            c.strokeStyle = `rgba(255, 255, 255, ${Math.min(0.25, (speed - 40) / 80)})`;
+            c.lineWidth = 1.5;
+            for (let i = 0; i < 10; i++) {
+                const ang = (i / 10) * TAU + T;
+                const r0 = W * (0.35 + ((T * 3 + i * 0.37) % 1) * 0.3);
+                c.beginPath();
+                c.moveTo(W / 2 + Math.cos(ang) * r0, hy + Math.sin(ang) * r0 * 0.5);
+                c.lineTo(W / 2 + Math.cos(ang) * (r0 + 40), hy + Math.sin(ang) * (r0 + 40) * 0.5);
+                c.stroke();
+            }
+        }
+        c.restore();
+    };
+
+    let raf = 0, last = 0;
+    const loop = (ms) => {
+        const dt = Math.min((ms - last) / 1000, 0.05);
+        last = ms;
+        T = ms / 1000;
+        update(dt);
+        draw();
+        raf = gameOn('road') ? requestAnimationFrame(loop) : 0;
+    };
+    const run = () => {
+        if (raf) return;
+        ({ c, W, H } = fitCanvas(cv));
+        deco = null;
+        last = performance.now();
+        raf = requestAnimationFrame(loop);
+    };
+    document.addEventListener('gameopen', (e) => { if (e.detail === 'road') { run(); if (state === 'run' || state === 'count') showMenu(); } });
+    document.addEventListener('gameresume', (e) => { if (e.detail === 'road') run(); });
+    window.addEventListener('resize', () => { deco = null; if (raf) ({ c, W, H } = fitCanvas(cv)); });
+
+    renderBest();
+    showMenu();
+    return { reset() { store.del(KEY); best = 0; renderBest(); showMenu(); } };
+})();
+
 /* le "Reset votre progression" efface aussi les mini-jeux */
 document.addEventListener('game', (e) => {
-    if (e.detail.type === 'reset') { cooking.reset(); chocoboRace.reset(); battle.reset(); }
+    if (e.detail.type === 'reset') { cooking.reset(); chocoboRace.reset(); roadTrip.reset(); battle.reset(); }
 });
 
 /* =====================================================================

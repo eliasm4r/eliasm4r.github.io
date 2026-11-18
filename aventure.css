@@ -3656,3 +3656,98 @@ html.is-paused body *:not(.pause, .pause *) {
 .race-lock {
     font-size: 1.3rem;
 }
+
+/* ---------- Route Royale ---------- */
+.road-speed {
+    position: absolute;
+    top: 4.4rem;
+    left: 1.6rem;
+    margin: 0;
+    font: 600 1.4rem var(--n-mono);
+    color: #ffd36b;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.road-hp {
+    position: absolute;
+    top: 1.4rem;
+    left: 50%;
+    margin: 0;
+    font-size: 2rem;
+    letter-spacing: 0.3em;
+    color: #8fd0ff;
+    text-shadow: 0 0 10px rgba(120, 190, 255, 0.7);
+    transform: translateX(-50%);
+}
+
+.road-fuel {
+    --f: 100%;
+    position: absolute;
+    left: 1.6rem;
+    bottom: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    width: min(24rem, 50%);
+    color: #ffd36b;
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity .3s;
+}
+
+.road-stage.is-running .road-fuel {
+    opacity: 1;
+}
+
+.road-fuel span {
+    flex: 1;
+    height: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 99px;
+    background: rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+
+.road-fuel b {
+    display: block;
+    width: var(--f);
+    height: 100%;
+    background: linear-gradient(90deg, #f6a23c, #ffe08a);
+}
+
+.road-fuel.is-low {
+    color: #ff6a5a;
+    animation: roadLow 0.8s steps(2) infinite;
+}
+
+.road-fuel.is-low b {
+    background: #e05a4a;
+}
+
+@keyframes roadLow {
+    50% { opacity: 0.45; }
+}
+
+@media (max-width: 600px) {
+    .race-stage.road-stage {
+        aspect-ratio: 3 / 4;
+        height: auto;
+    }
+
+    .road-hp {
+        top: 6.6rem;
+        left: 1.6rem;
+        transform: none;
+        font-size: 1.5rem;
+    }
+
+    .road-fuel {
+        top: 9.4rem;
+        bottom: auto;
+        width: 45%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .road-fuel.is-low { animation: none; }
+}
