@@ -1157,7 +1157,7 @@ const photoAlbum = (() => {
     let lastInput = performance.now();
     ['pointermove', 'pointerdown', 'keydown', 'wheel', 'scroll', 'touchstart'].forEach(ev => window.addEventListener(ev, () => { lastInput = performance.now(); }, { passive: true, capture: true }));
     // seul ce qui est à l'écran est recopié (copier toute la page la figeait plus d'une seconde)
-    const SKIP = 'iframe, marquee, script, .secret-item, .chest, .crystal-shard, #oneko, body > section:not(.is-active), .toast, .achievement-toast, [hidden]';
+    const SKIP = 'iframe, marquee, script, .secret-item, .chest, .relic, .crystal-shard, #oneko, body > section:not(.is-active), .toast, .achievement-toast, [hidden]';
     const onScreen = (n) => {
         if (!(n instanceof Element)) return true;
         if (n.matches(SKIP)) return false;

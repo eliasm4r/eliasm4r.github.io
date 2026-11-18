@@ -4006,6 +4006,22 @@ html.is-paused body *:not(.pause, .pause *) {
     font-size: 1.3rem;
 }
 
+/* jauge ATB des ennemis : fine, rouge, elle clignote juste avant l'attaque */
+.ar-foes .bt-eatb {
+    height: 4px;
+    margin-top: 0.35rem;
+}
+
+.ar-foes .bt-eatb span {
+    background: #e8735a;
+    transition: none;
+}
+
+.ar-foes .bt-eatb.is-near span {
+    background: #ffb36b;
+    box-shadow: 0 0 6px #ff8a4a;
+}
+
 .ar-foes .bt-tag {
     min-height: 1.4rem;
     margin: 0.3rem 0 0;
@@ -4097,3 +4113,30 @@ html.cat-in-battle #oneko {
     }
     .pz-panel { height: auto; }
 }
+
+/* reliques royales : bonus de combat cachés, aussi discrets que les coffres */
+.relic {
+    position: absolute;
+    left: clamp(2rem, var(--x), calc(100% - 2rem));
+    top: clamp(2rem, var(--y), calc(100% - 2rem));
+    z-index: 5;
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 1.9rem;
+    line-height: 1;
+    color: #ffe2a0;
+    text-shadow: 0 0 10px rgba(255, 210, 120, 0.9);
+    opacity: 0.1;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: opacity .2s, transform .2s;
+}
+.relic:hover, .relic:focus-visible { opacity: 1; transform: translate(-50%, -50%) scale(1.35); outline: none; }
+.relic.is-taken { opacity: 0.3; filter: grayscale(1); cursor: default; text-shadow: none; }
+.relic.is-taken:hover { transform: translate(-50%, -50%); }
+.ar-relics { margin: 0.4rem 0 0; font-size: 1.25rem; color: #ffe2a0; opacity: 0.9; }

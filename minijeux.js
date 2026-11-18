@@ -27,31 +27,28 @@ const cssVar = (v, d) => getComputedStyle(document.documentElement).getPropertyV
 const cooking = (() => {
     const panel = document.getElementById('game-cooking');
     if (!panel) return { reset() { } };
-    const KEY = 'eliasPortfolio.cooking.v2'; // nouvelles recettes, nouveaux scores
+    const KEY = 'eliasPortfolio.cooking.v3'; // nouvelles partitions, nouveaux scores
 
     // du plus calme au plus dense. notes : nombre = taper ; [t, durée] = maintenir ; [t, 0] = piège
     // (temps en secondes depuis le début de l'extrait ; from = début de l'extrait dans le morceau)
     const RECIPES = [
-        { id: 'skewers', dish: '🍢', name: t('Brochettes du campement'), song: 'Sunset Waltz', src: 'assets/ost/Sunset Waltz.mp3', from: 5.333, len: 45,
-            items: ['🥩', '🧅', '🫑'],
-            notes: [2.55, 3.15, 4.38, 4.99, 5.61, 6.22, 6.83, 8.06, 8.98, 9.89, 10.5, 11.73, 12.34, 13.57, 14.18, 15.41, 16.01, 17.24, 17.85, 19.69, 20.3, 21.52, 22.08, 22.75, 23.36, 23.98, 25.2, 25.83, 26.42, 27.04, 27.96, 30.1, 30.72, 36.68, 39.28, 40.92, 42.82] },
-        { id: 'stew', dish: '🍲', name: t('Ragoût de la forêt'), song: 'Noctis', src: 'assets/ost/NOCTIS.mp3', from: 160.763, len: 45,
-            items: ['🥕', '🥔', '🍖', '🧄'],
-            notes: [3.32, 5.25, 6.32, 6.86, 7.39, 7.95, 9.31, 10.15, 10.73, 11.84, 12.86, 13.39, 14.5, 16.14, 17.21, 18.34, 18.86, 19.41, 19.94, 20.49, 21.06, 21.62, 22.42, 23.34, 24.28, 24.95, 29.04, 29.87, 32.05, 33.64, 35.58, 36.14, 36.66, 37.2, 38, 40.18, 42.13, 42.95] },
-        { id: 'fish', dish: '🐟', name: t('Poisson grillé aux herbes'), song: 'Somnus', src: 'assets/ost/Somnus (Instrumental Version).mp3', from: 5.793, len: 45,
+        { id: 'fish', dish: '🐟', name: t('Poisson grillé aux herbes'), song: 'Somnus', src: 'assets/ost/Somnus (Instrumental Version).mp3', from: 6.667, len: 45,
             items: ['🐟', '🌿', '🍋'],
-            notes: [2.33, 2.86, 3.73, 4.14, 4.7, 6.52, 7.32, 9.77, 13.56, 14.64, 15.72, 16.37, 17.09, 17.65, 18.31, 18.89, 19.56, 20.44, 20.83, 21.38, 22.02, 22.98, 23.5, 24.4, 25.34, 25.92, 26.88, 27.32, 28.12, 29.34, 30.34, 31.23, 31.79, 33.02, 33.47, 34.23, 35.1, 35.69, 36.92, 37.5, 38.4, 38.96, 39.73, 40.5, 41.28, 42.08, 42.53, 42.94] },
-        { id: 'curry', dish: '🍛', name: t('Curry du campement'), song: 'Valse di Fantastica', src: 'assets/ost/Valse di Fantastica (FINAL FANTASY XV Original Soundtrack) 【Audio】.mp3', from: 171.663, len: 45,
+            notes: [2, 2.862, 3.295, 3.729, 5.463, 5.894, 6.756, 7.187, 8.911, 11.486, 13.2, 13.843, 14.057, 14.488, 14.704, 14.919, 15.135, 15.35, 15.566, 16.212, 16.428, 16.643, 16.86, 17.077, 17.293, 17.51, 17.941, 18.157, 18.372, 18.588, 18.803, 19.234, 19.449, 19.665, 19.88, 20.096, 20.311, 20.527, 20.958, 21.389, 21.604, 21.82, 22.034, 22.248, 22.677, 22.892, 23.539, 23.972, 24.406, 24.624, 24.842, 25.278, 25.494, 25.711, 25.928, 26.363, 26.581, 27.017, 27.231, 27.659, 27.874, 28.305, 29.166, 29.382, 29.597, 29.813, 30.028, 30.244, 30.675, 30.89, 31.321, 31.537, 31.752, 31.968, 32.614, 32.83, 33.045, 33.259, 33.474, 33.902, 34.118, 34.333, 34.549, 34.764, 34.978, 35.407, 35.621, 36.052, 36.483, 37.761, 37.974, 38.187, 38.402, 38.618, 38.833, 39.049, 39.482, 39.699, 39.916, 40.344, 41.201, 41.63, 41.844, 42.487] },
+        { id: 'skewers', dish: '🍢', name: t('Brochettes du campement'), song: 'Calm Before the Storm', src: 'assets/ost/Calm Before The Storm (FINAL FANTASY X Original Soundtrack) 【Audio】.mp3', from: 1.115, len: 45,
+            items: ['🥩', '🧅', '🫑'],
+            notes: [2, 2.356, 2.712, 3.065, 3.418, 3.769, 4.12, 4.473, 4.826, 5.177, 5.528, 5.884, 6.24, 6.59, 6.941, 7.294, 7.648, 8.001, 8.354, 8.708, 9.061, 9.412, 9.763, 10.116, 10.469, 10.822, 11.176, 11.532, 11.709, 11.887, 12.238, 12.589, 12.942, 13.296, 13.649, 14.002, 14.355, 14.709, 15.06, 15.41, 15.761, 16.112, 16.465, 16.642, 16.819, 16.995, 17.172, 17.525, 17.878, 18.055, 18.408, 18.938, 20.352, 20.885, 21.063, 21.416, 21.77, 22.123, 22.653, 23.006, 23.183, 23.713, 23.89, 24.586, 24.763, 25.293, 25.471, 26.004, 26.18, 26.355, 26.706, 27.412, 27.763, 28.821, 29.527, 29.883, 30.061, 30.239, 30.945, 31.122, 31.652, 32.005, 32.359, 32.707, 33.055, 33.233, 33.767, 34.297, 34.473, 35.175, 35.352, 35.528, 35.882, 36.058, 36.412, 36.588, 36.942, 37.295, 37.472, 37.825, 38.001, 38.535, 38.713, 38.888, 39.064, 39.239, 39.415, 39.591, 39.768, 39.945, 40.121, 40.475, 40.651, 40.828, 41.354, 41.529, 41.706] },
+        { id: 'stew', dish: '🍲', name: t('Ragoût de la forêt'), song: 'Noctis', src: 'assets/ost/NOCTIS.mp3', from: 194.352, len: 45,
+            items: ['🥕', '🥔', '🍖', '🧄'],
+            notes: [2, 2.271, 2.541, 2.812, 3.082, 3.357, 3.631, 4.18, 4.724, 5.267, 5.544, 5.821, 6.098, 6.375, 6.648, 6.921, 7.194, 7.467, 7.74, 8.014, 8.56, 8.834, 9.109, 9.657, 9.932, 10.206, 10.48, 10.755, 11.027, 11.299, 11.57, 11.842, 12.391, 12.665, 12.94, 13.21, 13.481, 13.752, 14.022, 14.292, 14.561, 15.1, 15.373, 15.646, 15.919, 16.743, 17.295, 17.57, 18.397, 18.67, 18.943, 19.49, 20.038, 20.587, 20.856, 21.126, 21.395, 21.664, 22.193, 22.458, 22.722, 22.996, 23.271, 23.819, 24.092, 24.366, 24.639, 24.912, 25.184, 25.456, 25.727, 25.999, 26.553, 26.83, 27.107, 27.382, 27.658, 27.934, 28.209, 28.753, 29.025, 29.297, 29.845, 30.12, 30.394, 30.67, 30.945, 31.221, 31.497, 31.771, 32.045, 32.32, 32.594, 33.138, 33.682, 33.954, 34.225, 34.497, 34.769, 35.305, 35.573, 35.842, 36.11, 36.378, 36.914, 37.19, 37.465, 37.741, 38.016, 38.29, 38.563, 38.836, 39.109, 39.385, 39.66, 39.936, 40.211, 40.485, 40.758, 41.304, 41.575, 41.845, 42.116, 42.386] },
+        { id: 'curry', dish: '🍛', name: t('Curry du campement'), song: 'Sunset Waltz', src: 'assets/ost/Sunset Waltz.mp3', from: 1.611, len: 45,
             items: ['🍛', '🥕', '🌶️', '🍚'],
-            notes: [2.78, 3.09, 4.16, 4.9, 5.23, 6.09, 6.72, 7.32, 7.79, 8.54, 8.96, 10.04, 10.64, 10.96, 11.57, 12.48, 13.39, 14.01, 14.61, 14.92, 17.48, 17.81, 18.23, 18.86, 19.6, 20.07, 20.39, 21.42, 21.91, 23.1, 24.64, 25.81, 26.12, 26.73, 27.62, 28.54, 29.16, 30.65, 30.96, 31.87, 32.76, 33.24, 33.68, 34, 34.58, 34.91, 35.22, 35.81, 36.4, 37.34, 38.24, 39.15, 40.05, 40.52, 40.97, 41.28, 41.88, 42.8] },
-        { id: 'feast', dish: '🍱', name: t('Festin du roi'), song: 'Calm Before the Storm', src: 'assets/ost/Calm Before The Storm (FINAL FANTASY X Original Soundtrack) 【Audio】.mp3', from: 4.823, len: 45,
-            items: ['🍤', '🍄', '🌶️', '🥚', '🍚'],
-            notes: [2.52, 2.87, 3.22, 3.58, 3.93, 4.28, 4.64, 4.99, 5.34, 5.7, 6.05, 6.4, 6.75, 7.11, 7.46, 7.81, 8.17, 8.52, 8.87, 9.22, 9.58, 9.93, 10.28, 10.64, 10.99, 11.34, 11.69, 12.39, 12.75, 13.1, 13.45, 14.52, 14.87, 15.22, 15.92, 16.28, 16.63, 17.69, 19.81, 20.17, 20.52, 20.87, 21.22, 21.58, 21.92, 22.29, 22.99, 23.34, 23.69, 24.05, 24.75, 25.1, 25.81, 26.52, 27.23, 28.64, 29.34, 29.69, 30.05, 30.4, 31.1, 31.45, 32.52, 32.87, 33.22, 33.58, 34.28, 36.05, 37.46, 37.81, 38.16, 38.52, 38.87, 39.23, 39.57, 39.92, 40.99, 41.34, 41.69, 42.05, 42.75] },
-        { id: 'ultimate', dish: '👑', name: t('Banquet ultime'), song: 'Stand By Me', src: 'assets/ending ost/Florence + The Machine - Stand By Me.mp3', from: 15.453, len: 45, ultimate: true,
-            items: ['🦞', '🥩', '🍣', '🧀', '🍄', '🍋'], traps: ['💀', '🦠'],
-            notes: [2.27, 2.77, [3.39, 0], 3.95, 4.23, 4.5, 4.79, 5.06, 5.55, 5.85, 6.17, 6.44, 6.69, 6.97, [7.28, 0.66], 8.39, 9.07, 9.52, 10.05, 10.3, 10.61, 11.17, [11.65, 0], 12.01, 12.39, 12.66, 13.22, 13.61, 13.95, 14.24, 14.74, 14.99, 15.28, 15.59, 15.86, 16.17, 16.44, 16.72, 16.99, 17.28, 17.81, 18.09, 18.4, 18.67, 18.95, 19.5, 19.75, 20.07, [20.39, 0], 21.17, 21.45, 21.72, 21.99, 22.28, 22.57, 22.84, 23.13, 23.4, 24.18, 24.57, 24.83, 25.1, 25.88, 26.41, 26.71, 26.99, 27.26, 27.78, 28.08, 28.62, 28.89, 29.51, 29.79, 30.06, 30.31, 30.84, [31.34, 0], [31.71, 0.36], 32.52, 33.05, 33.36, 33.65, 33.95, 34.23, 34.5, 34.89, 35.28, 35.59, [35.97, 0], 36.4, 36.69, 36.93, 37.5, 38.07, [38.39, 0.37], 39.21, 39.5, 39.77, 40.03, 40.3, 40.67, 41.25, [41.71, 0], 42.26, 42.54, [42.84, 1.6]] },
+            notes: [2, 2.306, 2.459, 2.611, 2.917, 3.223, 3.528, 3.834, 3.987, 4.14, 4.446, 4.751, 5.057, 5.363, 5.668, 5.974, 6.28, 6.583, 6.886, 7.192, 7.497, 7.806, 8.114, 8.267, 8.42, 8.725, 9.033, 9.342, 9.494, 9.647, 9.8, 9.953, 10.259, 10.412, 10.564, 10.87, 11.023, 11.176, 11.484, 11.638, 11.792, 12.251, 12.404, 12.709, 13.015, 13.321, 13.473, 13.626, 13.779, 14.085, 14.238, 14.546, 14.854, 15.16, 15.465, 15.771, 15.924, 16.077, 16.383, 16.535, 16.688, 16.994, 17.3, 17.911, 18.217, 18.37, 18.522, 18.675, 19.287, 19.592, 20.053, 20.207, 20.362, 20.667, 20.973, 21.279, 21.431, 21.584, 22.201, 22.506, 22.965, 23.729, 23.882, 24.035, 24.188, 24.341, 24.493, 24.646, 24.799, 25.105, 25.258, 25.566, 25.874, 26.18, 26.333, 26.485, 26.791, 26.944, 27.708, 27.861, 28.014, 28.32, 28.936, 29.547, 29.853, 30.006, 30.464, 30.617, 31.381, 31.536, 31.69, 31.998, 32.306, 32.614, 32.92, 33.226, 33.531, 33.837, 34.296, 34.448, 34.754, 35.365, 35.671, 35.979, 36.288, 36.593, 36.746, 36.899, 37.205, 37.51, 37.819, 38.127, 38.432, 38.585, 38.738, 39.044, 39.197, 39.35, 39.501, 39.653, 39.956, 40.262, 40.567, 40.72, 40.873, 41.179, 41.487, 41.641, 41.795, 42.406] },
+        { id: 'ultimate', dish: '👑', name: t('Festin du roi'), song: 'Valse di Fantastica', src: 'assets/ost/Valse di Fantastica (FINAL FANTASY XV Original Soundtrack) 【Audio】.mp3', from: 110.337, len: 45, ultimate: true,
+            items: ['🍤', '🍄', '🌶️', '🥚', '🍚', '🦞'],
+            notes: [2, 2.306, 2.611, 2.915, 3.218, 3.521, 3.824, 4.127, 4.279, 4.43, 4.734, 5.037, 5.338, 5.638, 5.939, 6.24, 6.54, 6.691, 6.841, 7.447, 8.054, 8.357, 8.66, 8.812, 9.266, 9.57, 9.873, 10.176, 10.631, 10.782, 10.934, 11.086, 11.389, 11.692, 11.995, 12.298, 12.45, 12.601, 12.905, 13.208, 13.511, 14.117, 14.269, 15.024, 15.325, 15.477, 15.628, 15.932, 16.083, 16.235, 16.386, 16.538, 16.841, 16.993, 17.144, 17.296, 17.447, 17.751, 17.902, 18.357, 18.509, 18.66, 18.963, 19.115, 19.267, 19.57, 19.723, 19.875, 20.181, 20.333, 20.484, 20.788, 20.939, 21.394, 21.545, 21.697, 21.849, 22, 22.303, 22.607, 22.758, 22.91, 23.516, 23.668, 23.819, 23.971, 24.123, 24.426, 24.729, 25.032, 25.487, 25.638, 25.942, 26.245, 26.548, 27.154, 27.306, 27.458, 27.761, 28.064, 28.367, 28.67, 28.822, 28.974, 29.277, 29.58, 29.883, 30.186, 30.489, 30.641, 30.793, 31.096, 31.399, 31.551, 31.702, 32.003, 32.304, 32.455, 32.607, 32.91, 33.213, 33.516, 33.819, 34.123, 34.274, 34.426, 34.729, 35.032, 35.335, 35.639, 35.942, 36.093, 36.245, 36.548, 36.851, 37.155, 37.455, 37.756, 38.062, 38.367, 38.67, 38.974, 39.279, 39.585, 39.737, 40.191, 40.492, 40.793, 41.096, 41.399, 41.551, 41.702, 42.006, 42.309] },
     ];
-    const PERFECT = 0.045, GOOD = 0.1; // fenêtres de frappe (secondes)
+    const PERFECT = 0.038, GOOD = 0.085; // fenêtres de frappe (secondes) ; le niveau ultime est encore plus strict
 
     panel.innerHTML = `
         <div class="game-bar">
@@ -226,7 +223,7 @@ const cooking = (() => {
             <p class="cook-big">${r.dish}</p>
             <h3></h3>
             <p class="cook-sub">♪ ${r.song} · ${t('Meilleur')} : ${'★'.repeat(data[r.id] || 0) || '—'}</p>
-            ${r.ultimate ? `<p class="cook-rules"><span>🔥 ${t('Barre de cuisson : maintiens jusqu\'au bout')}</span><span>💀 ${t('Ingrédient pourri : le toucher = défaite')}</span></p>` : ''}
+            ${r.notes.some(n => Array.isArray(n)) ? `<p class="cook-rules">${r.notes.some(n => Array.isArray(n) && n[1] > 0) ? `<span>🔥 ${t('Barre de cuisson : maintiens jusqu\'au bout')}</span>` : ''}${r.traps ? `<span>💀 ${t('Ingrédient pourri : le toucher = défaite')}</span>` : ''}</p>` : ''}
             <button class="btn cook-go" type="button">${t('▶ Cuisiner')}</button>`;
         overlay.querySelector('h3').textContent = r.name;
         overlay.querySelector('.cook-go').addEventListener('click', start);
@@ -286,7 +283,7 @@ const cooking = (() => {
             if (d < bestD) { bestD = d; best = n; }
             if (n.t > tt + 0.3) break;
         }
-        const good = RECIPES[current].ultimate ? 0.075 : GOOD, perfect = RECIPES[current].ultimate ? 0.035 : PERFECT;
+        const good = RECIPES[current].ultimate ? 0.07 : GOOD, perfect = RECIPES[current].ultimate ? 0.03 : PERFECT;
         if (!best || bestD > good) { combo = 0; bad++; judge(t('Trop tôt'), 'is-miss'); return; }
         best.done = true;
         if (best.kind === 'trap') { // ingrédient pourri touché : le plat est raté, tout de suite
@@ -503,7 +500,7 @@ const cooking = (() => {
         const tt = clock() - t0;
         if (holding && tt >= holding.n.t + holding.n.len) endHold(true);
         for (const n of notes) {
-            if (!n.done && tt - n.t > (RECIPES[current].ultimate ? 0.075 : GOOD)) {
+            if (!n.done && tt - n.t > (RECIPES[current].ultimate ? 0.07 : GOOD)) {
                 n.done = true;
                 if (n.kind === 'trap') { n.res = 'avoided'; hits++; } // bien joué : on n'y a pas touché
                 else { n.res = 'miss'; combo = 0; judge(t('RATÉ'), 'is-miss'); }
@@ -538,7 +535,7 @@ const cooking = (() => {
     renderBook();
     showStart();
     return {
-        reset() { store.del(KEY); store.del('eliasPortfolio.cooking'); store.del('eliasPortfolio.cookingUnlocked'); data = {}; current = 0; showStart(); }, // + ancienne clé de test
+        reset() { store.del(KEY); store.del('eliasPortfolio.cooking'); store.del('eliasPortfolio.cooking.v2'); store.del('eliasPortfolio.cookingUnlocked'); data = {}; current = 0; showStart(); }, // + ancienne clé de test
         stars: () => Object.values(load()).some(s => s === 3),
         peek: () => ({ state, tt: clock() - t0, notes, current }),
         recipes: RECIPES,
@@ -1731,6 +1728,81 @@ const battle = (() => {
    techniques apprises en explorant, objets. Et un chat qui peut
    rejoindre l'équipe si on le laisse dormir au bon endroit.
    ===================================================================== */
+/* =====================================================================
+   RELIQUES ROYALES — 5 bonus permanents cachés dans les pages du site.
+   Presque invisibles (comme les coffres) ; une fois trouvées, elles
+   renforcent le héros dans les combats de l'arène, surtout contre le boss.
+   ===================================================================== */
+const relics = (() => {
+    const KEY = 'eliasPortfolio.relics';
+    const LIST = [
+        { id: 'vigor', icon: '❤', page: 'about', x: '96%', y: '90%', name: t('Relique de vigueur'), what: t('+60 HP') },
+        { id: 'aether', icon: '❖', page: 'softskills', x: '4%', y: '94%', name: t('Relique d\'éther'), what: t('+20 MP') },
+        { id: 'might', icon: '⚔', page: 'education', x: '95%', y: '62%', name: t('Relique de force'), what: t('+12 % de dégâts') },
+        { id: 'starbane', icon: '✶', page: 'work', x: '2.5%', y: '82%', name: t('Fléau des étoiles'), what: t('+30 % de dégâts contre le Dévoreur') },
+        { id: 'moonward', icon: '☾', page: 'experience', x: '97%', y: '42%', name: t('Égide lunaire'), what: t('-25 % de dégâts reçus du Dévoreur') },
+        { id: 'swift', icon: '➹', page: 'skills', x: '97%', y: '95%', name: t('Plume du vent'), what: t('jauge ATB 15 % plus rapide') },
+        { id: 'phoenix', icon: '♨', page: 'home', x: '3%', y: '93%', name: t('Plume de phénix'), what: t('une fois par combat, te relève avec 40 % des HP') },
+    ];
+    const ON_KEY = 'eliasPortfolio.relicsOn';
+    const load = () => { try { return new Set(JSON.parse(store.get(KEY) || '[]')); } catch { return new Set(); } };
+    let got = load();
+    const has = (id) => got.has(id);
+    // équipées : toutes celles trouvées par défaut ; on peut en retirer dans le sac du combat
+    const loadOn = () => { try { const v = JSON.parse(store.get(ON_KEY)); return v ? new Set(v) : null; } catch { return null; } };
+    let on = loadOn();
+    const worn = (id) => has(id) && (on ? on.has(id) : true);
+    const toggle = (id) => {
+        if (!has(id)) return;
+        if (!on) on = new Set(got);
+        on.has(id) ? on.delete(id) : on.add(id);
+        store.set(ON_KEY, JSON.stringify([...on]));
+    };
+    LIST.forEach((r) => {
+        const sec = document.getElementById(r.page);
+        if (!sec) return;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'relic';
+        b.dataset.relic = r.id;
+        b.setAttribute('aria-label', t('Relique cachée'));
+        b.style.setProperty('--x', r.x);
+        b.style.setProperty('--y', r.y);
+        b.textContent = r.icon;
+        b.classList.toggle('is-taken', has(r.id));
+        b.addEventListener('click', () => {
+            if (has(r.id)) return;
+            got.add(r.id);
+            store.set(KEY, JSON.stringify([...got]));
+            if (on) { on.add(r.id); store.set(ON_KEY, JSON.stringify([...on])); }
+            b.classList.add('is-taken');
+            sfx.fanfare?.();
+            if (typeof showToast === 'function') showToast(`${r.icon} ${r.name} : ${r.what} · ${t('à équiper dans le sac du combat')}`);
+            document.dispatchEvent(new CustomEvent('relic', { detail: r.id }));
+        });
+        sec.appendChild(b);
+    });
+    document.addEventListener('game', (e) => {
+        if (e.detail.type !== 'reset') return;
+        store.del(KEY);
+        store.del(ON_KEY);
+        got = new Set();
+        on = null;
+        document.querySelectorAll('.relic').forEach(b => b.classList.remove('is-taken'));
+    });
+    // bonus appliqués en combat
+    const bonus = () => ({
+        hp: worn('vigor') ? 60 : 0,
+        mp: worn('aether') ? 20 : 0,
+        dmg: worn('might') ? 1.12 : 1,
+        bossDmg: worn('starbane') ? 1.3 : 1,
+        bossTaken: worn('moonward') ? 0.75 : 1,
+        haste: worn('swift') ? 1.15 : 1,
+        phoenix: worn('phoenix'),
+    });
+    return { LIST, has, worn, toggle, bonus, count: () => got.size };
+})();
+
 const arena = (() => {
     const panel = document.getElementById('game-arena');
     if (!panel) return { reset() { } };
@@ -1748,7 +1820,7 @@ const arena = (() => {
         wisp: { name: t('Feu follet'), hp: 480, speed: 2.7, weak: 'ice', resist: 'fire', size: 0.75 },
         sentinel: { name: t('Sentinelle de fer'), hp: 880, speed: 3.0, weak: 'thunder', resist: 'ice', size: 0.95 },
         drone: { name: t('Drone réparateur'), hp: 420, speed: 2.5, weak: 'thunder', resist: 'fire', size: 0.55 },
-        devourer: { name: t('Dévoreur d\'étoiles'), hp: 3700, speed: 3.2, weak: 'fire', resist: 'thunder', size: 0.72 },
+        devourer: { name: t('Dévoreur d\'étoiles'), hp: 1900, /* par phase : il en a deux */ speed: 3.2, weak: 'fire', resist: 'thunder', size: 0.72 },
         shard: { name: t('Éclat du néant'), hp: 280, speed: 2.6, weak: 'fire', resist: 'ice', size: 0.5 },
     };
     const FIGHTS = [
@@ -1808,9 +1880,11 @@ const arena = (() => {
                 <p class="ar-k">🎒 ${t('SAC')}</p>
                 <p class="ar-sub">${t('Arme')}</p><ul class="ar-pick ar-weapons"></ul>
                 <p class="ar-sub">${t('Accessoire')}</p><ul class="ar-pick ar-accs"></ul>
+                <p class="ar-sub">${t('Reliques royales')} <small class="ar-relics-n"></small></p><ul class="ar-pick ar-relics"></ul>
                 <p class="ar-sub">${t('Techniques')}</p><ul class="ar-techs"></ul>
                 <p class="ar-sub">${t('Objets')}</p><p class="ar-items"></p>
                 <p class="ar-ally"></p>
+
                 <span class="ar-paw" aria-hidden="true">🐾</span>
             </div>
         </div>
@@ -1834,6 +1908,7 @@ const arena = (() => {
         </div>`;
 
     const $ = (sel) => panel.querySelector(sel);
+    const $$ = (sel) => panel.querySelectorAll(sel);
     const camp = $('.ar-camp');
     const fightBox = $('.ar-fight');
     const cv = $('.bt-canvas');
@@ -1899,12 +1974,32 @@ const arena = (() => {
         const inv = items();
         $('.ar-items').textContent = `🧪 ${t('Potion')} ×${inv.potions}   💧 ${t('Éther')} ×${inv.ethers}   ✨ ${t('Élixir')} ×${inv.elixirs}${inv.elixirs ? '' : ` (${t('trouve un objet secret')})`}`;
         $('.ar-ally').textContent = rec.cat ? `🐈 ${t('Le chat errant combat à tes côtés.')}` : '';
+        // reliques : plusieurs à la fois, chacune s'équipe / se retire d'un clic
+        const rl = $('.ar-relics');
+        rl.innerHTML = '';
+        $('.ar-relics-n').textContent = `${relics.count()} / ${relics.LIST.length} · ${t('toutes équipables en même temps')}`;
+        relics.LIST.forEach(r => {
+            const ok = relics.has(r.id);
+            const li = document.createElement('li');
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = ok && relics.worn(r.id) ? 'is-on' : '';
+            b.disabled = !ok;
+            b.setAttribute('aria-pressed', String(ok && relics.worn(r.id)));
+            b.innerHTML = '<span></span><b></b><small></small>';
+            b.querySelector('span').textContent = ok ? r.icon : '?';
+            b.querySelector('b').textContent = ok ? r.name : '???';
+            b.querySelector('small').textContent = ok ? r.what : t('Cachée quelque part sur le site…');
+            b.addEventListener('click', () => { relics.toggle(r.id); sfx.select(); renderCamp(); });
+            li.appendChild(b);
+            rl.appendChild(li);
+        });
         $('.ar-paw').classList.toggle('is-taken', !!rec.cat);
         renderHub();
     };
     const items = () => {
         const a = gear().a;
-        return { potions: 3 + (a.potions || 0), ethers: 2, elixirs: achievements.has('secret1') ? 1 : 0 };
+        return { potions: 2 + (a.potions || 0), ethers: 1, elixirs: achievements.has('secret1') ? 1 : 0 };
     };
 
     /* ---------------- le chat : il faut qu'il s'endorme sur la trace de patte ---------------- */
@@ -1956,7 +2051,11 @@ const arena = (() => {
         for (let i = 0; i < 34; i++) fx.push({ x, y, vx: rand(-220, 220), vy: rand(-260, 120), life: 0, max: rand(0.4, 0.9), col, kind: el });
     };
 
-    const makeFoe = (kind) => ({ kind, ...FOES[kind], max: FOES[kind].hp, eatb: Math.random() * 0.4, charging: false, fury: false, known: {} });
+    // réglage de chaque combat (vie des ennemis, force de leurs coups), calé avec un joueur automatique :
+    // gagnable avec un bon équipement, serré, et perdu si on joue mal
+    const TUNE = {speed: 0.92, heal: 70, healChance: 0.4, wolves: {hp: 1.25, dmg: 1.15}, swamp: {hp: 1.15, dmg: 1.0}, iron: {hp: 0.85, dmg: 0.62}, boss: {hp: 0.8, dmg: 0.9}};
+    const HARD = { speed: TUNE.speed };
+    const makeFoe = (kind) => { const d = FOES[kind], hp = Math.round(d.hp * (TUNE[fight?.id]?.hp || 1)); return { kind, ...d, hp, max: hp, speed: d.speed * HARD.speed, eatb: Math.random() * 0.4, charging: false, fury: false, known: {} }; };
 
     const start = (i) => {
         const f = FIGHTS[i];
@@ -1965,13 +2064,14 @@ const arena = (() => {
         fight = f;
         const g = gear();
         const inv = items();
-        const hpMax = 340 + (g.a.hp || 0);
-        const mpMax = 60 + (g.w.mp || 0);
+        const rb = relics.bonus();
+        const hpMax = 340 + (g.a.hp || 0) + rb.hp;
+        const mpMax = 60 + (g.w.mp || 0) + rb.mp;
         s = {
             php: hpMax, pmax: hpMax, pmp: mpMax, mpmax: mpMax, atb: 0.3, guard: false,
             ...inv, foes: f.foes.map(makeFoe), w: g.w, a: g.a,
             turns: 0, busy: false, over: false, sub: null, pending: null,
-            cat: rec.cat ? { t: 0 } : null, phase: 1, summoned: false,
+            cat: rec.cat ? { t: 0 } : null, phase: 1, summoned: false, rb,
         };
         camp.hidden = true;
         fightBox.hidden = false;
@@ -2000,7 +2100,7 @@ const arena = (() => {
         s.foes.forEach(f => {
             const li = document.createElement('li');
             li.className = f.hp <= 0 ? 'is-dead' : '';
-            li.innerHTML = '<p class="bt-name"></p><div class="bt-bar bt-hp"><span></span></div><p class="bt-tag"></p>';
+            li.innerHTML = '<p class="bt-name"></p><div class="bt-bar bt-hp"><span></span></div><div class="bt-bar bt-eatb" title="ATB"><span></span></div><p class="bt-tag"></p>';
             li.querySelector('.bt-name').textContent = f.name;
             li.querySelector('.bt-hp span').style.width = `${(f.hp / f.max) * 100}%`;
             const known = Object.entries(f.known).map(([k, v]) => `${ELEMENTS.find(e => e.id === k).icon} ${v}`).join('  ');
@@ -2019,6 +2119,13 @@ const arena = (() => {
         $('.bt-inv').textContent = `🧪 ×${s.potions}   💧 ×${s.ethers}   ✨ ×${s.elixirs}${s.cat ? '   🐈' : ''}`;
         $('.bt-atb').classList.toggle('is-full', s.atb >= 1);
         $('.bt-php').classList.toggle('is-low', s.php < s.pmax * 0.3);
+        // jauge ATB de chaque ennemi : pleine = il attaque
+        $$('.ar-foes .bt-eatb').forEach((el, i) => {
+            const f = s.foes[i];
+            if (!f) return;
+            el.firstChild.style.width = `${f.hp > 0 ? Math.min(1, f.eatb) * 100 : 0}%`;
+            el.classList.toggle('is-near', f.hp > 0 && f.eatb > 0.8);
+        });
     };
 
     /* --- menu --- */
@@ -2100,10 +2207,12 @@ const arena = (() => {
 
     const act = (id, ti) => {
         s.busy = true;
+        s.guard = false; // la défense dure jusqu'à ton tour suivant (tous les coups reçus entre-temps)
         s.dealt = 0;
         s.atb = 0;
         s.turns++;
         const target = s.foes[ti]?.hp > 0 ? s.foes[ti] : alive()[0];
+        s.lastTarget = target; // le chat vise le même ennemi
         const tech = TECHS.find(x => x.id === id);
         if (tech) s.pmp -= tech.mp;
         if (id === 'attack') {
@@ -2212,6 +2321,8 @@ const arena = (() => {
 
     const hurtFoe = (f, dmg, tag, color) => {
         if (!s || f.hp <= 0) return;
+        // reliques : plus de dégâts, encore plus contre le Dévoreur et ses éclats
+        if (s.rb) dmg = Math.round(dmg * s.rb.dmg * (f.kind === 'devourer' || f.kind === 'shard' ? s.rb.bossDmg : 1));
         if (!s.catHit) s.dealt = (s.dealt || 0) + Math.min(f.hp, dmg);
         f.hp = Math.max(0, f.hp - dmg);
         const p = foePos(f);
@@ -2220,19 +2331,43 @@ const arena = (() => {
         f.shake = 0.3;
         shake = Math.max(shake, 0.2);
         sfx.select();
+        // le Dévoreur « meurt »… et renaît en phase 2 (sans prévenir) : nouvelle faiblesse, renforts,
+        // et le héros récupère ses HP et MP pour ce second round
+        if (f.kind === 'devourer' && s.phase === 1 && f.hp <= 0) {
+            s.phase = 2;
+            f.hp = f.max;
+            f.charging = false;
+            f.weak = 'ice'; f.resist = 'fire'; f.known = {}; f.speed = 2.4 * HARD.speed; f.eatb = 0;
+            for (let i = 0; i < 40; i++) fx.push({ x: p.x, y: p.y, vx: rand(-260, 260), vy: rand(-300, 80), life: 0, max: rand(0.6, 1.2), col: '#b48cff', kind: 'dust' });
+            flash = 1;
+            shake = 0.9;
+            say(t('Le Dévoreur d\'étoiles est vaincu !'));
+            s.reviving = true;
+            setTimeout(() => {
+                if (!s || s.over) return;
+                s.reviving = false;
+                s.php = s.pmax; s.pmp = s.mpmax;
+                flash = 1;
+                shake = 0.8;
+                popNum(t('MAX'), heroPos().x, heroPos().y - 40, '#ffe08a');
+                say(t('… Il renaît de ses cendres ! Sa faiblesse a changé. Tes forces reviennent !'));
+                if (!s.summoned) { s.summoned = true; s.foes.push(makeFoe('shard'), makeFoe('shard')); }
+                renderFoes();
+                renderBars();
+            }, 1400);
+            renderFoes();
+            renderBars();
+            return;
+        }
         if (f.hp <= 0) {
             f.charging = false;
             for (let i = 0; i < 30; i++) fx.push({ x: p.x, y: p.y, vx: rand(-200, 200), vy: rand(-240, 60), life: 0, max: rand(0.5, 1), col: '#cfd8ff', kind: 'dust' });
             say(`${f.name} ${t('est vaincu !')}`);
-        }
-        // le boss change de phase à mi-vie : nouvelle faiblesse et renforts
-        if (f.kind === 'devourer' && s.phase === 1 && f.hp > 0 && f.hp < f.max * 0.5) {
-            s.phase = 2;
-            f.weak = 'ice'; f.resist = 'fire'; f.known = {}; f.speed = 2.4;
-            flash = 1;
-            shake = 0.8;
-            say(t('Le Dévoreur se transforme ! Sa faiblesse a changé…'));
-            if (!s.summoned) { s.summoned = true; s.foes.push(makeFoe('shard'), makeFoe('shard')); }
+            // sans leur drone réparateur, les sentinelles perdent leur rythme : jauge ATB vidée de moitié, et plus lente
+            if (f.kind === 'drone') {
+                s.foes.filter(q => q.kind === 'sentinel' && q.hp > 0).forEach(q => { q.eatb *= 0.5; q.speed *= 1.35; });
+                setTimeout(() => { if (s && !s.over) say(t('Sans leur drone, les sentinelles ralentissent !')); }, 900);
+            }
         }
         renderFoes();
         renderBars();
@@ -2242,8 +2377,7 @@ const arena = (() => {
     /* --- tour des ennemis --- */
     const hit = (dmg, name, big) => {
         lunge = -1;
-        // les combats 2 à 4 frappent plus fort ; le boss un peu moins
-        dmg *= fight.boss ? 0.9 : 1.25;
+        dmg *= (TUNE[fight.id]?.dmg || 1) * (fight.boss && s.rb ? s.rb.bossTaken : 1);
         say(name);
         setTimeout(() => {
             if (!s || s.over) return;
@@ -2253,9 +2387,17 @@ const arena = (() => {
             const hp = heroPos();
             popNum(String(real), hp.x, hp.y - 40, '#ff6b6b');
             shake = big ? 0.6 : 0.3;
-            s.guard = false;
             sfx.back();
             renderBars();
+            if (s.php <= 0 && s.rb?.phoenix && !s.phoenixUsed) {
+                // plume de phénix : on se relève une fois
+                s.phoenixUsed = true;
+                s.php = Math.round(s.pmax * 0.4);
+                flash = 1;
+                popNum(`+${s.php}`, hp.x, hp.y - 70, '#ffb36b');
+                say(t('La plume de phénix s\'embrase : tu te relèves !'));
+                renderBars();
+            }
             if (s.php <= 0) lose();
         }, 300);
     };
@@ -2303,7 +2445,7 @@ const arena = (() => {
                 break;
             case 'drone': {
                 const hurt = others.filter(x => x.hp < x.max * 0.55).sort((p, q) => p.hp / p.max - q.hp / q.max)[0];
-                if (hurt && r < 0.65) healFoe(f, hurt, 120);
+                if (hurt && r < TUNE.healChance) healFoe(f, hurt, TUNE.heal);
                 else hit(rand(22, 30), t('Décharge'));
                 break;
             }
@@ -2325,7 +2467,8 @@ const arena = (() => {
     const catTurn = (dmg) => {
         const list = alive();
         if (!list.length) return;
-        const f = list[Math.floor(Math.random() * list.length)];
+        // le chat griffe l'ennemi que tu viens d'attaquer (s'il tient encore debout)
+        const f = s.lastTarget && s.lastTarget.hp > 0 ? s.lastTarget : list[Math.floor(Math.random() * list.length)];
         const p = catPos();
         for (let i = 0; i < 8; i++) fx.push({ x: p.x, y: p.y - 20, vx: rand(-60, 60), vy: rand(-80, -20), life: 0, max: 0.5, col: '#fff', kind: 'dust' });
         say(t('Le chat griffe ! Miaou !'));
@@ -2575,6 +2718,20 @@ const arena = (() => {
         // rivets
         c.fillStyle = '#f2f4f8';
         for (const [x, y] of [[-48, -74], [48, -74], [-40, 40], [40, 40], [-44, -6], [44, -6]]) { c.beginPath(); c.arc(x, y, 2.2, 0, TAU); c.fill(); }
+        // bras : épaule → coude → main (gauche derrière le bouclier, droite sur la lance)
+        const spearRot = -0.1 + (f.charging ? -0.5 : 0);
+        const grip = [70 + 40 * Math.sin(spearRot), 30 - 40 * Math.cos(spearRot)];
+        const limb = (pts, w) => {
+            c.lineCap = 'round'; c.lineJoin = 'round';
+            c.strokeStyle = '#23272f'; c.lineWidth = w + 4;
+            c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); pts.slice(1).forEach(([x, y]) => c.lineTo(x, y)); c.stroke();
+            c.strokeStyle = steel(pts[0][0] - w, pts[0][0] + w); c.lineWidth = w;
+            c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); pts.slice(1).forEach(([x, y]) => c.lineTo(x, y)); c.stroke();
+            // coude en rotule
+            c.fillStyle = '#c9cfdb'; c.beginPath(); c.arc(pts[1][0], pts[1][1], w * 0.42, 0, TAU); c.fill();
+        };
+        limb([[-60, -70], [-80, -30 + sway * 0.5], [-78, -10 + sway]], 18);
+        limb([[60, -70], [80, -34], [grip[0] - 4, grip[1]]], 18);
         // épaulières
         [-1, 1].forEach(sd => {
             c.fillStyle = steel(sd * 50 - 26, sd * 50 + 26);
@@ -2599,12 +2756,17 @@ const arena = (() => {
         c.fillStyle = '#7a1020'; c.beginPath(); c.moveTo(0, -52); c.lineTo(18, -20); c.lineTo(0, 30); c.lineTo(-18, -20); c.closePath(); c.fill();
         c.restore();
         // lance avec fanion
-        c.save(); c.translate(70, 30); c.rotate(-0.1 + (f.charging ? -0.5 : 0));
+        c.save(); c.translate(70, 30); c.rotate(spearRot);
         c.fillStyle = lin(-3, 0, 3, 0, [[0, '#5a4630'], [1, '#2c2218']]); c.fillRect(-3, -200, 6, 220);
         c.fillStyle = steel(-9, 9); path([[0, -236], [10, -200], [-10, -200]]); c.fill();
         c.fillStyle = '#b02030'; c.beginPath(); c.moveTo(3, -196);
         c.quadraticCurveTo(26, -190 + Math.sin(t2 * 4) * 6, 46, -186 + Math.sin(t2 * 4 + 1) * 8); c.lineTo(3, -172); c.closePath(); c.fill();
         c.restore();
+        // gantelet refermé sur la lance
+        c.fillStyle = steel(grip[0] - 12, grip[0] + 12);
+        c.beginPath(); c.roundRect(grip[0] - 11, grip[1] - 9, 22, 18, 6); c.fill();
+        c.strokeStyle = 'rgba(20, 22, 28, 0.7)'; c.lineWidth = 1.5;
+        for (let k = -1; k <= 1; k++) { c.beginPath(); c.moveTo(grip[0] - 9, grip[1] + k * 5); c.lineTo(grip[0] + 9, grip[1] + k * 5); c.stroke(); }
     };
 
     const drawDrone = (f, t2) => {
@@ -2869,9 +3031,9 @@ const arena = (() => {
         shake = Math.max(0, shake - dt);
         flash = Math.max(0, flash - dt * 2.5);
         lunge *= Math.pow(0.02, dt);
-        if (!s || s.over || s.busy || s.sub) return;
+        if (!s || s.over || s.busy || s.sub || s.reviving) return;
         const was = s.atb;
-        s.atb = Math.min(1, s.atb + (dt / 2.4) * (s.a.haste || 1));
+        s.atb = Math.min(1, s.atb + (dt / 2.4) * (s.a.haste || 1) * (s.rb?.haste || 1));
         if (was < 1 && s.atb >= 1) { renderMenu(); sfx.hover(); }
         if (s.atb < 1) {
             for (const f of alive()) {
@@ -2905,12 +3067,14 @@ const arena = (() => {
     document.addEventListener('gameresume', (e) => { if (e.detail === 'arena') run(); });
     window.addEventListener('resize', () => { if (raf) ({ c, W, H } = fitCanvas(cv)); });
     document.addEventListener('trophy', () => { if (!s) renderCamp(); });
+    document.addEventListener('relic', () => { if (!s) renderCamp(); });
 
     renderCamp();
     return {
         reset() { store.del(KEY); store.del(GEAR_KEY); rec = { won: {} }; s = null; fightBox.hidden = true; camp.hidden = false; renderCamp(); },
         start,
         state: () => s,
+        choose: (id) => choose(id), // tests
     };
 })();
 
