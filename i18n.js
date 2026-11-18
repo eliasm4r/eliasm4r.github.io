@@ -563,7 +563,7 @@ const EN = {
     "RECORD": "RECORD",
     "Cuisine du campement": "Camp Cooking",
     "Suis le rythme et invente une nouvelle recette": "Follow the beat and invent a new recipe",
-    "Saute les obstacles et bats ton temps": "Jump the obstacles and beat your time",
+    "Trois rivaux, 1000 m et une jauge de sprint": "Three rivals, 1000 m and a sprint gauge",
     "Combat": "Battle",
     "Affronte le Golem de cristal au tour par tour": "Face the Crystal Golem in turn-based combat",
     "◂ Mini-jeux": "◂ Mini-games",

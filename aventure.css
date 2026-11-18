@@ -3751,3 +3751,22 @@ html.is-paused body *:not(.pause, .pause *) {
 @media (prefers-reduced-motion: reduce) {
     .road-fuel.is-low { animation: none; }
 }
+
+/* ---------- menu des mini-jeux : 5 jeux en 3 + 2, rangée du bas centrée ---------- */
+@media (min-width: 761px) {
+    .games-hub:not([hidden]) {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .games-hub > .game-card {
+        flex: 0 1 calc((100% - 2 * 1.8rem) / 3);
+    }
+}
+
+@media (max-width: 760px) {
+    .games-hub > .game-card:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
+}
