@@ -542,6 +542,8 @@ const lumi = (() => {
     add('c-initiative', 'crystal', () => crystal('initiative'), tr('Un cristal récompense ceux qui prennent les devants.'), lookIn('softskills'), tr('Active la sphère « Initiative » : il apparaît dans le panneau.'));
     add('c-loup', 'crystal', () => crystal('loup'), tr('Un cristal s\'est caché chez un petit loup.'), lookIn('work'), tr('Ouvre la quête « Question pour un p\'tit loup » : coin de l\'image.'));
     add('c-esystems', 'crystal', () => crystal('esystems'), tr('Un cristal se souvient de mon tout premier stage.'), lookIn('experience'), tr('Ouvre la fiche du stage E-SYSTEMS : juste à côté de la date.'));
+    add('catAlly', 'trophy', () => ach('catAlly'), tr('Le chat qui te suit aimerait se battre, si tu lui trouves un bon coin pour dormir.'), tr('Dans le Combat, une petite trace de patte se cache dans le sac.'), tr('Mini-jeux, Combat : pose ton curseur sur la trace 🐾 du sac et attends que le chat s\'y endorme.'));
+    add('arenaAll', 'trophy', () => ach('arenaAll'), tr('Au bout de la campagne, une ombre dévore les étoiles.'), lookIn('games'), tr('Mini-jeux, Combat : gagne les 5 combats. Équipe l\'Épée des Rois et mets-toi en Défense pendant la Supernova.'));
     add('c-ost', 'crystal', () => crystal('ost'), tr('Un cristal fredonne au milieu de la musique.'), tr('Il n\'est sur aucune page : cherche dans la carte du joueur.'), tr('Allume la musique 🎧 puis ouvre la file d\'attente.'));
     /* --- les coffres --- */
     add('k-prism', 'chest', () => chestOpen('prism'), tr('Un coffre se cache dans la marge de ma présentation.'), lookIn('about'), tr('Sur le bord gauche de la page Présentation, à mi-hauteur.'));
@@ -788,7 +790,7 @@ const pauseMenu = (() => {
                 const v = all ? Math.min(100, Math.round((got / all) * 100)) : 0;
                 return `<li class="${got >= all && all ? 'is-full' : ''}"><span>${esc(label)}</span><b>${got} / ${all}</b><i style="--v:${v}%"></i></li>`;
             }).join('');
-            const records = [['Fishing', tr('Pêche')], ['Cooking', tr('Cuisine')], ['Chocobo', 'Chocobo Race'], ['Road', 'Route Royale'], ['Battle', tr('Combat')]]
+            const records = [['Fishing', tr('Pêche')], ['Cooking', tr('Cuisine')], ['Chocobo', 'Chocobo Race'], ['Road', 'Route Royale'], ['Arena', tr('Combat')]]
                 .map(([id, label]) => [label, document.getElementById(`hub${id}`)?.textContent.trim() || '—'])
                 .map(([label, val]) => `<li><span>${esc(label)}</span><b>${esc(val)}</b></li>`).join('');
             return `
@@ -984,7 +986,8 @@ const pauseMenu = (() => {
    Le bouton ♪ coupe aussi cette musique ; le volume est celui du lecteur.
    --------------------------------------------------------------------- */
 const gameMusic = (() => {
-    const TRACKS = window.OST_GAMES || {};
+    const TRACKS = { ...(window.OST_GAMES || {}) };
+    if (TRACKS.battle) TRACKS.arena = TRACKS.battle; // la campagne de combat garde la musique de combat
     if (!Object.keys(TRACKS).length) return null;
     const audio = new Audio();
     audio.loop = true;
@@ -1069,7 +1072,7 @@ const photoAlbum = (() => {
     const MAX = 14;
     const LIB = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js';
     const PAGES = { home: 'Accueil', about: 'Présentation', skills: 'Compétences', softskills: 'Soft Skills', education: 'Parcours', work: 'Réalisations', experience: 'Expériences', games: 'Mini-jeux' };
-    const SHOTS = { fish1: 'Première prise !', fishBig: 'Le roi du lac', chef: 'Recette trois étoiles', ultimateChef: 'Chef légendaire', chocobo: 'Ligne d\'arrivée', chocoboLegend: 'Légende de la piste', roadTrip: 'En route !', roadLegend: 'Roi de la route', battle: 'Golem vaincu', nightMonster: 'Le monstre de la nuit' };
+    const SHOTS = { fish1: 'Première prise !', fishBig: 'Le roi du lac', chef: 'Recette trois étoiles', ultimateChef: 'Chef légendaire', chocobo: 'Ligne d\'arrivée', chocoboLegend: 'Légende de la piste', roadTrip: 'En route !', roadLegend: 'Roi de la route', arenaAll: 'Le Dévoreur vaincu', battle: 'Golem vaincu', nightMonster: 'Le monstre de la nuit' };
 
     const list = () => { try { return JSON.parse(store.get(KEY) || '[]'); } catch { return []; } };
     const save = (all) => {

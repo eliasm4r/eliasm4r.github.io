@@ -175,6 +175,8 @@ const achievements = (() => {
         { id: 'chocobo', icon: '🏁', name: tr('Champion de course'), desc: tr('Terminer une Chocobo Race.') },
         { id: 'roadTrip', icon: '🚗', name: tr('En route !'), desc: tr('Parcourir 2 km sur la Route Royale.') },
         { id: 'roadLegend', icon: '🛣️', name: tr('Roi de la route'), desc: tr('Parcourir 10 km d\'une traite sur la Route Royale.') },
+        { id: 'arenaAll', icon: '🌅', name: tr('Briseur d\'étoiles'), desc: tr('Vaincre le Dévoreur d\'étoiles, le boss final du Combat.') },
+        { id: 'catAlly', icon: '🐈', name: tr('Compagnon félin'), desc: tr('Convaincre le chat de combattre à tes côtés.'), hidden: true },
         { id: 'chocoboLegend', icon: '🏆', name: tr('Légende de la piste'), desc: tr('Finir premier de la Chocobo Race en mode Expert.') },
         { id: 'battle', icon: '⚔️', name: tr('Golem vaincu'), desc: tr('Gagner le combat contre le Golem de cristal.') },
         { id: 'chest', icon: '🗝️', name: tr('Fouineur'), desc: tr('Ouvrir un coffre caché.') },
@@ -328,7 +330,7 @@ window.gameOver = (function initGameOver() {
 /* ---------------------------------------------------------------------
    MINI-JEUX : écran de sélection + un panneau par jeu
    --------------------------------------------------------------------- */
-const GAMES = ['fishing', 'cooking', 'chocobo', 'road', 'battle'];
+const GAMES = ['fishing', 'cooking', 'chocobo', 'road', 'battle', 'arena'];
 
 /* Volume de chaque mini-jeu (0 à 1, 0.5 par défaut), réglable dans sa barre du haut.
    Il règle ses bruitages et sa musique. */

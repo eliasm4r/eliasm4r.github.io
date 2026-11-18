@@ -3770,3 +3770,252 @@ html.is-paused body *:not(.pause, .pause *) {
         grid-column: 1 / -1;
     }
 }
+
+/* ---------- Combat : campagne, sac, plusieurs ennemis ---------- */
+.ar-camp {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 2rem;
+    margin-top: 1.6rem;
+}
+
+.ar-camp[hidden],
+.ar-fight[hidden] {
+    display: none;
+}
+
+.ar-map,
+.ar-bag {
+    position: relative;
+    padding: 2rem;
+    border: 1px solid var(--n-line);
+    border-radius: 12px;
+    background: rgba(var(--t-panel-rgb), 0.75);
+}
+
+.ar-k {
+    margin: 0 0 1.4rem;
+    font: 600 1.2rem var(--n-mono);
+    letter-spacing: 0.3em;
+    color: var(--n-crystal);
+}
+
+.ar-sub {
+    margin: 1.6rem 0 0.6rem;
+    font: 600 1.15rem var(--n-mono);
+    letter-spacing: 0.15em;
+    color: var(--t-gold);
+}
+
+.ar-fights {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ar-fight-card {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    width: 100%;
+    padding: 1.2rem 1.4rem;
+    border: 1px solid var(--n-line);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--n-text, #e8ecf5);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+}
+
+.ar-fight-card:hover:not(:disabled),
+.ar-fight-card:focus-visible {
+    border-color: var(--n-crystal);
+    background: rgba(var(--t-crystal-rgb), 0.08);
+    outline: none;
+}
+
+.ar-fight-card:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ar-fight-card.is-boss:not(:disabled) {
+    border-color: rgba(200, 120, 255, 0.6);
+    box-shadow: 0 0 18px rgba(160, 90, 255, 0.2) inset;
+}
+
+.ar-n {
+    font: 700 1.3rem var(--n-mono);
+    color: var(--n-muted);
+}
+
+.ar-ic {
+    font-size: 2.4rem;
+}
+
+.ar-t {
+    display: grid;
+    flex: 1;
+    gap: 0.2rem;
+}
+
+.ar-t b {
+    font: 700 1.7rem "Cinzel", serif;
+}
+
+.ar-t small {
+    font-size: 1.3rem;
+    color: var(--n-muted);
+}
+
+.ar-fight-card em {
+    font: 600 1.1rem var(--n-mono);
+    font-style: normal;
+    letter-spacing: 0.15em;
+    color: var(--t-gold);
+}
+
+.ar-pick,
+.ar-techs {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ar-pick button,
+.ar-techs li {
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    column-gap: 1rem;
+    align-items: center;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    color: inherit;
+    text-align: left;
+}
+
+.ar-pick button {
+    cursor: pointer;
+}
+
+.ar-pick button span,
+.ar-techs li span {
+    grid-row: span 2;
+    font-size: 1.8rem;
+    text-align: center;
+}
+
+.ar-pick button b,
+.ar-techs li b {
+    font-size: 1.4rem;
+}
+
+.ar-pick button small,
+.ar-techs li small {
+    font-size: 1.2rem;
+    color: var(--n-muted);
+}
+
+.ar-pick button.is-on {
+    border-color: var(--t-gold);
+    background: rgba(227, 179, 65, 0.1);
+}
+
+.ar-pick button:disabled,
+.ar-techs li:not(.is-got) {
+    opacity: 0.55;
+}
+
+.ar-pick button:disabled {
+    cursor: not-allowed;
+}
+
+.ar-items,
+.ar-ally {
+    margin: 0;
+    font-size: 1.35rem;
+}
+
+.ar-ally {
+    margin-top: 1rem;
+    color: #ffd0e8;
+}
+
+/* la trace de patte : discrète, en bas à droite du sac */
+.ar-paw {
+    position: absolute;
+    right: 1.2rem;
+    bottom: 1rem;
+    font-size: 1.6rem;
+    opacity: 0.16;
+    filter: grayscale(1);
+    pointer-events: none;
+}
+
+.ar-paw.is-taken {
+    display: none;
+}
+
+.ar-foes {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    pointer-events: none;
+}
+
+.ar-foes li {
+    flex: 0 1 22rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.ar-foes.is-boss li:first-child {
+    flex-basis: 40rem;
+}
+
+.ar-foes li.is-dead {
+    opacity: 0.3;
+}
+
+.ar-foes .bt-name {
+    margin: 0 0 0.4rem;
+    font-size: 1.3rem;
+}
+
+.ar-foes .bt-tag {
+    min-height: 1.4rem;
+    margin: 0.3rem 0 0;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 760px) {
+    .ar-camp {
+        grid-template-columns: 1fr;
+    }
+
+    .ar-foes {
+        flex-wrap: wrap;
+    }
+
+    .ar-foes li {
+        flex: 1 1 40%;
+        padding: 0.4rem 0.6rem;
+    }
+}

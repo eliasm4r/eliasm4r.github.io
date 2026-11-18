@@ -1744,6 +1744,861 @@ const battle = (() => {
 })();
 
 /* =====================================================================
+   3 bis. CAMPAGNE DE COMBAT — la carte « Combat » ouvre cette campagne.
+   Combat 1 = le Golem de cristal d'origine (module battle, inchangé).
+   Combats 2 à 5 : plusieurs ennemis, puis un boss final géant.
+   Le sac 🎒 : armes et accessoires gagnés avec les succès du site,
+   techniques apprises en explorant, objets. Et un chat qui peut
+   rejoindre l'équipe si on le laisse dormir au bon endroit.
+   ===================================================================== */
+const arena = (() => {
+    const panel = document.getElementById('game-arena');
+    if (!panel) return { reset() { } };
+    const KEY = 'eliasPortfolio.arena';
+    const GEAR_KEY = 'eliasPortfolio.arenaGear';
+
+    const ELEMENTS = [
+        { id: 'fire', name: t('Feu'), icon: '🔥', color: '#ff7a3a' },
+        { id: 'ice', name: t('Glace'), icon: '❄️', color: '#9fe6ff' },
+        { id: 'thunder', name: t('Foudre'), icon: '⚡', color: '#ffe36b' },
+    ];
+    const FOES = {
+        wolf: { name: t('Loup des cendres'), hp: 520, speed: 2.9, weak: 'ice', resist: 'fire', size: 0.75 },
+        toad: { name: t('Crapaud colossal'), hp: 950, speed: 3.6, weak: 'thunder', resist: 'ice', size: 1.05 },
+        wisp: { name: t('Feu follet'), hp: 380, speed: 3.0, weak: 'ice', resist: 'fire', size: 0.6 },
+        sentinel: { name: t('Sentinelle de fer'), hp: 680, speed: 3.3, weak: 'thunder', resist: 'ice', size: 0.95 },
+        drone: { name: t('Drone réparateur'), hp: 320, speed: 2.7, weak: 'thunder', resist: 'fire', size: 0.55 },
+        devourer: { name: t('Dévoreur d\'étoiles'), hp: 4200, speed: 3.0, weak: 'fire', resist: 'thunder', size: 0.72 },
+        shard: { name: t('Éclat du néant'), hp: 280, speed: 2.6, weak: 'fire', resist: 'ice', size: 0.5 },
+    };
+    const FIGHTS = [
+        { id: 'golem', icon: '💎', name: t('Golem de cristal'), sub: t('Le premier combat'), golem: true },
+        { id: 'wolves', icon: '🐺', name: t('Loups des cendres'), sub: t('1 contre 2'), foes: ['wolf', 'wolf'], bg: ['#2a1410', '#080404'] },
+        { id: 'swamp', icon: '🐸', name: t('Marais maudit'), sub: t('Le feu follet soigne son crapaud'), foes: ['toad', 'wisp'], bg: ['#13261c', '#040806'] },
+        { id: 'iron', icon: '🛡️', name: t('Sentinelles de fer'), sub: t('1 contre 3, avec un drone réparateur'), foes: ['sentinel', 'drone', 'sentinel'], bg: ['#1c2028', '#05060a'] },
+        { id: 'boss', icon: '🌑', name: t('Le Dévoreur d\'étoiles'), sub: t('Boss final'), foes: ['devourer'], bg: ['#1a0d2e', '#020104'], boss: true },
+    ];
+    const WEAPONS = [
+        { id: 'travel', icon: '🗡️', name: t('Épée de voyage'), atk: 1, how: t('Équipée au départ') },
+        { id: 'crystal', icon: '🔷', name: t('Lame de cristal'), atk: 1.2, mp: 10, req: 'battle', how: t('Vaincre le Golem de cristal') },
+        { id: 'kings', icon: '⚔️', name: t('Épée des Rois'), atk: 1.5, crit: 0.12, req: 'crystals', how: t('Réunir les 7 cristaux') },
+    ];
+    const ACCS = [
+        { id: 'none', icon: '·', name: t('Aucun accessoire'), how: '' },
+        { id: 'scale', icon: '🐟', name: t('Écaille du roi du lac'), hp: 60, req: 'fishBig', how: t('Succès « Le roi du lac »'), what: t('+60 HP') },
+        { id: 'apron', icon: '🍳', name: t('Tablier du chef'), potion: 1.6, potions: 1, req: 'ultimateChef', how: t('Succès « Chef légendaire »'), what: t('potions +60 %, une potion de plus') },
+        { id: 'feather', icon: '🪶', name: t('Plume de chocobo'), haste: 1.25, req: 'chocoboLegend', how: t('Succès « Légende de la piste »'), what: t('jauge ATB 25 % plus rapide') },
+        { id: 'keys', icon: '🔑', name: t('Clés de la Regalia'), hp: 100, guard: 0.35, req: 'roadLegend', how: t('Succès « Roi de la route »'), what: t('+100 HP, meilleure défense') },
+    ];
+    const TECHS = [
+        { id: 'cleave', icon: '✕', name: t('Taille croisée'), mp: 10, req: 'secretAll', how: t('Trouver tous les objets secrets'), what: t('frappe 2 ennemis') },
+        { id: 'warp', icon: '➶', name: t('Téléfrappe'), mp: 12, req: 'explorer', how: t('Visiter toutes les pages'), what: t('gros coup sur une cible') },
+        { id: 'phantom', icon: '✦', name: t('Lames fantômes'), mp: 16, req: 'crystals', how: t('Réunir les 7 cristaux'), what: t('frappe tous les ennemis') },
+        { id: 'blaze', icon: '🔥', name: t('Brasier'), mp: 18, req: 'sphere', how: t('Compléter le sphérier'), what: t('feu sur tous les ennemis') },
+    ];
+    const has = (it) => !it.req || achievements.has(it.req);
+
+    const load = () => { try { return JSON.parse(store.get(KEY)) || {}; } catch { return {}; } };
+    let rec = load(); // { won: { wolves: true, ... }, cat: true }
+    rec.won = rec.won || {};
+    const save = () => store.set(KEY, JSON.stringify(rec));
+    const gear = () => {
+        let g = {};
+        try { g = JSON.parse(store.get(GEAR_KEY) || '{}') || {}; } catch { }
+        const w = WEAPONS.find(x => x.id === g.w && has(x)) || WEAPONS[0];
+        const a = ACCS.find(x => x.id === g.a && has(x)) || ACCS[0];
+        return { w, a };
+    };
+    const setGear = (k, id) => { const g = gear(); store.set(GEAR_KEY, JSON.stringify({ w: g.w.id, a: g.a.id, [k]: id })); };
+    const isWon = (f) => (f.golem ? achievements.has('battle') : !!rec.won[f.id]);
+    const isOpen = (i) => i === 0 || isWon(FIGHTS[i - 1]);
+    const renderHub = () => setHubRecord('arena', `${FIGHTS.filter(isWon).length} / ${FIGHTS.length}`);
+
+    panel.innerHTML = `
+        <div class="game-bar">
+            <button class="game-back" type="button">${t('◂ Mini-jeux')}</button>
+            <p class="game-title">⚔️ ${t('Combat')}</p>
+        </div>
+        <div class="ar-camp">
+            <div class="ar-map">
+                <p class="ar-k">${t('CAMPAGNE')}</p>
+                <ol class="ar-fights"></ol>
+            </div>
+            <div class="ar-bag">
+                <p class="ar-k">🎒 ${t('SAC')}</p>
+                <p class="ar-sub">${t('Arme')}</p><ul class="ar-pick ar-weapons"></ul>
+                <p class="ar-sub">${t('Accessoire')}</p><ul class="ar-pick ar-accs"></ul>
+                <p class="ar-sub">${t('Techniques')}</p><ul class="ar-techs"></ul>
+                <p class="ar-sub">${t('Objets')}</p><p class="ar-items"></p>
+                <p class="ar-ally"></p>
+                <span class="ar-paw" aria-hidden="true">🐾</span>
+            </div>
+        </div>
+        <div class="ar-fight" hidden>
+            <div class="bt-stage ar-stage">
+                <canvas class="bt-canvas" aria-label="${t('Champ de bataille')}"></canvas>
+                <ul class="ar-foes"></ul>
+                <p class="bt-log" aria-live="polite"></p>
+                <div class="bt-overlay"></div>
+            </div>
+            <div class="bt-ui">
+                <ul class="bt-menu" role="menu"></ul>
+                <div class="bt-party">
+                    <div class="bt-hero"><span class="player-gem"></span><b class="bt-hero-name"></b><span class="bt-guard" hidden>🛡 ${t('EN GARDE')}</span></div>
+                    <div class="bt-stat"><span>HP</span><div class="bt-bar bt-php"><span></span></div><b class="bt-php-n"></b></div>
+                    <div class="bt-stat"><span>MP</span><div class="bt-bar bt-pmp"><span></span></div><b class="bt-pmp-n"></b></div>
+                    <div class="bt-stat"><span>ATB</span><div class="bt-bar bt-atb"><span></span></div><b class="bt-atb-n"></b></div>
+                    <p class="bt-inv"></p>
+                </div>
+            </div>
+        </div>`;
+
+    const $ = (sel) => panel.querySelector(sel);
+    const camp = $('.ar-camp');
+    const fightBox = $('.ar-fight');
+    const cv = $('.bt-canvas');
+    const overlay = $('.bt-overlay');
+    const menu = $('.bt-menu');
+    const logEl = $('.bt-log');
+    let c, W, H;
+
+    /* ---------------- écran de campagne ---------------- */
+    const pickList = (ul, items, cur, key) => {
+        ul.innerHTML = '';
+        items.forEach(it => {
+            const ok = has(it);
+            const li = document.createElement('li');
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = it.id === cur.id ? 'is-on' : '';
+            b.disabled = !ok;
+            b.innerHTML = '<span></span><b></b><small></small>';
+            b.querySelector('span').textContent = ok ? it.icon : '?';
+            b.querySelector('b').textContent = ok ? it.name : '???';
+            b.querySelector('small').textContent = ok ? (it.what || (it.atk ? `${t('Attaque')} ×${it.atk}` : '')) : it.how;
+            b.addEventListener('click', () => { setGear(key, it.id); sfx.select(); renderCamp(); });
+            li.appendChild(b);
+            ul.appendChild(li);
+        });
+    };
+    const renderCamp = () => {
+        const list = $('.ar-fights');
+        list.innerHTML = '';
+        FIGHTS.forEach((f, i) => {
+            const li = document.createElement('li');
+            const b = document.createElement('button');
+            b.type = 'button';
+            const open = isOpen(i);
+            b.className = `ar-fight-card ${isWon(f) ? 'is-won' : ''} ${f.boss ? 'is-boss' : ''}`;
+            b.disabled = !open;
+            b.innerHTML = '<span class="ar-n"></span><span class="ar-ic"></span><span class="ar-t"><b></b><small></small></span><em></em>';
+            b.querySelector('.ar-n').textContent = String(i + 1);
+            b.querySelector('.ar-ic').textContent = open ? f.icon : '🔒';
+            b.querySelector('b').textContent = open ? f.name : '???';
+            b.querySelector('small').textContent = open ? f.sub : t('Gagne le combat précédent');
+            b.querySelector('em').textContent = isWon(f) ? t('VAINCU') : '';
+            b.addEventListener('click', () => start(i));
+            li.appendChild(b);
+            list.appendChild(li);
+        });
+        const g = gear();
+        pickList($('.ar-weapons'), WEAPONS, g.w, 'w');
+        pickList($('.ar-accs'), ACCS, g.a, 'a');
+        const techs = $('.ar-techs');
+        techs.innerHTML = '';
+        TECHS.forEach(tc => {
+            const li = document.createElement('li');
+            const ok = has(tc);
+            li.className = ok ? 'is-got' : '';
+            li.innerHTML = '<span></span><b></b><small></small>';
+            li.querySelector('span').textContent = ok ? tc.icon : '?';
+            li.querySelector('b').textContent = ok ? `${tc.name} · ${tc.mp} MP` : '???';
+            li.querySelector('small').textContent = ok ? tc.what : tc.how;
+            techs.appendChild(li);
+        });
+        const inv = items();
+        $('.ar-items').textContent = `🧪 ${t('Potion')} ×${inv.potions}   💧 ${t('Éther')} ×${inv.ethers}   ✨ ${t('Élixir')} ×${inv.elixirs}${inv.elixirs ? '' : ` (${t('trouve un objet secret')})`}`;
+        $('.ar-ally').textContent = rec.cat ? `🐈 ${t('Le chat errant combat à tes côtés.')}` : '';
+        $('.ar-paw').classList.toggle('is-taken', !!rec.cat);
+        renderHub();
+    };
+    const items = () => {
+        const a = gear().a;
+        return { potions: 3 + (a.potions || 0), ethers: 2, elixirs: achievements.has('secret1') ? 1 : 0 };
+    };
+
+    /* ---------------- le chat : il faut qu'il s'endorme sur la trace de patte ---------------- */
+    let catT = 0, catLast = {};
+    setInterval(() => {
+        if (rec.cat || openGame !== 'arena' || camp.hidden || !gameOn('arena')) { catT = 0; return; }
+        const neko = document.getElementById('oneko');
+        const paw = $('.ar-paw');
+        if (!neko || !paw) return;
+        const n = neko.getBoundingClientRect(), p = paw.getBoundingClientRect();
+        const cx = n.left + n.width / 2, cy = n.top + n.height / 2;
+        // le chat s'arrête à ~48 px du curseur : il « dort sur la trace » s'il est tout près et immobile
+        const still = Math.abs(cx - (catLast.x || 0)) < 2 && Math.abs(cy - (catLast.y || 0)) < 2;
+        catLast = { x: cx, y: cy };
+        const on = still && Math.hypot(cx - (p.left + p.width / 2), cy - (p.top + p.height / 2)) < 70;
+        catT = on ? catT + 0.5 : 0;
+        if (catT >= 2) {
+            rec.cat = true;
+            save();
+            sfx.fanfare();
+            if (typeof showToast === 'function') showToast(`🐈 ${t('Le chat errant rejoint ton équipe !')}`);
+            achievements.unlock('catAlly');
+            renderCamp();
+        }
+    }, 500);
+    const catImg = new Image();
+    let catOk = false;
+    catImg.onload = () => { catOk = true; };
+
+    /* ---------------- combat ---------------- */
+    let s = null, fight = null;
+    const say = (txt) => { logEl.textContent = txt; logEl.classList.remove('pop'); void logEl.offsetWidth; logEl.classList.add('pop'); };
+    const fx = [], nums = [];
+    let shake = 0, flash = 0, lunge = 0;
+    const heroPos = () => ({ x: W * 0.88, y: H * 0.8 });
+    const catPos = () => ({ x: W * 0.74, y: H * 0.86 });
+    const alive = () => s.foes.filter(f => f.hp > 0);
+    const foePos = (f) => {
+        if (f.kind === 'devourer') return { x: W * 0.5, y: H * 0.62 };
+        const list = s.foes.filter(x => x.kind !== 'devourer');
+        const i = list.indexOf(f), n = list.length;
+        if (s.foes.some(x => x.kind === 'devourer')) return { x: W * (i ? 0.84 : 0.16), y: H * 0.6 };
+        return { x: W * (n === 1 ? 0.5 : 0.2 + (0.6 * i) / (n - 1)), y: H * (0.52 + (i % 2) * 0.04) };
+    };
+    const popNum = (txt, x, y, color) => nums.push({ txt, x, y, t: 0, color });
+    const burst = (el, x, y) => {
+        const col = ELEMENTS.find(e => e.id === el)?.color || '#fff';
+        for (let i = 0; i < 34; i++) fx.push({ x, y, vx: rand(-220, 220), vy: rand(-260, 120), life: 0, max: rand(0.4, 0.9), col, kind: el });
+    };
+
+    const makeFoe = (kind) => ({ kind, ...FOES[kind], max: FOES[kind].hp, eatb: Math.random() * 0.4, charging: false, fury: false, known: {} });
+
+    const start = (i) => {
+        const f = FIGHTS[i];
+        if (!isOpen(i)) return;
+        if (f.golem) { window.gamesHub?.open('battle'); return; }
+        fight = f;
+        const g = gear();
+        const inv = items();
+        const hpMax = 340 + (g.a.hp || 0);
+        const mpMax = 60 + (g.w.mp || 0);
+        s = {
+            php: hpMax, pmax: hpMax, pmp: mpMax, mpmax: mpMax, atb: 0.3, guard: false,
+            ...inv, foes: f.foes.map(makeFoe), w: g.w, a: g.a,
+            turns: 0, busy: false, over: false, sub: null, pending: null,
+            cat: rec.cat ? { t: 0 } : null, phase: 1, summoned: false,
+        };
+        camp.hidden = true;
+        fightBox.hidden = false;
+        overlay.hidden = true;
+        $('.bt-hero-name').textContent = getPlayer() || 'PLAYER 1';
+        if (rec.cat && !catImg.src) catImg.src = 'assets/cat%20cursor/oneko.gif';
+        ({ c, W, H } = fitCanvas(cv));
+        say(f.boss ? t('Le ciel se déchire… Le Dévoreur d\'étoiles descend sur toi !') : `${f.name} !`);
+        renderFoes(); renderBars(); renderMenu();
+        run();
+        window.scrollTo({ top: panel.getBoundingClientRect().top + window.scrollY - (window.innerWidth <= 916 ? 90 : 20), behavior: 'instant' });
+    };
+    const backToCamp = () => {
+        s = null;
+        fightBox.hidden = true;
+        camp.hidden = false;
+        renderCamp();
+    };
+
+    /* --- HUD des ennemis --- */
+    const renderFoes = () => {
+        const ul = $('.ar-foes');
+        ul.innerHTML = '';
+        ul.classList.toggle('is-boss', !!fight?.boss);
+        s.foes.forEach(f => {
+            const li = document.createElement('li');
+            li.className = f.hp <= 0 ? 'is-dead' : '';
+            li.innerHTML = '<p class="bt-name"></p><div class="bt-bar bt-hp"><span></span></div><p class="bt-tag"></p>';
+            li.querySelector('.bt-name').textContent = f.name;
+            li.querySelector('.bt-hp span').style.width = `${(f.hp / f.max) * 100}%`;
+            const known = Object.entries(f.known).map(([k, v]) => `${ELEMENTS.find(e => e.id === k).icon} ${v}`).join('  ');
+            li.querySelector('.bt-tag').textContent = `${f.charging ? t('⚠ CHARGE') + ' · ' : ''}${f.fury ? t('FURIE') + ' · ' : ''}${known}`;
+            ul.appendChild(li);
+        });
+    };
+    const renderBars = () => {
+        $('.bt-php span').style.width = `${(s.php / s.pmax) * 100}%`;
+        $('.bt-pmp span').style.width = `${(s.pmp / s.mpmax) * 100}%`;
+        $('.bt-atb span').style.width = `${Math.min(1, s.atb) * 100}%`;
+        $('.bt-php-n').textContent = `${Math.max(0, Math.round(s.php))}/${s.pmax}`;
+        $('.bt-pmp-n').textContent = `${s.pmp}/${s.mpmax}`;
+        $('.bt-atb-n').textContent = s.atb >= 1 ? t('PRÊT') : `${Math.floor(s.atb * 100)}%`;
+        $('.bt-guard').hidden = !s.guard;
+        $('.bt-inv').textContent = `🧪 ×${s.potions}   💧 ×${s.ethers}   ✨ ×${s.elixirs}${s.cat ? '   🐈' : ''}`;
+        $('.bt-atb').classList.toggle('is-full', s.atb >= 1);
+        $('.bt-php').classList.toggle('is-low', s.php < s.pmax * 0.3);
+    };
+
+    /* --- menu --- */
+    const SINGLE = new Set(['attack', 'warp', 'cleave', 'm-fire', 'm-ice', 'm-thunder']);
+    const renderMenu = () => {
+        menu.innerHTML = '';
+        if (!s) return;
+        const ready = s.atb >= 1 && !s.busy && !s.over;
+        let title = t('COMMANDES');
+        let list;
+        const techs = TECHS.filter(has);
+        if (s.sub === 'tech') {
+            title = t('TECHNIQUES');
+            list = [...techs.map(tc => ({ id: tc.id, label: `${tc.icon} ${tc.name}`, cost: tc.mp })), { id: 'back', label: t('◂ Retour') }];
+        } else if (s.sub === 'magic') {
+            title = t('MAGIE');
+            list = [...ELEMENTS.map(e => ({ id: `m-${e.id}`, label: `${e.icon} ${e.name}`, cost: 8 })), { id: 'm-cure', label: `✚ ${t('Soin')}`, cost: 12 }, { id: 'back', label: t('◂ Retour') }];
+        } else if (s.sub === 'item') {
+            title = t('OBJETS');
+            list = [{ id: 'i-potion', label: `${t('Potion')} ×${s.potions}`, n: s.potions }, { id: 'i-ether', label: `${t('Éther')} ×${s.ethers}`, n: s.ethers }, { id: 'i-elixir', label: `${t('Élixir')} ×${s.elixirs}`, n: s.elixirs }, { id: 'back', label: t('◂ Retour') }];
+        } else if (s.sub === 'target') {
+            title = t('CIBLE');
+            list = [...s.foes.map((f, i) => ({ id: `t-${i}`, label: `🎯 ${f.name} · ${Math.ceil((f.hp / f.max) * 100)} %`, n: f.hp > 0 ? 1 : 0 })), { id: 'back', label: t('◂ Retour') }];
+        } else {
+            list = [
+                { id: 'attack', label: t('Attaque') },
+                ...(techs.length ? [{ id: 'tech', label: t('Techniques ▸') }] : []),
+                { id: 'magic', label: t('Magie ▸') },
+                { id: 'item', label: t('Objet ▸') },
+                { id: 'guard', label: t('Défense') },
+                { id: 'flee', label: t('Fuir') },
+            ];
+        }
+        const head = document.createElement('li');
+        head.className = 'bt-menu-k';
+        head.innerHTML = '<span></span><em></em>';
+        head.querySelector('span').textContent = title;
+        head.querySelector('em').textContent = s.over ? '' : ready ? t('À toi !') : t('ATB en charge…');
+        head.classList.toggle('is-ready', ready);
+        menu.appendChild(head);
+        list.forEach(it => {
+            const li = document.createElement('li');
+            const b = document.createElement('button');
+            b.type = 'button';
+            const lb = document.createElement('span');
+            lb.textContent = it.label;
+            b.appendChild(lb);
+            if (it.cost) { const m = document.createElement('small'); m.textContent = `${it.cost} MP`; b.appendChild(m); }
+            b.disabled = !ready || (it.cost && s.pmp < it.cost) || it.n === 0;
+            b.addEventListener('click', () => choose(it.id));
+            li.appendChild(b);
+            menu.appendChild(li);
+        });
+        const first = menu.querySelector('button:not(:disabled)');
+        if (ready && first && document.activeElement?.closest('.bt-menu') == null && gameOn('arena')) first.focus({ preventScroll: true });
+    };
+
+    const choose = (id) => {
+        if (!s || s.busy || s.over) return;
+        if (id === 'tech' || id === 'magic' || id === 'item') { s.sub = id; renderMenu(); return; }
+        if (id === 'back') { s.sub = s.sub === 'target' && s.pending ? s.back : null; s.pending = null; renderMenu(); return; }
+        if (id.startsWith('t-')) { const p = s.pending; s.pending = null; s.sub = null; act(p, Number(id.slice(2))); return; }
+        if (SINGLE.has(id) && alive().length > 1) { s.back = s.sub; s.pending = id; s.sub = 'target'; renderMenu(); return; }
+        s.sub = null;
+        act(id, s.foes.indexOf(alive()[0]));
+    };
+
+    const weaponHit = (lo, hi) => {
+        const crit = Math.random() < 0.12 + (s.w.crit || 0);
+        return { dmg: Math.round(rand(lo, hi) * s.w.atk * (crit ? 2 : 1)), crit };
+    };
+    const elemMult = (f, el) => {
+        if (el === f.weak) { f.known[el] = t('faible'); return [1.6, t('FAIBLESSE !')]; }
+        if (el === f.resist) { f.known[el] = t('résiste'); return [0.5, t('RÉSISTE')]; }
+        f.known[el] = t('normal');
+        return [1, null];
+    };
+
+    const act = (id, ti) => {
+        s.busy = true;
+        s.atb = 0;
+        s.turns++;
+        const target = s.foes[ti]?.hp > 0 ? s.foes[ti] : alive()[0];
+        const tech = TECHS.find(x => x.id === id);
+        if (tech) s.pmp -= tech.mp;
+        if (id === 'attack') {
+            lunge = 1;
+            setTimeout(() => { const h = weaponHit(55, 80); hurtFoe(target, h.dmg, h.crit ? t('CRITIQUE !') : null, '#fff'); say(h.crit ? t('Coup critique !') : t('Attaque !')); done(); }, 260);
+        } else if (id === 'cleave') {
+            lunge = 1;
+            const second = alive().find(f => f !== target);
+            setTimeout(() => {
+                [target, second].filter(Boolean).forEach((f, k) => setTimeout(() => { const h = weaponHit(85, 105); hurtFoe(f, h.dmg, k ? null : t('TAILLE CROISÉE'), '#fff'); }, k * 180));
+                say(t('Taille croisée !'));
+                done(700);
+            }, 260);
+        } else if (id === 'warp') {
+            lunge = 1;
+            flash = 0.6;
+            setTimeout(() => { const h = weaponHit(140, 170); hurtFoe(target, h.dmg, t('TÉLÉFRAPPE'), '#bfe0ff'); say(t('Téléfrappe !')); done(); }, 300);
+        } else if (id === 'phantom') {
+            flash = 0.8;
+            say(t('Lames fantômes !'));
+            alive().forEach((f, k) => setTimeout(() => {
+                const p = foePos(f);
+                for (let i = 0; i < 14; i++) fx.push({ x: p.x + rand(-60, 60), y: p.y - 140, vx: rand(-30, 30), vy: rand(260, 420), life: 0, max: 0.5, col: '#bcd8ff', kind: 'blade' });
+                const h = weaponHit(70, 90);
+                hurtFoe(f, h.dmg, null, '#bcd8ff');
+            }, 200 + k * 160));
+            done(900);
+        } else if (id === 'blaze') {
+            say(t('Brasier !'));
+            alive().forEach((f, k) => setTimeout(() => {
+                const p = foePos(f);
+                burst('fire', p.x, p.y);
+                const [m, tag] = elemMult(f, 'fire');
+                hurtFoe(f, Math.round(rand(80, 100) * m), tag, '#ff7a3a');
+            }, 250 + k * 140));
+            done(900);
+        } else if (id.startsWith('m-')) {
+            const el = id.slice(2);
+            if (el === 'cure') {
+                s.pmp -= 12;
+                const heal = Math.round(rand(120, 150));
+                s.php = Math.min(s.pmax, s.php + heal);
+                const hp = heroPos();
+                for (let i = 0; i < 30; i++) fx.push({ x: hp.x + rand(-30, 30), y: hp.y, vx: rand(-20, 20), vy: rand(-140, -60), life: 0, max: rand(0.6, 1), col: '#9cff8a', kind: 'cure' });
+                popNum(`+${heal}`, hp.x, hp.y - 40, '#9cff8a');
+                say(t('Soin !'));
+                sfx.fanfare();
+                done(500);
+                return;
+            }
+            s.pmp -= 8;
+            const e = ELEMENTS.find(x => x.id === el);
+            const p = foePos(target);
+            burst(el, p.x, p.y);
+            if (el === 'thunder') flash = 1;
+            const [m, tag] = elemMult(target, el);
+            setTimeout(() => { hurtFoe(target, Math.round(rand(95, 125) * m), tag, e.color); say(`${e.name} !`); done(); }, 350);
+        } else if (id === 'i-potion') {
+            s.potions--;
+            const heal = Math.round(120 * (s.a.potion || 1));
+            s.php = Math.min(s.pmax, s.php + heal);
+            popNum(`+${heal}`, heroPos().x, heroPos().y - 40, '#9cff8a');
+            say(`${t('Potion')} : +${heal} HP`);
+            done(400);
+        } else if (id === 'i-ether') {
+            s.ethers--;
+            s.pmp = Math.min(s.mpmax, s.pmp + 30);
+            popNum('+30 MP', heroPos().x, heroPos().y - 40, '#8fb8ff');
+            say(t('Éther : +30 MP'));
+            done(400);
+        } else if (id === 'i-elixir') {
+            s.elixirs--;
+            s.php = s.pmax; s.pmp = s.mpmax;
+            popNum(t('MAX'), heroPos().x, heroPos().y - 40, '#ffe08a');
+            say(t('Élixir : HP et MP au maximum !'));
+            sfx.fanfare();
+            done(500);
+        } else if (id === 'guard') {
+            s.guard = true;
+            say(t('Tu te mets en garde.'));
+            done(300);
+        } else if (id === 'flee') {
+            if (!fight.boss && Math.random() < 0.45) {
+                say(t('Tu prends la fuite…'));
+                s.over = true;
+                setTimeout(backToCamp, 900);
+            } else {
+                say(fight.boss ? t('Impossible de fuir le Dévoreur !') : t('Impossible de fuir !'));
+                done(400);
+            }
+        }
+        renderMenu();
+    };
+    const done = (ms = 500) => setTimeout(() => { if (!s) return; s.busy = false; renderBars(); renderFoes(); renderMenu(); }, ms);
+
+    const hurtFoe = (f, dmg, tag, color) => {
+        if (!s || f.hp <= 0) return;
+        f.hp = Math.max(0, f.hp - dmg);
+        const p = foePos(f);
+        popNum(String(dmg), p.x + rand(-30, 30), p.y - 60 * f.size, color);
+        if (tag) popNum(tag, p.x, p.y - 100 * f.size, cssVar('--t-gold', '#e3b341'));
+        f.shake = 0.3;
+        shake = Math.max(shake, 0.2);
+        sfx.select();
+        if (f.hp <= 0) {
+            f.charging = false;
+            for (let i = 0; i < 30; i++) fx.push({ x: p.x, y: p.y, vx: rand(-200, 200), vy: rand(-240, 60), life: 0, max: rand(0.5, 1), col: '#cfd8ff', kind: 'dust' });
+            say(`${f.name} ${t('est vaincu !')}`);
+        }
+        // le boss change de phase à mi-vie : nouvelle faiblesse et renforts
+        if (f.kind === 'devourer' && s.phase === 1 && f.hp > 0 && f.hp < f.max * 0.5) {
+            s.phase = 2;
+            f.weak = 'ice'; f.resist = 'fire'; f.known = {}; f.speed = 2.4;
+            flash = 1;
+            shake = 0.8;
+            say(t('Le Dévoreur se transforme ! Sa faiblesse a changé…'));
+            if (!s.summoned) { s.summoned = true; s.foes.push(makeFoe('shard'), makeFoe('shard')); }
+        }
+        renderFoes();
+        renderBars();
+        if (!alive().length) win();
+    };
+
+    /* --- tour des ennemis --- */
+    const hit = (dmg, name, big) => {
+        lunge = -1;
+        say(name);
+        setTimeout(() => {
+            if (!s || s.over) return;
+            const guardK = big ? 0.4 : 0.5;
+            const real = Math.round(dmg * (s.guard ? guardK * (1 - (s.a.guard || 0)) : 1));
+            s.php = Math.max(0, s.php - real);
+            const hp = heroPos();
+            popNum(String(real), hp.x, hp.y - 40, '#ff6b6b');
+            shake = big ? 0.6 : 0.3;
+            s.guard = false;
+            sfx.back();
+            renderBars();
+            if (s.php <= 0) lose();
+        }, 300);
+    };
+    const charge = (f, msg) => { f.charging = true; say(`${msg} ${t('(mets-toi en Défense !)')}`); renderFoes(); };
+    const healFoe = (by, f, n) => {
+        f.hp = Math.min(f.max, f.hp + n);
+        const p = foePos(f);
+        popNum(`+${n}`, p.x, p.y - 60 * f.size, '#9cff8a');
+        say(`${by.name} : ${t('soigne')} ${f.name}`);
+        renderFoes();
+    };
+    const foeTurn = (f) => {
+        f.eatb = 0;
+        const r = Math.random();
+        const furyK = f.fury ? 1.5 : 1;
+        f.fury = false;
+        if (f.charging) {
+            f.charging = false;
+            const big = { toad: [120, 150, t('Plat ventre !')], sentinel: [130, 160, t('Charge de lance !')], devourer: [270, 310, t('SUPERNOVA !')] }[f.kind] || [100, 130, t('Coup puissant !')];
+            if (f.kind === 'devourer') flash = 1;
+            hit(rand(big[0], big[1]), big[2], true);
+            renderFoes();
+            return;
+        }
+        const others = alive().filter(x => x !== f);
+        switch (f.kind) {
+            case 'wolf':
+                if (r < 0.28 && others.length) { others.concat(f).forEach(x => { x.fury = true; }); say(t('Hurlement ! La meute s\'enrage.')); renderFoes(); }
+                else hit(rand(30, 45) * furyK, t('Morsure'));
+                break;
+            case 'toad':
+                if (r < 0.15) charge(f, t('Le crapaud gonfle son ventre…'));
+                else if (r < 0.4) { s.pmp = Math.max(0, s.pmp - 10); hit(rand(18, 26), t('Croassement ! (-10 MP)')); }
+                else hit(rand(42, 58), t('Coup de langue'));
+                break;
+            case 'wisp': {
+                const toad = others.find(x => x.kind === 'toad' && x.hp < x.max * 0.65);
+                if (toad && r < 0.5) healFoe(f, toad, 140);
+                else hit(rand(34, 48), t('Flamme follette'));
+                break;
+            }
+            case 'sentinel':
+                if (r < 0.22) charge(f, t('La sentinelle abaisse sa lance…'));
+                else hit(rand(40, 55), t('Coup de bouclier'));
+                break;
+            case 'drone': {
+                const hurt = others.filter(x => x.hp < x.max * 0.55).sort((p, q) => p.hp / p.max - q.hp / q.max)[0];
+                if (hurt && r < 0.65) healFoe(f, hurt, 120);
+                else hit(rand(22, 30), t('Décharge'));
+                break;
+            }
+            case 'devourer':
+                if (s.phase === 2 && r < 0.18) {
+                    const n = Math.round(s.php * 0.2);
+                    hit(n, t('Trou noir ! Il dévore ta vie.'));
+                    healFoe(f, f, 150);
+                } else if (r < (s.phase === 2 ? 0.42 : 0.28)) charge(f, t('Le Dévoreur aspire la lumière des étoiles…'));
+                else if (r < 0.6) { s.pmp = Math.max(0, s.pmp - 8); hit(rand(35, 50), t('Pluie d\'étoiles')); }
+                else hit(rand(50, 70), t('Griffe du néant'));
+                break;
+            default:
+                hit(rand(22, 32), t('Éclat tranchant'));
+        }
+    };
+
+    // le chat attaque tout seul, de temps en temps
+    const catTurn = () => {
+        const list = alive();
+        if (!list.length) return;
+        const f = list[Math.floor(Math.random() * list.length)];
+        const p = catPos();
+        for (let i = 0; i < 8; i++) fx.push({ x: p.x, y: p.y - 20, vx: rand(-60, 60), vy: rand(-80, -20), life: 0, max: 0.5, col: '#fff', kind: 'dust' });
+        say(t('Le chat griffe ! Miaou !'));
+        hurtFoe(f, Math.round(rand(26, 38)), null, '#ffd0e8');
+    };
+
+    /* --- fin du combat --- */
+    const win = () => {
+        if (s.over) return;
+        s.over = true;
+        const first = !rec.won[fight.id];
+        rec.won[fight.id] = true;
+        save();
+        sfx.fanfare();
+        if (fight.boss) achievements.unlock('arenaAll');
+        const next = FIGHTS[FIGHTS.indexOf(fight) + 1];
+        setTimeout(() => {
+            if (!s) return;
+            overlay.hidden = false;
+            overlay.innerHTML = `
+                <p class="cook-k">${t('VICTOIRE !')}</p>
+                <h3>${fight.boss ? t('Le Dévoreur d\'étoiles est vaincu !') : fight.name}</h3>
+                <p class="cook-sub">${s.turns} ${t('tours')}${first && next ? ` · ${t('Nouveau combat débloqué :')} ${next.name}` : ''}${fight.boss ? ` · ${t('L\'aube se lève sur le royaume.')}` : ''}</p>
+                <div class="cook-actions"><button class="btn" type="button">${t('◂ Campagne')}</button></div>`;
+            overlay.querySelector('button').addEventListener('click', backToCamp);
+            renderMenu();
+        }, 1200);
+    };
+    const lose = () => {
+        s.over = true;
+        const again = FIGHTS.indexOf(fight);
+        setTimeout(() => {
+            if (window.gameOver) window.gameOver({ sub: `${fight.name} : ${t('tu es tombé au combat.')}`, onContinue: () => start(again) });
+            else backToCamp();
+        }, 600);
+    };
+
+    /* --- dessin des ennemis --- */
+    const drawFoe = (f, t2) => {
+        const p = foePos(f);
+        const k = (Math.min(W, H) / 420) * f.size;
+        const sh = f.shake > 0 ? rand(-6, 6) * f.shake * 3 : 0;
+        c.save();
+        c.translate(p.x + sh, p.y + Math.sin(t2 * 1.8 + p.x) * 5);
+        c.scale(k, k);
+        if (f.charging) {
+            const a = c.createRadialGradient(0, 0, 10, 0, 0, 150);
+            a.addColorStop(0, `rgba(255, 90, 90, ${0.25 + 0.2 * Math.abs(Math.sin(t2 * 10))})`); a.addColorStop(1, 'rgba(255, 90, 90, 0)');
+            c.fillStyle = a; c.fillRect(-160, -160, 320, 320);
+        }
+        const eye = (x, y, col = '#ffb347') => { c.fillStyle = col; c.shadowColor = col; c.shadowBlur = 12; c.fillRect(x, y, 10, 4); c.shadowBlur = 0; };
+        switch (f.kind) {
+            case 'wolf': {
+                const run = Math.sin(t2 * 6) * 6;
+                c.fillStyle = '#2b1d1a';
+                c.beginPath();
+                c.moveTo(-90, 10); c.quadraticCurveTo(-60, -40, 10, -35); c.lineTo(55, -60); c.lineTo(62, -88); c.lineTo(76, -62); c.lineTo(100, -50);
+                c.lineTo(92, -28); c.lineTo(60, -20); c.lineTo(50, 10); c.lineTo(58, 60 + run); c.lineTo(42, 60 + run); c.lineTo(30, 18);
+                c.lineTo(-40, 20); c.lineTo(-50, 60 - run); c.lineTo(-66, 60 - run); c.lineTo(-70, 18); c.quadraticCurveTo(-110, 10, -130, -20); c.closePath(); c.fill();
+                c.strokeStyle = 'rgba(255, 120, 60, 0.5)'; c.lineWidth = 2; c.stroke();
+                for (let i = 0; i < 4; i++) { c.fillStyle = `rgba(255, ${100 + i * 30}, 40, ${0.5 - i * 0.1})`; c.beginPath(); c.arc(-60 + i * 30, -40 + Math.sin(t2 * 5 + i) * 6, 5, 0, TAU); c.fill(); }
+                eye(70, -52);
+                break;
+            }
+            case 'toad': {
+                const breathe = 1 + Math.sin(t2 * 2) * 0.04 + (f.charging ? 0.12 : 0);
+                c.scale(breathe, breathe);
+                c.fillStyle = '#3f6b3a';
+                c.beginPath(); c.ellipse(0, 10, 110, 70, 0, 0, TAU); c.fill();
+                c.fillStyle = '#9bbf6a';
+                c.beginPath(); c.ellipse(0, 35, 70, 38, 0, 0, TAU); c.fill();
+                c.fillStyle = '#2d4f2a';
+                [[-60, -10], [-20, -30], [40, -20], [70, 10]].forEach(([x, y]) => { c.beginPath(); c.arc(x, y, 9, 0, TAU); c.fill(); });
+                c.fillStyle = '#3f6b3a';
+                c.beginPath(); c.arc(-45, -55, 24, 0, TAU); c.arc(45, -55, 24, 0, TAU); c.fill();
+                c.fillStyle = '#ffe36b';
+                c.beginPath(); c.arc(-45, -58, 13, 0, TAU); c.arc(45, -58, 13, 0, TAU); c.fill();
+                c.fillStyle = '#111'; c.fillRect(-48, -66, 6, 16); c.fillRect(42, -66, 6, 16);
+                break;
+            }
+            case 'wisp': {
+                for (let i = 0; i < 6; i++) {
+                    c.fillStyle = `rgba(${120 + i * 20}, ${200 + i * 8}, 255, ${0.18 + i * 0.1})`;
+                    c.beginPath(); c.ellipse(Math.sin(t2 * 4 + i) * 6, -i * 12, 60 - i * 9, 70 - i * 10, 0, 0, TAU); c.fill();
+                }
+                eye(-18, -30, '#fff'); eye(8, -30, '#fff');
+                break;
+            }
+            case 'sentinel': {
+                c.fillStyle = '#4a5160';
+                c.beginPath(); c.roundRect(-55, -80, 110, 150, 14); c.fill();
+                c.fillStyle = '#6b7385';
+                c.beginPath(); c.roundRect(-40, -130, 80, 56, 16); c.fill();
+                c.fillStyle = '#1c2028'; c.fillRect(-30, -108, 60, 10);
+                eye(-24, -105, '#ff4a4a'); eye(14, -105, '#ff4a4a');
+                c.fillStyle = '#7d8699';
+                c.beginPath(); c.moveTo(-95, -60); c.lineTo(-55, -70); c.lineTo(-55, 50); c.lineTo(-95, 40); c.closePath(); c.fill();
+                c.strokeStyle = '#c9ced8'; c.lineWidth = 6;
+                c.beginPath(); c.moveTo(70, 70); c.lineTo(80, -150); c.stroke();
+                c.fillStyle = '#e6e9ef'; c.beginPath(); c.moveTo(80, -175); c.lineTo(90, -145); c.lineTo(70, -145); c.closePath(); c.fill();
+                break;
+            }
+            case 'drone': {
+                c.fillStyle = '#5c6476';
+                c.beginPath(); c.arc(0, 0, 48, 0, TAU); c.fill();
+                c.fillStyle = '#9ff2c4'; c.shadowColor = '#9ff2c4'; c.shadowBlur = 18;
+                c.beginPath(); c.arc(0, 0, 16, 0, TAU); c.fill(); c.shadowBlur = 0;
+                c.strokeStyle = '#c9ced8'; c.lineWidth = 4;
+                c.beginPath(); c.moveTo(0, -48); c.lineTo(0, -70); c.stroke();
+                const spin = Math.cos(t2 * 30) * 50;
+                c.beginPath(); c.moveTo(-spin, -72); c.lineTo(spin, -72); c.stroke();
+                break;
+            }
+            case 'shard': {
+                c.fillStyle = 'rgba(150, 90, 255, 0.35)'; c.strokeStyle = '#c9a2ff'; c.lineWidth = 2;
+                c.rotate(Math.sin(t2 * 2) * 0.2);
+                c.beginPath(); c.moveTo(0, -90); c.lineTo(40, 0); c.lineTo(0, 80); c.lineTo(-40, 0); c.closePath(); c.fill(); c.stroke();
+                eye(-12, -10, '#f0e0ff');
+                break;
+            }
+            case 'devourer': {
+                // le boss : une silhouette couronnée qui remplit l'écran, un cœur de néant, des bras d'ombre
+                const R = Math.min(W, H) / k;
+                const ph2 = s.phase === 2;
+                const col = ph2 ? '200, 60, 90' : '120, 80, 220';
+                const halo = c.createRadialGradient(0, 0, R * 0.05, 0, 0, R * 0.6);
+                halo.addColorStop(0, `rgba(${col}, 0.45)`); halo.addColorStop(1, `rgba(${col}, 0)`);
+                c.fillStyle = halo; c.fillRect(-R, -R, R * 2, R * 2);
+                for (let i = 0; i < 6; i++) {
+                    const side = i % 2 ? 1 : -1, n = Math.floor(i / 2);
+                    const wav = Math.sin(t2 * 1.6 + i) * 30;
+                    c.strokeStyle = `rgba(${col}, ${0.55 - n * 0.12})`;
+                    c.lineWidth = 26 - n * 6;
+                    c.lineCap = 'round';
+                    c.beginPath(); c.moveTo(side * 60, 20 + n * 40);
+                    c.bezierCurveTo(side * (180 + n * 40), -60 + wav, side * (260 + n * 30), 120 + wav, side * (330 + n * 20), 40 + n * 70 + wav);
+                    c.stroke();
+                }
+                c.fillStyle = '#07040e';
+                c.beginPath();
+                c.moveTo(0, -250); c.lineTo(40, -200); c.lineTo(80, -230); c.lineTo(95, -150); c.quadraticCurveTo(170, -40, 120, 160);
+                c.lineTo(-120, 160); c.quadraticCurveTo(-170, -40, -95, -150); c.lineTo(-80, -230); c.lineTo(-40, -200); c.closePath(); c.fill();
+                c.strokeStyle = `rgba(${col}, 0.9)`; c.lineWidth = 3; c.stroke();
+                // couronne d'étoiles
+                for (let i = 0; i < 7; i++) {
+                    const a = -Math.PI / 2 + (i - 3) * 0.32;
+                    c.fillStyle = '#fff6d8'; c.shadowColor = '#ffe9a0'; c.shadowBlur = 14;
+                    c.beginPath(); c.arc(Math.cos(a) * 190, -60 + Math.sin(a) * 190, 4 + (i % 2) * 2, 0, TAU); c.fill();
+                }
+                c.shadowBlur = 0;
+                eye(-40, -150, ph2 ? '#ff4a6a' : '#e2c8ff'); eye(30, -150, ph2 ? '#ff4a6a' : '#e2c8ff');
+                const pulse = 30 + Math.sin(t2 * 3) * 6 + (f.charging ? 18 : 0);
+                const core = c.createRadialGradient(0, -20, 0, 0, -20, pulse * 2);
+                core.addColorStop(0, '#000'); core.addColorStop(0.6, `rgba(${col}, 0.9)`); core.addColorStop(1, `rgba(${col}, 0)`);
+                c.fillStyle = core; c.beginPath(); c.arc(0, -20, pulse * 2, 0, TAU); c.fill();
+                break;
+            }
+            default:
+        }
+        c.restore();
+    };
+
+    const TAU = Math.PI * 2;
+    const draw = (dt, t2) => {
+        const bgc = fight?.bg || ['#16213a', '#05070c'];
+        const bg = c.createRadialGradient(W / 2, H * 0.5, 0, W / 2, H * 0.5, Math.max(W, H) * 0.7);
+        bg.addColorStop(0, bgc[0]); bg.addColorStop(1, bgc[1]);
+        c.fillStyle = bg; c.fillRect(0, 0, W, H);
+        if (fight?.boss) {
+            for (let i = 0; i < 80; i++) {
+                c.fillStyle = `rgba(255, 255, 255, ${0.2 + 0.5 * Math.abs(Math.sin(t2 + i))})`;
+                c.fillRect((i * 97.3) % W, (i * 53.7) % (H * 0.7), 1.5, 1.5);
+            }
+        }
+        c.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        c.beginPath(); c.ellipse(W / 2, H * 0.86, W * 0.45, H * 0.07, 0, 0, TAU); c.fill();
+        c.save();
+        if (shake > 0) c.translate(rand(-1, 1) * shake * 10, rand(-1, 1) * shake * 6);
+        if (s) {
+            s.foes.forEach(f => { f.shake = Math.max(0, (f.shake || 0) - dt); if (f.hp > 0) drawFoe(f, t2); });
+            if (s.cat && catOk) {
+                const p = catPos();
+                c.imageSmoothingEnabled = false;
+                const fr = Math.floor(t2 * 3) % 2 ? [3, 3] : [3, 3];
+                c.drawImage(catImg, fr[0] * 32, fr[1] * 32, 32, 32, p.x - 32, p.y - 64, 64, 64);
+                c.imageSmoothingEnabled = true;
+            }
+        }
+        for (let i = fx.length - 1; i >= 0; i--) {
+            const p = fx[i];
+            p.life += dt;
+            if (p.life > p.max) { fx.splice(i, 1); continue; }
+            p.vy += (p.kind === 'cure' ? -40 : p.kind === 'blade' ? 0 : 300) * dt;
+            p.x += p.vx * dt; p.y += p.vy * dt;
+            c.globalAlpha = 1 - p.life / p.max;
+            c.fillStyle = p.col;
+            if (p.kind === 'blade') { c.save(); c.translate(p.x, p.y); c.rotate(0.15); c.fillRect(-2, -26, 4, 40); c.restore(); }
+            else if (p.kind === 'ice') { c.save(); c.translate(p.x, p.y); c.rotate(p.life * 6); c.fillRect(-3, -6, 6, 12); c.restore(); }
+            else { c.beginPath(); c.arc(p.x, p.y, p.kind === 'fire' ? 5 : 3, 0, TAU); c.fill(); }
+        }
+        c.globalAlpha = 1;
+        c.restore();
+        c.textAlign = 'center';
+        for (let i = nums.length - 1; i >= 0; i--) {
+            const n = nums[i];
+            n.t += dt;
+            if (n.t > 1.1) { nums.splice(i, 1); continue; }
+            c.globalAlpha = 1 - Math.max(0, n.t - 0.6) / 0.5;
+            c.font = `700 ${n.txt.length > 6 ? 18 : 28}px "JetBrains Mono", monospace`;
+            c.lineWidth = 4;
+            c.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+            c.strokeText(n.txt, n.x, n.y - n.t * 40);
+            c.fillStyle = n.color;
+            c.fillText(n.txt, n.x, n.y - n.t * 40);
+        }
+        c.globalAlpha = 1;
+        if (flash > 0) { c.fillStyle = `rgba(255, 255, 255, ${flash * 0.3})`; c.fillRect(0, 0, W, H); }
+    };
+
+    const update = (dt) => {
+        shake = Math.max(0, shake - dt);
+        flash = Math.max(0, flash - dt * 2.5);
+        lunge *= Math.pow(0.02, dt);
+        if (!s || s.over || s.busy || s.sub) return;
+        const was = s.atb;
+        s.atb = Math.min(1, s.atb + (dt / 2.4) * (s.a.haste || 1));
+        if (was < 1 && s.atb >= 1) { renderMenu(); sfx.hover(); }
+        if (s.cat) {
+            s.cat.t += dt;
+            if (s.cat.t > 4.6) { s.cat.t = 0; catTurn(); if (s.over) return; }
+        }
+        if (s.atb < 1) {
+            for (const f of alive()) {
+                f.eatb += dt / f.speed;
+                if (f.eatb >= 1) {
+                    s.busy = true;
+                    foeTurn(f);
+                    setTimeout(() => { if (s && !s.over) { s.busy = false; renderMenu(); } }, 800);
+                    break;
+                }
+            }
+        }
+        renderBars();
+    };
+
+    let raf = 0, last = 0;
+    const loop = (ms) => {
+        const dt = Math.min((ms - last) / 1000, 0.05);
+        last = ms;
+        if (s) { update(dt); draw(dt, ms / 1000); }
+        raf = gameOn('arena') && s ? requestAnimationFrame(loop) : 0;
+    };
+    const run = () => {
+        if (raf || !s) return;
+        ({ c, W, H } = fitCanvas(cv));
+        last = performance.now();
+        raf = requestAnimationFrame(loop);
+    };
+    document.addEventListener('gameopen', (e) => { if (e.detail === 'arena') { if (!s) renderCamp(); run(); } });
+    document.addEventListener('gameresume', (e) => { if (e.detail === 'arena') run(); });
+    window.addEventListener('resize', () => { if (raf) ({ c, W, H } = fitCanvas(cv)); });
+    document.addEventListener('trophy', () => { if (!s) renderCamp(); });
+
+    renderCamp();
+    return {
+        reset() { store.del(KEY); store.del(GEAR_KEY); rec = { won: {} }; s = null; fightBox.hidden = true; camp.hidden = false; renderCamp(); },
+        start,
+    };
+})();
+
+/* =====================================================================
    2 bis. ROUTE ROYALE — la Regalia de nuit sur une route à 3 voies.
    Fausse 3D : chaque objet a une distance devant la voiture, projetée
    vers l'horizon. On change de voie pour éviter la circulation et on
@@ -2175,7 +3030,7 @@ const roadTrip = (() => {
 
 /* le "Reset votre progression" efface aussi les mini-jeux */
 document.addEventListener('game', (e) => {
-    if (e.detail.type === 'reset') { cooking.reset(); chocoboRace.reset(); roadTrip.reset(); battle.reset(); }
+    if (e.detail.type === 'reset') { cooking.reset(); chocoboRace.reset(); roadTrip.reset(); battle.reset(); arena.reset(); }
 });
 
 /* =====================================================================
