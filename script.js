@@ -827,6 +827,11 @@ const skillData = {
         img: './assets/github.png',
         desc: tr('Plateforme de gestion de versions utilisée sur tous mes projets. Maîtrise des branches, pull requests, issues et actions CI/CD pour le travail en équipe et la traçabilité des projets.')
     },
+    claude: {
+        title: tr('Claude (IA)'),
+        img: './assets/claude.svg',
+        desc: tr("Développement assisté par l'IA avec Claude (Claude Code) : découper un projet en tâches claires, guider l'agent, relire et tester ce qu'il produit. C'est ainsi qu'ont été construits ce portfolio et la recompilation PC de Wonders Beyond.")
+    },
     bash: {
         title: tr('Bash'),
         img: './assets/bash.png',
@@ -876,6 +881,7 @@ const skillData = {
 
 const skillLevels = {
     html: 90,
+    claude: 88,
     javascript: 86,
     java: 84,
     github: 83,
@@ -902,7 +908,7 @@ const skillLevels = {
 const SKILL_SHORT = {
     html: 'HTML / CSS', javascript: 'JavaScript', typescript: 'TypeScript', vuejs: 'Vue.js', react: 'React',
     flutter: 'Flutter', java: 'Java', go: 'Go', springboot: 'Spring Boot', python: 'Python', c: 'C',
-    bash: 'Bash', psql: 'PostgreSQL', nosql: 'NoSQL', github: 'GitHub', gitlab: 'GitLab', maths: tr('Modélisation Math.'),
+    bash: 'Bash', claude: 'Claude (IA)', psql: 'PostgreSQL', nosql: 'NoSQL', github: 'GitHub', gitlab: 'GitLab', maths: tr('Modélisation Math.'),
 };
 
 // l'ordre = l'ordre des sommets de l'hexagone, en partant du haut
@@ -912,7 +918,7 @@ const SKILL_DOMAINS = [
     { id: 'data', name: tr('Données'), skills: ['psql', 'nosql', 'maths'] },
     { id: 'mobile', name: tr('Mobile'), skills: ['flutter'] },
     { id: 'low', name: tr('Bas niveau'), skills: ['c'] },
-    { id: 'tools', name: tr('Outils'), skills: ['github', 'gitlab', 'bash'] },
+    { id: 'tools', name: tr('Outils'), skills: ['claude', 'github', 'gitlab', 'bash'] },
 ];
 
 // où chaque compétence apparaît sur le site (quêtes de Réalisations, stages d'Expériences)
@@ -927,6 +933,7 @@ const SKILL_USES = {
     springboot: ['q-intellib'],
     python: ['q-wonders', 'q-totk'],
     bash: ['q-agile'],
+    claude: ['portfolio', 'q-wonders'],
     psql: ['q-3arbichat'],
     github: ['q-wonders', 'q-totk', 'q-3arbichat', 'q-agile', 'stage-geonative', 'stage-adeo'],
 };
