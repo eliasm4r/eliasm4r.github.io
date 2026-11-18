@@ -162,7 +162,7 @@ window.addEventListener('pointermove', (e) => {
     (events.length ? events : [e]).forEach(ev => addTrailPoint(ev.clientX, ev.clientY));
 }, { passive: true });
 
-document.querySelectorAll('a, button, .skill-td, .experience-stage').forEach(el => {
+document.querySelectorAll('a, button, .experience-stage').forEach(el => {
     el.addEventListener('mouseenter', () => cursorDot && cursorDot.classList.add('is-hover'));
     el.addEventListener('mouseleave', () => cursorDot && cursorDot.classList.remove('is-hover'));
 });
@@ -877,50 +877,333 @@ const skillLevels = {
     maths: 66,
 };
 
-// Barre de niveau façon "stats de RPG" sous chaque compétence
-document.querySelectorAll('.skill-td').forEach(td => {
-    const lv = skillLevels[td.dataset.skill];
-    const inner = td.querySelector('.skill-td-inner');
-    if (!lv || !inner) return;
-    inner.insertAdjacentHTML('beforeend',
-        `<div class="skill-lv" aria-label="${tr('Niveau')} ${lv} / 100"><span class="skill-lv-track"><span class="skill-lv-fill" style="width:${lv}%"></span></span><b>${lv}</b></div>`);
-});
-
 /* ===================================================
-   SKILL MODAL LOGIC
+   COMPÉTENCES — écran de statut façon RPG
+   Hexagone = moyenne par domaine ; liste triée par niveau ;
+   fiche détaillée avec les projets et stages où la compétence sert.
    =================================================== */
-const skillModal = document.getElementById('skillModal');
-const skillModalClose = document.getElementById('skillModalClose');
-const skillModalLevelBar = document.getElementById('skillModalLevelBar');
-const skillModalLevelLabel = document.getElementById('skillModalLevelLabel');
+const SKILL_SHORT = {
+    html: 'HTML / CSS', javascript: 'JavaScript', typescript: 'TypeScript', vuejs: 'Vue.js', react: 'React',
+    flutter: 'Flutter', java: 'Java', go: 'Go', springboot: 'Spring Boot', python: 'Python', c: 'C',
+    bash: 'Bash', psql: 'PostgreSQL', nosql: 'NoSQL', github: 'GitHub', gitlab: 'GitLab', maths: tr('Modélisation Math.'),
+};
 
-document.querySelectorAll('.skill-td').forEach(td => {
-    td.addEventListener('click', () => {
-        const key = td.dataset.skill;
-        const data = skillData[key];
-        if (!data) return;
-        document.getElementById('skillModalTitle').textContent = data.title;
-        document.getElementById('skillModalDesc').textContent = data.desc;
-        document.getElementById('skillModalImg').src = data.img;
-        document.getElementById('skillModalImg').alt = data.title;
-        const level = skillLevels[key] || 65;
-        if (skillModalLevelBar && skillModalLevelLabel) {
-            skillModalLevelBar.style.width = `${level}%`;
-            skillModalLevelLabel.textContent = `${level}`;
-        }
-        skillModal.classList.add('open');
+// l'ordre = l'ordre des sommets de l'hexagone, en partant du haut
+const SKILL_DOMAINS = [
+    { id: 'front', name: tr('Front-end'), skills: ['html', 'javascript', 'typescript', 'vuejs', 'react'] },
+    { id: 'back', name: tr('Back-end'), skills: ['java', 'python', 'springboot', 'go'] },
+    { id: 'data', name: tr('Données'), skills: ['psql', 'nosql', 'maths'] },
+    { id: 'mobile', name: tr('Mobile'), skills: ['flutter'] },
+    { id: 'low', name: tr('Bas niveau'), skills: ['c'] },
+    { id: 'tools', name: tr('Outils'), skills: ['github', 'gitlab', 'bash'] },
+];
+
+// où chaque compétence apparaît sur le site (quêtes de Réalisations, stages d'Expériences)
+const SKILL_USES = {
+    html: ['portfolio', 'q-3arbichat', 'q-intellib', 'q-covoit', 'stage-geonative', 'stage-esystems'],
+    javascript: ['portfolio', 'q-3arbichat'],
+    typescript: ['stage-geonative'],
+    vuejs: ['stage-geonative'],
+    flutter: ['stage-adeo'],
+    java: ['q-3arbichat', 'q-agile', 'q-qppl'],
+    go: ['stage-adeo'],
+    springboot: ['q-intellib'],
+    python: ['q-wonders', 'q-totk'],
+    bash: ['q-agile'],
+    psql: ['q-3arbichat'],
+    github: ['q-wonders', 'q-totk', 'q-3arbichat', 'q-agile', 'stage-geonative', 'stage-adeo'],
+};
+
+(function initStatScreen() {
+    const screen = document.getElementById('statScreen');
+    if (!screen) return;
+    const radar = document.getElementById('statRadar');
+    const domainsEl = document.getElementById('statDomains');
+    const list = document.getElementById('statList');
+    const listLabel = document.getElementById('statListLabel');
+    const detail = document.getElementById('statDetail');
+    const section = document.getElementById('skills');
+    // écran étroit : la fiche monte du bas de l'écran au lieu d'occuper une colonne
+    const sheet = window.matchMedia('(max-width: 1099px)');
+    const backdrop = document.createElement('div');
+    backdrop.className = 'stat-backdrop';
+    backdrop.hidden = true;
+    document.body.appendChild(backdrop);
+
+    const keys = Object.keys(skillLevels).filter(k => skillData[k]).sort((a, b) => skillLevels[b] - skillLevels[a]);
+    const domainOf = (k) => SKILL_DOMAINS.find(d => d.skills.includes(k));
+    const avg = (d) => Math.round(d.skills.reduce((s, k) => s + (skillLevels[k] || 0), 0) / d.skills.length);
+    const tier = (lv) => (lv >= 85 ? tr('MAÎTRISÉ') : lv >= 75 ? tr('AVANCÉ') : lv >= 68 ? tr('CONFIRMÉ') : tr('OPÉRATIONNEL'));
+
+    let filter = null;
+    let selected = sheet.matches ? null : keys[0];
+
+    /* ---------- hexagone : échelle de 40 à 100 pour que les écarts se voient ---------- */
+    const NS = 'http://www.w3.org/2000/svg';
+    const CX = 170, CY = 150, R = 96;
+    const scale = (v) => Math.max(0, Math.min(1, (v - 40) / 60));
+    const angle = (i) => -Math.PI / 2 + (i * Math.PI * 2) / SKILL_DOMAINS.length;
+    const pt = (i, k) => [CX + Math.cos(angle(i)) * R * k, CY + Math.sin(angle(i)) * R * k];
+    const poly = (fn) => SKILL_DOMAINS.map((_, i) => pt(i, fn(i)).map(n => n.toFixed(1)).join(',')).join(' ');
+    const el = (tag, attrs = {}, parent = radar) => {
+        const node = document.createElementNS(NS, tag);
+        Object.entries(attrs).forEach(([a, v]) => node.setAttribute(a, v));
+        parent.appendChild(node);
+        return node;
+    };
+    const defs = el('defs');
+    const grad = el('radialGradient', { id: 'statFill', cx: '50%', cy: '50%', r: '60%' }, defs);
+    el('stop', { offset: '0%', class: 'sr-stop-a' }, grad);
+    el('stop', { offset: '100%', class: 'sr-stop-b' }, grad);
+    [0.25, 0.5, 0.75, 1].forEach(k => el('polygon', { class: 'sr-ring', points: poly(() => k) }));
+    const axes = SKILL_DOMAINS.map((d, i) => { const [x, y] = pt(i, 1); return el('line', { class: 'sr-axis', x1: CX, y1: CY, x2: x, y2: y }); });
+    const shape = el('g', { class: 'sr-shape' });
+    el('polygon', { class: 'sr-fill', points: poly(i => scale(avg(SKILL_DOMAINS[i]))) }, shape);
+    const dots = SKILL_DOMAINS.map((d, i) => { const [x, y] = pt(i, scale(avg(d))); return el('circle', { class: 'sr-dot', cx: x, cy: y, r: 3.6 }, shape); });
+    const marker = el('path', { class: 'sr-marker', d: 'M0 -6 6 0 0 6 -6 0z' });
+    const labels = SKILL_DOMAINS.map((d, i) => {
+        const [x, y] = pt(i, 1.22);
+        const anchor = Math.abs(x - CX) < 4 ? 'middle' : x > CX ? 'start' : 'end';
+        const g = el('g', { class: 'sr-label' });
+        const name = el('text', { x, y: y - 3, 'text-anchor': anchor }, g);
+        name.textContent = d.name.toUpperCase();
+        const val = el('text', { class: 'sr-val', x, y: y + 15, 'text-anchor': anchor }, g);
+        val.textContent = avg(d);
+        return g;
     });
-});
+    radar.setAttribute('aria-label', `${tr('Moyenne par domaine')} : ${SKILL_DOMAINS.map(d => `${d.name} ${avg(d)}`).join(', ')}`);
 
-skillModalClose.addEventListener('click', () => skillModal.classList.remove('open'));
-skillModal.addEventListener('click', (e) => {
-    if (e.target === skillModal) skillModal.classList.remove('open');
-});
+    /* ---------- domaines (filtres) ---------- */
+    const domainBtns = SKILL_DOMAINS.map((d) => {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'stat-domain';
+        b.setAttribute('aria-pressed', 'false');
+        b.innerHTML = '<span class="sd-name"></span><span class="sd-bar" aria-hidden="true"><i></i></span><b></b>';
+        b.querySelector('.sd-name').textContent = d.name;
+        b.querySelector('.sd-bar i').style.setProperty('--v', `${avg(d)}%`);
+        b.querySelector('b').textContent = avg(d);
+        b.addEventListener('click', () => setFilter(filter === d.id ? null : d.id));
+        li.appendChild(b);
+        domainsEl.appendChild(li);
+        return b;
+    });
+
+    /* ---------- liste ---------- */
+    const rows = keys.map((k) => {
+        const li = document.createElement('li');
+        li.className = 'stat-row';
+        li.id = `stat-${k}`;
+        li.dataset.skill = k;
+        li.setAttribute('role', 'option');
+        li.tabIndex = -1;
+        li.innerHTML = '<img alt="" loading="lazy" draggable="false"><span class="sr-name"></span><span class="sr-lv"><b></b></span>';
+        li.querySelector('img').src = skillData[k].img;
+        li.querySelector('.sr-name').textContent = SKILL_SHORT[k] || skillData[k].title;
+        li.querySelector('b').textContent = skillLevels[k];
+        li.addEventListener('click', () => select(k));
+        list.appendChild(li);
+        return li;
+    });
+
+    /* ---------- fiche détaillée ---------- */
+    const useLabel = (ref) => {
+        if (ref === 'portfolio') return tr('Ce portfolio');
+        if (ref.startsWith('stage-')) return tr('Stage %s').replace('%s', ref.slice(6).toUpperCase().replace('ESYSTEMS', 'E-SYSTEMS'));
+        return document.querySelector(`#${ref} h3`)?.textContent.trim() || ref;
+    };
+    const openUse = (ref) => {
+        if (ref.startsWith('q-')) {
+            showTab('work');
+            document.querySelector(`.quest-tab[aria-controls="${ref}"]`)?.click();
+        } else if (ref.startsWith('stage-')) {
+            showTab('experience');
+            setTimeout(() => toggleStageModal(ref), reduceMotion ? 0 : 250);
+        }
+    };
+
+    const renderDetail = () => {
+        const open = !!selected;
+        detail.hidden = !open;
+        backdrop.hidden = !(open && sheet.matches);
+        detail.classList.toggle('is-sheet', sheet.matches);
+        if (sheet.matches) {
+            detail.setAttribute('role', 'dialog');
+            detail.setAttribute('aria-modal', 'true');
+            detail.setAttribute('aria-labelledby', 'statDetailTitle');
+        } else {
+            ['role', 'aria-modal', 'aria-labelledby'].forEach(a => detail.removeAttribute(a));
+        }
+        if (!open) return;
+        const k = selected;
+        const d = domainOf(k);
+        const lv = skillLevels[k];
+        const uses = SKILL_USES[k] || [];
+        detail.innerHTML = `
+            <div class="sd-head">
+                <span class="sd-icon"><img alt="" draggable="false"></span>
+                <div>
+                    <p class="sd-domain"></p>
+                    <h3 class="sd-title" id="statDetailTitle"></h3>
+                </div>
+                <button class="sd-close" type="button"><i class="fas fa-times" aria-hidden="true"></i></button>
+            </div>
+            <div class="sd-level">
+                <p><b class="sd-num"></b><span>/ 100</span><em class="sd-tier"></em></p>
+                <div class="sd-gauge" aria-hidden="true"><i></i></div>
+            </div>
+            <p class="sd-desc"></p>
+            <div class="sd-uses"${uses.length ? '' : ' hidden'}>
+                <p class="stat-k"></p>
+                <ul></ul>
+            </div>
+            <p class="sd-hint" aria-hidden="true"></p>`;
+        detail.querySelector('.sd-icon img').src = skillData[k].img;
+        detail.querySelector('.sd-domain').textContent = d ? d.name.toUpperCase() : '';
+        detail.querySelector('.sd-title').textContent = skillData[k].title;
+        detail.querySelector('.sd-num').textContent = lv;
+        detail.querySelector('.sd-tier').textContent = tier(lv);
+        detail.querySelector('.sd-gauge i').style.setProperty('--v', `${lv}%`);
+        detail.querySelector('.sd-desc').textContent = skillData[k].desc;
+        detail.querySelector('.sd-uses .stat-k').textContent = tr('UTILISÉ DANS');
+        detail.querySelector('.sd-hint').textContent = sheet.matches ? '' : tr('↑ ↓ pour parcourir la liste');
+        const close = detail.querySelector('.sd-close');
+        close.setAttribute('aria-label', tr('Fermer'));
+        close.addEventListener('click', closeSheet);
+        const ul = detail.querySelector('.sd-uses ul');
+        uses.forEach((ref) => {
+            const li = document.createElement('li');
+            const clickable = ref !== 'portfolio';
+            const b = document.createElement(clickable ? 'button' : 'span');
+            b.className = 'stat-use';
+            if (clickable) {
+                b.type = 'button';
+                b.addEventListener('click', () => openUse(ref));
+            }
+            b.textContent = useLabel(ref);
+            li.appendChild(b);
+            ul.appendChild(li);
+        });
+        document.dispatchEvent(new CustomEvent('skillshow', { detail: k }));
+    };
+
+    // une compétence choisie : petit losange doré sur l'axe de son domaine
+    const renderRadar = () => {
+        const di = selected ? SKILL_DOMAINS.findIndex(d => d.skills.includes(selected)) : -1;
+        const fi = filter ? SKILL_DOMAINS.findIndex(d => d.id === filter) : -1;
+        axes.forEach((a, i) => a.classList.toggle('is-on', i === di || i === fi));
+        dots.forEach((c, i) => c.classList.toggle('is-on', i === fi));
+        labels.forEach((g, i) => g.classList.toggle('is-on', i === fi || (fi < 0 && i === di)));
+        marker.style.display = di < 0 ? 'none' : '';
+        if (di >= 0) {
+            const [x, y] = pt(di, scale(skillLevels[selected]));
+            marker.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+        }
+    };
+
+    const syncLock = () => {
+        // l'onglet ne défile pas s'il tient dans l'écran (voir lockIfFits) : on refait le calcul
+        if (section.classList.contains('is-active')) {
+            document.body.classList.toggle('lock-scroll', section.scrollHeight <= window.innerHeight + 1);
+        }
+    };
+
+    // une seule ligne atteignable avec Tab ; les flèches font le reste
+    const rowOf = (k) => (k ? document.getElementById(`stat-${k}`) : null);
+    const focusRow = (k) => {
+        const row = rowOf(k) || rows[0];
+        rows.forEach(r => { r.tabIndex = r === row ? 0 : -1; });
+        row.focus();
+    };
+
+    function select(k, { focus = false } = {}) {
+        selected = k;
+        rows.forEach(r => {
+            const on = r.dataset.skill === selected;
+            r.classList.toggle('is-selected', on);
+            r.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        if (selected) rows.forEach(r => { r.tabIndex = r.dataset.skill === selected ? 0 : -1; });
+        renderDetail();
+        renderRadar();
+        if (focus && selected) rowOf(selected)?.focus();
+        if (selected && sheet.matches) detail.querySelector('.sd-close')?.focus();
+        syncLock();
+    }
+
+    function closeSheet() {
+        if (!sheet.matches || !selected) return;
+        const k = selected;
+        select(null);
+        focusRow(k);
+    }
+    backdrop.addEventListener('click', closeSheet);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !detail.hidden && sheet.matches) closeSheet(); });
+
+    function setFilter(id) {
+        filter = id;
+        const d = SKILL_DOMAINS.find(x => x.id === id);
+        domainBtns.forEach((b, i) => b.setAttribute('aria-pressed', SKILL_DOMAINS[i].id === id ? 'true' : 'false'));
+        rows.forEach(r => r.classList.toggle('is-dim', !!d && !d.skills.includes(r.dataset.skill)));
+        listLabel.textContent = d
+            ? `${d.name.toUpperCase()} · ${d.skills.length} ${tr(d.skills.length > 1 ? 'compétences' : 'compétence')}`
+            : `${tr('TOUTES LES COMPÉTENCES')} · ${keys.length}`;
+        // on montre la meilleure compétence du domaine choisi
+        if (d && (!selected || !d.skills.includes(selected)) && !sheet.matches) {
+            select(keys.find(k => d.skills.includes(k)));
+        } else {
+            renderRadar();
+        }
+    }
+
+    // clavier : flèches, Début/Fin dans la liste (les lignes grisées sont sautées).
+    // Grand écran : la fiche suit la ligne. Écran étroit : Entrée ouvre la fiche.
+    list.addEventListener('keydown', (e) => {
+        const visible = rows.filter(r => !r.classList.contains('is-dim'));
+        const pool = visible.length ? visible : rows;
+        const here = e.target.closest('.stat-row');
+        const cur = pool.indexOf(here);
+        let next = -1;
+        if (e.key === 'ArrowDown') next = cur < 0 ? 0 : Math.min(pool.length - 1, cur + 1);
+        else if (e.key === 'ArrowUp') next = cur < 0 ? 0 : Math.max(0, cur - 1);
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = pool.length - 1;
+        else if ((e.key === 'Enter' || e.key === ' ') && here) {
+            e.preventDefault();
+            select(here.dataset.skill, { focus: !sheet.matches });
+            return;
+        }
+        if (next < 0) return;
+        e.preventDefault();
+        if (sheet.matches) focusRow(pool[next].dataset.skill);
+        else select(pool[next].dataset.skill, { focus: true });
+    });
+
+    // curseur cristal : grossit sur les éléments cliquables créés ici
+    screen.addEventListener('pointerover', (e) => { if (e.target.closest('.stat-row, button')) cursorDot?.classList.add('is-hover'); });
+    screen.addEventListener('pointerout', (e) => { if (e.target.closest('.stat-row, button')) cursorDot?.classList.remove('is-hover'); });
+
+    sheet.addEventListener('change', () => select(sheet.matches ? null : selected || keys[0]));
+
+    // l'hexagone se déploie à chaque ouverture de l'onglet
+    document.addEventListener('tabshow', (e) => {
+        if (e.detail !== 'skills') return;
+        screen.classList.remove('is-entering');
+        if (!reduceMotion) { void screen.offsetWidth; screen.classList.add('is-entering'); }
+        syncLock();
+    });
+
+    setFilter(null);
+    select(selected);
+    if (!selected) rows[0].tabIndex = 0;
+    window.statScreen = { select, setFilter };
+})();
+
 document.addEventListener('keydown', (e) => {
     // « x » ferme aussi les fenêtres, comme le bouton retour d'une manette… sauf quand on écrit
     if (e.key.toLowerCase() === 'x' && e.target.closest?.('input, textarea, [contenteditable]')) return;
     if (e.key === 'Escape' || e.key.toLowerCase() === 'x') {
-        skillModal.classList.remove('open');
         document.querySelectorAll('.stage-modal-overlay').forEach(m => m.classList.remove('active'));
         const cvModal = document.getElementById('cvModal');
         if (cvModal) cvModal.setAttribute('aria-hidden', 'true');
