@@ -3704,28 +3704,43 @@ const trueEnding = (() => {
         // (sans attendre la fin de la chanson). Mouvement réduit : générique fixe, qu'on ferme soi-même.
         let timer = 0;
         if (reduceMotion) timer = setTimeout(finish, 3000);
-        else requestAnimationFrame(() => {
-            const dist = Math.max(0, roll.offsetHeight - window.innerHeight * 0.55);
+        // les photos décodées d'abord : la hauteur du générique est alors connue
+        else Promise.all([...el.querySelectorAll('img')].map(i => i.decode().catch(() => { }))).then(() => requestAnimationFrame(() => {
+            if (!el.isConnected) return;
+            // le défilement s'arrête pile quand « FIN » est au centre de l'écran
+            const fin = el.querySelector('.credits-fin').getBoundingClientRect();
+            const dist = Math.max(0, fin.top + fin.height / 2 - window.innerHeight / 2);
             // lent, comme un vrai générique
             const dur = Math.max(90000, (dist / 50) * 1000);
             roll.style.transition = `transform ${dur}ms linear`;
             roll.style.transform = `translateY(${-dist}px)`;
-            timer = setTimeout(() => { finish(); close(); }, dur + 3500);
-        });
+            // « FIN » reste affiché, la chanson s'éteint en fondu, puis le générique se ferme
+            timer = setTimeout(() => {
+                finish();
+                fadeSong(5000);
+                timer = setTimeout(close, 6000);
+            }, dur + 1500);
+        }));
 
+        // fondu de la musique (le dernier fondu demandé l'emporte)
+        let fadeId = 0;
+        function fadeSong(ms) {
+            const id = ++fadeId;
+            const v0 = audio.volume;
+            const t0 = performance.now();
+            const step = () => {
+                if (id !== fadeId) return;
+                const k = Math.min(1, (performance.now() - t0) / ms);
+                audio.volume = v0 * (1 - k) * (1 - k);
+                if (k < 1) requestAnimationFrame(step); else audio.pause();
+            };
+            step();
+        }
         const close = () => {
             clearTimeout(timer);
             if (!done && performance.now() - opened > 15000) finish();
             el.classList.add('is-leaving');
-            // fondu de la musique
-            const v0 = audio.volume;
-            const t0 = performance.now();
-            const fade = () => {
-                const k = Math.min(1, (performance.now() - t0) / 900);
-                audio.volume = v0 * (1 - k);
-                if (k < 1) requestAnimationFrame(fade); else audio.pause();
-            };
-            fade();
+            fadeSong(900);
             setTimeout(() => { el.remove(); document.body.classList.remove('credits-open'); window.ost?.release('credits'); }, 900);
             document.removeEventListener('keydown', onKey);
         };
