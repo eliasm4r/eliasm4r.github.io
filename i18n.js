@@ -823,6 +823,7 @@ const EN = {
     "Ouvre la fiche du stage GEONATIVE : juste à côté de la date.": "Open the GEONATIVE internship card: right next to the date.",
     "Une relique ne se montre qu'à ceux qui s'attardent sur un diplôme.": "A relic only shows itself to those who linger on a diploma.",
     "Passe la souris sur la dernière carte de la page Parcours.": "Hover over the last card on the Education page.",
+    "Pluie d'étoiles ! (-4 MP)": "Starfall! (-4 MP)",
     "Sans leur drone, les sentinelles ralentissent !": "Without their drone, the sentinels slow down!",
     "Développement assisté par l'IA avec Claude (Claude Code) : découper un projet en tâches claires, guider l'agent, relire et tester ce qu'il produit. C'est ainsi qu'ont été construits ce portfolio et la recompilation PC de Wonders Beyond.": "AI-assisted development with Claude (Claude Code): breaking a project into clear tasks, steering the agent, reviewing and testing what it produces. That is how this portfolio and the PC recompilation of Wonders Beyond were built.",
     "Langage de script shell pour automatiser des tâches sur Linux : compilation, déploiement, gestion de fichiers et configuration d'environnements de développement.": "A shell scripting language to automate tasks on Linux: building, deploying, managing files and setting up development environments.",

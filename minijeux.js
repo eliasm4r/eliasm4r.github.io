@@ -2512,7 +2512,8 @@ const arena = (() => {
                 // phase 2 : soit il frappe, soit il se soigne, jamais les deux à la fois
                 if (s.phase === 2 && r < 0.09 && f.hp < f.max) healFoe(f, f, 150);
                 else if (s.phase === 2 && r < 0.18) hit(Math.round(s.php * 0.2), t('Trou noir ! Il dévore ta vie.')); else if (r < (s.phase === 2 ? 0.34 : 0.26)) charge(f, t('Le Dévoreur aspire la lumière des étoiles…'));
-                else if (r < 0.6) { s.pmp = Math.max(0, s.pmp - 8); hit(rand(35, 50), t('Pluie d\'étoiles')); }
+                // Pluie d'étoiles : vole 4 MP, plus rarement qu'avant (le reste du temps, Griffe du néant)
+                else if (r < 0.46) { s.pmp = Math.max(0, s.pmp - 4); hit(rand(35, 50), t('Pluie d\'étoiles ! (-4 MP)')); }
                 else hit(rand(50, 70), t('Griffe du néant'));
                 break;
             default:
