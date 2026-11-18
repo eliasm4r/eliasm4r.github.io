@@ -843,7 +843,7 @@ const chocoboRace = (() => {
             if (!spriteOk || Math.abs(x - P_X()) > H * 0.2) return;
             const fw = sprite.naturalWidth / FRAMES, fh = sprite.naturalHeight;
             const h = H * 0.24, w = h * (fw / fh);
-            const frame = state === 'run' && r.v > 1 ? Math.floor(r.m * 1.1 + r.i * 3) % FRAMES : 0;
+            const frame = state === 'run' && r.v > 1 ? (((Math.floor(r.m * 1.1 + r.i * 3) % FRAMES) + FRAMES) % FRAMES) : 0;
             c.save();
             c.globalAlpha = 0.45;
             c.filter = r.filter;
@@ -856,7 +856,7 @@ const chocoboRace = (() => {
         if (spriteOk) {
             const fw = sprite.naturalWidth / FRAMES, fh = sprite.naturalHeight;
             const h = H * 0.24, w = h * (fw / fh);
-            const frame = state === 'run' && r.v > 1 ? Math.floor(r.m * 1.1 + r.i * 3) % FRAMES : 0;
+            const frame = state === 'run' && r.v > 1 ? (((Math.floor(r.m * 1.1 + r.i * 3) % FRAMES) + FRAMES) % FRAMES) : 0;
             c.save();
             c.filter = r.filter;
             c.drawImage(sprite, frame * fw, 0, fw, fh, x - w * 0.5, G - h, w, h);
