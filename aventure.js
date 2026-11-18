@@ -1171,6 +1171,8 @@ const photoAlbum = (() => {
     // la page affichée au moment d'une 1re visite
     document.addEventListener('tabshow', (e) => snapPage(e.detail));
     document.addEventListener('game', (e) => { if (e.detail.type === 'visit') snapPage(document.querySelector('body > section.is-active')?.id); });
+    // la page d'arrivée s'est affichée avant que ce script ne charge : on la photographie aussi
+    snapPage(document.querySelector('body > section.is-active')?.id);
 
     // un exploit dans un mini-jeu : on photographie le jeu
     document.addEventListener('trophy', (e) => {
